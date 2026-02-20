@@ -38,9 +38,14 @@
                 
                 <div>
                     <label for="password" class="block text-gray-500 text-xs mb-2">PASSWORD:</label>
-                    <input type="password" id="password" name="password" required
-                        class="w-full bg-transparent border-b border-gray-700 text-white px-0 py-2 focus:outline-none focus:border-neon transition placeholder-gray-800"
-                        placeholder="••••••••">
+                    <div class="relative">
+                        <input type="password" id="password" name="password" required
+                            class="w-full bg-transparent border-b border-gray-700 text-white px-0 py-2 pr-8 focus:outline-none focus:border-neon transition placeholder-gray-800"
+                            placeholder="••••••••">
+                        <button type="button" onclick="toggleLoginPassword()" class="absolute right-0 top-2 text-gray-500 hover:text-white transition focus:outline-none" title="Mostrar/Ocultar Senha">
+                            <i id="eye-icon" class="fa-regular fa-eye text-sm"></i>
+                        </button>
+                    </div>
                 </div>
 
                 {% if enable_recaptcha %}
@@ -63,4 +68,21 @@
         </div>
     </div>
 </div>
+
+<script>
+    function toggleLoginPassword() {
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eye-icon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.classList.remove('fa-eye', 'fa-regular');
+            eyeIcon.classList.add('fa-eye-slash', 'fa-solid', 'text-neon');
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('fa-eye-slash', 'fa-solid', 'text-neon');
+            eyeIcon.classList.add('fa-eye', 'fa-regular');
+        }
+    }
+</script>
 {% endblock %}
