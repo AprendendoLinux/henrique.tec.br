@@ -145,6 +145,43 @@ async def delete_projeto(request: Request, projeto_id: int, db: Session = Depend
         db.commit()
     return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
 
+# --- ROTAS ADMIN (AÇÕES: EDITAR PROJETOS) ---
+@app.get("/admin/projetos/edit/{projeto_id}")
+async def edit_projeto_page(request: Request, projeto_id: int, db: Session = Depends(get_db)):
+    if not request.cookies.get("session_token"):
+        return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    
+    projeto = db.query(models.Projeto).filter(models.Projeto.id == projeto_id).first()
+    if not projeto:
+        return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+        
+    return templates.TemplateResponse("admin_edit_projeto.html", {"request": request, "projeto": projeto})
+
+@app.post("/admin/projetos/edit/{projeto_id}")
+async def edit_projeto_post(
+    request: Request,
+    projeto_id: int,
+    titulo: str = Form(...),
+    descricao: str = Form(...),
+    categoria: str = Form(...),
+    link_projeto: str = Form(None),
+    link_github: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    if not request.cookies.get("session_token"):
+        return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    
+    projeto = db.query(models.Projeto).filter(models.Projeto.id == projeto_id).first()
+    if projeto:
+        projeto.titulo = titulo
+        projeto.descricao = descricao
+        projeto.categoria = categoria
+        projeto.link_projeto = link_projeto if link_projeto else None
+        projeto.link_github = link_github if link_github else None
+        db.commit()
+        
+    return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+
 # --- ROTAS ADMIN (AÇÕES: CONTACTOS) ---
 @app.post("/admin/contatos/add")
 async def add_contato(

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Projeto | Henrique Fagundes{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-10 w-full flex-grow">
+    
+    <div class="mb-10">
+        <a href="/admin/dashboard" class="text-neon font-mono text-sm hover:underline"><- Voltar ao Painel</a>
+    </div>
+
+    <div class="glass-card p-6 md:p-8 rounded-xl border-l-2 border-l-accent">
+        <h2 class="text-2xl font-bold text-white mb-6 border-l-2 border-accent pl-3">Editar Projeto #00{{ projeto.id }}</h2>
+        
+        <form action="/admin/projetos/edit/{{ projeto.id }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+                <label class="block text-gray-400 text-xs font-mono mb-2">TÍTULO (Max 60 chars):</label>
+                <input type="text" name="titulo" value="{{ projeto.titulo }}" maxlength="60" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+            </div>
+            
+            <div class="md:col-span-2">
+                <label class="block text-gray-400 text-xs font-mono mb-2">DESCRIÇÃO (Max 160 chars):</label>
+                <textarea name="descricao" maxlength="160" rows="3" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition resize-none">{{ projeto.descricao }}</textarea>
+            </div>
+            
+            <div>
+                <label class="block text-gray-400 text-xs font-mono mb-2">CATEGORIA:</label>
+                <input type="text" name="categoria" value="{{ projeto.categoria }}" maxlength="50" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+            </div>
+            
+            <div>
+                <label class="block text-gray-400 text-xs font-mono mb-2">LINK DO PROJETO (Opcional):</label>
+                <input type="url" name="link_projeto" value="{{ projeto.link_projeto or '' }}" placeholder="https://..." class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+            </div>
+            
+            <div class="md:col-span-2">
+                <label class="block text-gray-400 text-xs font-mono mb-2">LINK DO GITHUB (Opcional):</label>
+                <input type="url" name="link_github" value="{{ projeto.link_github or '' }}" placeholder="https://github.com/..." class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+            </div>
+            
+            <div class="md:col-span-2 text-right mt-4">
+                <button type="submit" class="px-6 py-2 bg-accent text-white font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">>_ ATUALIZAR REGISTRO</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
