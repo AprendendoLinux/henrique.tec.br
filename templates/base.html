@@ -29,7 +29,6 @@
         
         body { background-color: #050505; color: #e5e5e5; }
         
-        /* Efeito de vidro fosco para os cards */
         .glass-card {
             background: rgba(255, 255, 255, 0.02);
             backdrop-filter: blur(16px);
@@ -41,7 +40,6 @@
             border-color: rgba(0, 255, 204, 0.3);
         }
         
-        /* Brilho futurista nos textos e botões */
         .glow-text { text-shadow: 0 0 15px rgba(0, 255, 204, 0.4); }
         .glow-border { box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
     </style>
@@ -79,24 +77,16 @@
             </div>
             
             <div class="flex flex-wrap justify-center md:justify-end gap-3">
-                <a href="https://wa.me/5521981176211" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-green-500 hover:text-darkbg transition text-gray-400">
-                    <span class="font-mono text-sm">WhatsApp</span>
+                {% for contato in contatos %}
+                <a href="{{ contato.url }}" target="_blank" class="p-3 bg-gray-900 rounded-lg {{ contato.cor_hover }} hover:text-darkbg transition text-gray-400">
+                    <span class="font-mono text-sm">
+                        {% if contato.icone %}<span class="mr-1">{{ contato.icone }}</span>{% endif %}
+                        {{ contato.nome }}
+                    </span>
                 </a>
-                <a href="https://t.me/caradolinux" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-blue-400 hover:text-darkbg transition text-gray-400">
-                    <span class="font-mono text-sm">Telegram</span>
-                </a>
-                <a href="https://facebook.com/HenFagundes" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-neon hover:text-darkbg transition text-gray-400">
-                    <span class="font-mono text-sm">Facebook</span>
-                </a>
-                <a href="https://twitter.com/hen_fagundes" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-neon hover:text-darkbg transition text-gray-400">
-                    <span class="font-mono text-sm">X/Twitter</span>
-                </a>
-                <a href="https://instagram.com/hen_fagundes" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-neon hover:text-darkbg transition text-gray-400">
-                    <span class="font-mono text-sm">Instagram</span>
-                </a>
-                <a href="https://www.linkedin.com/in/henfagundes" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-neon hover:text-darkbg transition text-gray-400">
-                    <span class="font-mono text-sm">LinkedIn</span>
-                </a>
+                {% else %}
+                <span class="text-gray-600 font-mono text-sm">Contatos em atualização.</span>
+                {% endfor %}
             </div>
         </div>
         <div class="text-center mt-12 text-gray-600 font-mono text-xs">

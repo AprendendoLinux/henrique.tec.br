@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Painel de Controle | Henrique Fagundes{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-10 w-full flex-grow">
+    
+    <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-gray-800 pb-6">
+        <div>
+            <span class="text-xs font-mono bg-neon text-darkbg px-2 py-1 rounded mb-2 inline-block">SESSÃO ATIVA</span>
+            <h1 class="text-3xl font-bold font-mono text-white glow-text">Painel de Controle_</h1>
+        </div>
+        <a href="/admin/logout" class="mt-4 md:mt-0 px-4 py-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-sm rounded transition">
+            [ EXIT / LOGOUT ]
+        </a>
+    </div>
+
+    <div class="flex space-x-2 border-b border-gray-800 mb-8 font-mono text-sm overflow-x-auto">
+        <button onclick="openTab('projetos')" id="btn-projetos" class="tab-btn px-6 py-3 text-neon border-b-2 border-neon bg-gray-900/50 transition">Projetos Ativos</button>
+        <button onclick="openTab('contatos')" id="btn-contatos" class="tab-btn px-6 py-3 text-gray-500 hover:text-gray-300 border-b-2 border-transparent transition">Contatos (Rodapé)</button>
+        <button onclick="openTab('usuarios')" id="btn-usuarios" class="tab-btn px-6 py-3 text-gray-500 hover:text-gray-300 border-b-2 border-transparent transition">Usuários</button>
+    </div>
+
+    <div id="tab-projetos" class="tab-content block">
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-10">
+            <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-neon pl-3">Cadastrar Novo Projeto</h2>
+            <form action="/admin/projetos/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-gray-400 text-xs font-mono mb-2">TÍTULO (Max 60 chars):</label>
+                    <input type="text" name="titulo" maxlength="60" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-gray-400 text-xs font-mono mb-2">DESCRIÇÃO (Max 160 chars):</label>
+                    <textarea name="descricao" maxlength="160" rows="2" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-xs font-mono mb-2">CATEGORIA (Ex: Corporativo):</label>
+                    <input type="text" name="categoria" maxlength="50" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-xs font-mono mb-2">LINK DO PROJETO (Opcional):</label>
+                    <input type="url" name="link_projeto" placeholder="https://..." class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-gray-400 text-xs font-mono mb-2">LINK DO GITHUB (Opcional):</label>
+                    <input type="url" name="link_github" placeholder="https://github.com/..." class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+                </div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="px-6 py-2 bg-neon text-darkbg font-bold font-mono rounded hover:bg-white transition">>_ SALVAR PROJETO</button>
+                </div>
+            </form>
+        </div>
+
+        <h2 class="text-xl font-bold text-white mb-4">Projetos Cadastrados</h2>
+        <div class="overflow-x-auto glass-card rounded-xl border border-gray-800">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-900 border-b border-gray-800 text-xs font-mono text-gray-400">
+                        <th class="p-4">ID</th>
+                        <th class="p-4">TÍTULO</th>
+                        <th class="p-4">CATEGORIA</th>
+                        <th class="p-4 text-center">AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-300">
+                    {% for proj in projetos %}
+                    <tr class="border-b border-gray-800/50 hover:bg-gray-900/30">
+                        <td class="p-4 font-mono">#00{{ proj.id }}</td>
+                        <td class="p-4">{{ proj.titulo }}</td>
+                        <td class="p-4 font-mono text-xs">{{ proj.categoria }}</td>
+                        <td class="p-4 text-center">
+                            <a href="/admin/projetos/delete/{{ proj.id }}" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="p-6 text-center text-gray-500 font-mono">Nenhum projeto encontrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-contatos" class="tab-content hidden">
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-accent">
+            <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-accent pl-3">Adicionar Contato (Rodapé)</h2>
+            <form action="/admin/contatos/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-gray-400 text-xs font-mono mb-2">NOME (Ex: WhatsApp):</label>
+                    <input type="text" name="nome" maxlength="50" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-xs font-mono mb-2">URL DO LINK:</label>
+                    <input type="url" name="url" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-xs font-mono mb-2">ÍCONE / EMOJI (Opcional, ex: 📱):</label>
+                    <input type="text" name="icone" maxlength="50" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-xs font-mono mb-2">COR HOVER (Tailwind, ex: hover:bg-green-500):</label>
+                    <input type="text" name="cor_hover" value="hover:bg-neon" maxlength="50" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+                </div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="px-6 py-2 bg-accent text-white font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">>_ SALVAR CONTATO</button>
+                </div>
+            </form>
+        </div>
+
+        <h2 class="text-xl font-bold text-white mb-4">Contatos Atuais (Max 10)</h2>
+        <div class="overflow-x-auto glass-card rounded-xl border border-gray-800">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-900 border-b border-gray-800 text-xs font-mono text-gray-400">
+                        <th class="p-4">ÍCONE</th>
+                        <th class="p-4">NOME</th>
+                        <th class="p-4">LINK</th>
+                        <th class="p-4 text-center">AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-300">
+                    {% for contato in contatos %}
+                    <tr class="border-b border-gray-800/50 hover:bg-gray-900/30">
+                        <td class="p-4">{{ contato.icone }}</td>
+                        <td class="p-4">{{ contato.nome }}</td>
+                        <td class="p-4 font-mono text-xs text-gray-500 truncate max-w-[200px]">{{ contato.url }}</td>
+                        <td class="p-4 text-center">
+                            <a href="/admin/contatos/delete/{{ contato.id }}" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="p-6 text-center text-gray-500 font-mono">Nenhum contato encontrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-usuarios" class="tab-content hidden">
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-yellow-500">
+            <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-yellow-500 pl-3">Registrar Novo Administrador</h2>
+            <form action="/admin/usuarios/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-gray-400 text-xs font-mono mb-2">LOGIN (Username):</label>
+                    <input type="text" name="username" maxlength="50" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition">
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-xs font-mono mb-2">SENHA:</label>
+                    <input type="password" name="password" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition">
+                </div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="px-6 py-2 bg-yellow-500 text-darkbg font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">>_ REGISTRAR USUÁRIO</button>
+                </div>
+            </form>
+        </div>
+
+        <h2 class="text-xl font-bold text-white mb-4">Credenciais de Acesso</h2>
+        <div class="overflow-x-auto glass-card rounded-xl border border-gray-800">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-900 border-b border-gray-800 text-xs font-mono text-gray-400">
+                        <th class="p-4">ID</th>
+                        <th class="p-4">LOGIN (Username)</th>
+                        <th class="p-4 text-center">AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-300">
+                    {% for user in usuarios %}
+                    <tr class="border-b border-gray-800/50 hover:bg-gray-900/30">
+                        <td class="p-4 font-mono text-xs">#00{{ user.id }}</td>
+                        <td class="p-4">{{ user.username }}</td>
+                        <td class="p-4 text-center">
+                            {% if user.username == 'admin' %}
+                            <span class="text-gray-600 font-mono text-xs cursor-not-allowed" title="Usuário mestre não pode ser apagado">Protegido</span>
+                            {% else %}
+                            <a href="/admin/usuarios/delete/{{ user.id }}" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function openTab(tabName) {
+        // Esconde todas as abas
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('block'));
+        
+        // Reseta o estilo de todos os botões
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('text-neon', 'border-neon', 'bg-gray-900/50');
+            btn.classList.add('text-gray-500', 'border-transparent');
+        });
+
+        // Mostra a aba clicada e aplica o estilo ao botão ativo
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
+        document.getElementById('tab-' + tabName).classList.add('block');
+        
+        const activeBtn = document.getElementById('btn-' + tabName);
+        activeBtn.classList.remove('text-gray-500', 'border-transparent');
+        activeBtn.classList.add('text-neon', 'border-neon', 'bg-gray-900/50');
+    }
+</script>
+{% endblock %}

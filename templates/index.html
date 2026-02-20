@@ -59,11 +59,26 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% for proj in projetos %}
-            <div class="glass-card p-6 rounded-xl border-l-2 {% if loop.index % 2 == 0 %}border-l-accent{% else %}border-l-neon{% endif %} flex flex-col">
-                <h3 class="text-lg font-bold text-white mb-2">{{ proj.titulo }}</h3>
-                <p class="text-sm text-gray-400 mb-4 flex-grow">{{ proj.descricao }}</p>
-                <div>
+            <div class="glass-card p-6 rounded-xl border-l-2 {% if loop.index % 2 == 0 %}border-l-accent{% else %}border-l-neon{% endif %} flex flex-col h-full">
+                <h3 class="text-lg font-bold text-white mb-2 truncate">{{ proj.titulo }}</h3>
+                <p class="text-sm text-gray-400 mb-6 flex-grow overflow-hidden">{{ proj.descricao }}</p>
+                
+                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-800/50 pt-4">
                     <span class="text-xs font-mono bg-gray-800 px-2 py-1 rounded text-gray-300">{{ proj.categoria }}</span>
+                    
+                    <div class="flex gap-2">
+                        {% if proj.link_github %}
+                        <a href="{{ proj.link_github }}" target="_blank" class="px-3 py-1 bg-gray-900 border border-gray-700 hover:border-white text-gray-300 hover:text-white text-xs font-mono rounded transition">
+                            <span class="mr-1">&lt;/&gt;</span> Código
+                        </a>
+                        {% endif %}
+                        
+                        {% if proj.link_projeto %}
+                        <a href="{{ proj.link_projeto }}" target="_blank" class="px-3 py-1 bg-accent/20 border border-accent/50 hover:bg-accent hover:text-white text-accent text-xs font-mono rounded transition glow-text">
+                            Ver Projeto ->
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             {% else %}
@@ -85,7 +100,7 @@
                 <span class="px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300 font-mono text-sm flex items-center hover:border-neon transition cursor-default">
                     <span class="text-neon mr-2">💳</span> Crédito (Todas)
                 </span>
-                <span class="px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300 font-mono text-sm flex items-center hover:border-neon transition cursor-default">
+                <span class="px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300 font-mono text-sm flex items-center hover:border-accent transition cursor-default">
                     <span class="text-accent mr-2">💳</span> Débito (Todas)
                 </span>
                 <span class="px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300 font-mono text-sm flex items-center hover:border-green-400 transition cursor-default">
@@ -106,5 +121,4 @@
             </div>
         </div>
     </section>
-
 {% endblock %}
