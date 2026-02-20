@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Request, Depends, Form, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from sqlalchemy.orm import Session
 import bcrypt
 import models
@@ -242,3 +242,11 @@ async def edit_usuario_post(
         db.commit()
         
     return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+
+@app.get("/robots.txt")
+async def robots():
+    return FileResponse("static/robots.txt", media_type="text/plain")
+
+@app.get("/sitemap.xml")
+async def sitemap():
+    return FileResponse("static/sitemap.xml", media_type="application/xml")
