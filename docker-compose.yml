@@ -16,6 +16,9 @@ services:
       - DB_PASSWORD=senha_segura
       - DB_NAME=henrique
       - ADMIN_PASSWORD=admin
+      - ENABLE_RECAPTCHA=True
+      - RECAPTCHA_SITE_KEY=fake_recaptcha_site_key_jkl012
+      - RECAPTCHA_SECRET_KEY=fake_recaptcha_secret_mno345
     restart: unless-stopped
 
   db:
