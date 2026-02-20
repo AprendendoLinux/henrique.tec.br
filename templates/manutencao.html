@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Computadores e Notebooks | Henrique Fagundes{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-16 w-full">
+    <a href="/#expertise" class="inline-flex items-center text-neon font-mono text-sm hover:text-white transition mb-10">
+        <span class="mr-2"><-</span> Retornar ao Terminal Principal
+    </a>
+    
+    <div class="mb-12 border-b border-gray-800/50 pb-8">
+        <span class="text-xs font-mono bg-gray-900 border border-gray-700 px-3 py-1 rounded-full text-gray-300 mb-6 inline-block">
+            Suporte Técnico Especializado
+        </span>
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white leading-tight border-l-4 border-neon pl-4">
+            Computadores e Dispositivos
+        </h1>
+        <p class="mt-6 text-gray-400 text-lg leading-relaxed">
+            Atendimento técnico focado em garantir a máxima performance, estabilidade e longevidade dos seus equipamentos. Tenho as soluções adequadas para resolver desde gargalos de lentidão e falhas no sistema até a recuperação de dados críticos.
+        </p>
+    </div>
+
+    <div class="space-y-8 mt-12">
+        
+        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-accent relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-accent opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
+            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
+                <span class="text-accent mr-3">🖥️</span> Manutenção Física (Apenas Desktops)
+            </h3>
+            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
+                <p>
+                    Serviço de hardware exclusivo para <strong>Computadores de Mesa (PCs)</strong>. Realizo a checagem completa dos componentes para minimizar riscos de falhas elétricas e perda de dados, garantindo que a máquina opere na temperatura e velocidade ideais.
+                </p>
+                <ul class="space-y-2 mt-4">
+                    <li class="flex items-start"><span class="text-neon mr-2">▹</span> <strong>Upgrades de Performance:</strong>&nbsp;Instalação de SSDs, aumento de memória RAM e troca de processadores.</li>
+                    <li class="flex items-start"><span class="text-neon mr-2">▹</span> <strong>Substituição de Hardware:</strong>&nbsp;Troca de peças antigas, defeituosas ou fontes de alimentação.</li>
+                    <li class="flex items-start"><span class="text-neon mr-2">▹</span> <strong>Limpeza Preventiva:</strong>&nbsp;Higienização interna completa de gabinetes, ventoinhas e troca de pasta térmica.</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-neon relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-neon opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
+            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
+                <span class="text-neon mr-3">💻</span> Manutenção Lógica (Notebooks e Smartphones)
+            </h3>
+            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
+                <p>
+                    Para <strong>Notebooks e Smartphones</strong>, o atendimento é estritamente focado no sistema operacional e software (manutenção lógica). Soluciono problemas de travamentos, lentidão extrema e falhas de inicialização sem a necessidade de abrir o aparelho.
+                </p>
+                <ul class="space-y-2 mt-4">
+                    <li class="flex items-start"><span class="text-neon mr-2">▹</span> <strong>Sistemas Operacionais:</strong>&nbsp;Formatação, instalação, atualização e reparo de sistemas.</li>
+                    <li class="flex items-start"><span class="text-neon mr-2">▹</span> <strong>Otimização de Desempenho:</strong>&nbsp;Softwares e rotinas para análises profundas e aumento da velocidade do dispositivo.</li>
+                    <li class="flex items-start"><span class="text-neon mr-2">▹</span> <strong>Instalações:</strong>&nbsp;Configuração de softwares em geral, pacotes de escritório e aplicativos essenciais.</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-accent relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-accent opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
+            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
+                <span class="text-accent mr-3">🛡️</span> Segurança e Recuperação de Dados
+            </h3>
+            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
+                <p>
+                    A proteção das suas informações é prioridade. Ofereço suporte completo para blindar seus dispositivos contra ameaças virtuais e garantir que seus arquivos mais importantes estejam sempre a salvo.
+                </p>
+                <ul class="space-y-2 mt-4">
+                    <li class="flex items-start"><span class="text-neon mr-2">▹</span> <strong>Desinfecção:</strong>&nbsp;Remoção agressiva de vírus, malwares, spywares e ransomwares.</li>
+                    <li class="flex items-start"><span class="text-neon mr-2">▹</span> <strong>Recuperação:</strong>&nbsp;Resgate de arquivos deletados acidentalmente ou perdidos em discos corrompidos.</li>
+                    <li class="flex items-start"><span class="text-neon mr-2">▹</span> <strong>Prevenção:</strong>&nbsp;Configuração de rotinas de backup automáticas (arquivos e e-mails) e verificação de integridade de rede.</li>
+                </ul>
+            </div>
+        </article>
+
+    </div>
+</div>
+{% endblock %}

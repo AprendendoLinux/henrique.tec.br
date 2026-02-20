@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Henrique Fagundes | Soluções em Informática{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#050505',
+                        panel: '#111111',
+                        neon: '#00ffcc',
+                        accent: '#3b82f6'
+                    },
+                    fontFamily: {
+                        mono: ['"Fira Code"', 'monospace'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;800&display=swap');
+        
+        body { background-color: #050505; color: #e5e5e5; }
+        
+        /* Efeito de vidro fosco para os cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 204, 0.3);
+        }
+        
+        /* Brilho futurista nos textos e botões */
+        .glow-text { text-shadow: 0 0 15px rgba(0, 255, 204, 0.4); }
+        .glow-border { box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-neon selection:text-darkbg min-h-screen flex flex-col">
+
+    <nav class="w-full p-6 border-b border-gray-800 glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center">
+            <a href="/" class="text-xl font-bold font-mono text-neon glow-text">~/henrique.tec.br_</a>
+            
+            <button id="menu-toggle" class="md:hidden text-gray-400 hover:text-neon focus:outline-none">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <div id="menu-links" class="hidden w-full md:flex md:w-auto md:space-x-6 text-sm font-mono text-gray-400 mt-6 md:mt-0 flex-col md:flex-row space-y-4 md:space-y-0 text-center md:text-left border-t border-gray-800 pt-4 md:border-0 md:pt-0">
+                <a href="/#expertise" class="hover:text-neon transition">./serviços</a>
+                <a href="/#projetos" class="hover:text-neon transition">./projetos</a>
+                <a href="#contato" class="hover:text-neon transition block md:inline">./contato</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer id="contato" class="w-full border-t border-gray-800 mt-auto py-12 glass-card">
+        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center text-center md:text-left">
+            <div>
+                <h2 class="text-2xl font-bold font-mono text-white mb-2">Estabelecer Contato_</h2>
+                <p class="text-gray-400 text-sm mb-6">Pronto para modernizar sua infraestrutura ou necessita de suporte técnico especializado?</p>
+                <a href="mailto:henrique@henrique.tec.br" class="text-neon font-mono hover:underline inline-block mb-4">henrique@henrique.tec.br</a>
+            </div>
+            
+            <div class="flex flex-wrap justify-center md:justify-end gap-3">
+                <a href="https://wa.me/5521981176211" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-green-500 hover:text-darkbg transition text-gray-400">
+                    <span class="font-mono text-sm">WhatsApp</span>
+                </a>
+                <a href="https://t.me/caradolinux" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-blue-400 hover:text-darkbg transition text-gray-400">
+                    <span class="font-mono text-sm">Telegram</span>
+                </a>
+                <a href="https://facebook.com/HenFagundes" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-neon hover:text-darkbg transition text-gray-400">
+                    <span class="font-mono text-sm">Facebook</span>
+                </a>
+                <a href="https://twitter.com/hen_fagundes" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-neon hover:text-darkbg transition text-gray-400">
+                    <span class="font-mono text-sm">X/Twitter</span>
+                </a>
+                <a href="https://instagram.com/hen_fagundes" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-neon hover:text-darkbg transition text-gray-400">
+                    <span class="font-mono text-sm">Instagram</span>
+                </a>
+                <a href="https://www.linkedin.com/in/henfagundes" target="_blank" class="p-3 bg-gray-900 rounded-lg hover:bg-neon hover:text-darkbg transition text-gray-400">
+                    <span class="font-mono text-sm">LinkedIn</span>
+                </a>
+            </div>
+        </div>
+        <div class="text-center mt-12 text-gray-600 font-mono text-xs">
+            <p>&copy; 2026 Henrique Fagundes. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        const btn = document.getElementById('menu-toggle');
+        const menu = document.getElementById('menu-links');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        });
+    </script>
+</body>
+</html>

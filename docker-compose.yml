@@ -1,0 +1,43 @@
+
+services:
+  web:
+    build: .
+    container_name: henrique_tec_br_web
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=henrique
+      - DB_PASSWORD=senha_segura
+      - DB_NAME=henriquetec
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  db:
+    image: mysql:latest
+    container_name: henrique_tec_br_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_forte
+      MYSQL_DATABASE: henriquetec
+      MYSQL_USER: henrique
+      MYSQL_PASSWORD: senha_segura
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+
+volumes:
+  mysql_data:

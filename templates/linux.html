@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Servidores Linux | Henrique Fagundes{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-16 w-full">
+    <a href="/#expertise" class="inline-flex items-center text-neon font-mono text-sm hover:text-white transition mb-10">
+        <span class="mr-2"><-</span> Retornar ao Terminal Principal
+    </a>
+    
+    <div class="mb-12 border-b border-gray-800/50 pb-8">
+        <span class="text-xs font-mono bg-gray-900 border border-gray-700 px-3 py-1 rounded-full text-gray-300 mb-6 inline-block">
+            Infraestrutura Avançada
+        </span>
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white leading-tight border-l-4 border-neon pl-4">
+            Servidores Linux
+        </h1>
+        <p class="mt-6 text-gray-400 text-lg leading-relaxed">
+            Soluções específicas e sob medida para cada empresa, dependendo das suas necessidades operacionais. Conheça abaixo algumas das soluções baseadas em sistemas Linux (como Debian, Ubuntu Server e AlmaLinux) que posso desenhar e implementar.
+        </p>
+    </div>
+
+    <div class="space-y-8 mt-12">
+        
+        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-accent relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-accent opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
+            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
+                <span class="text-accent mr-3">🌐</span> Servidores Web e Proxy Reverso
+            </h3>
+            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
+                <p>
+                    A combinação de servidores Web robustos (como <strong>Nginx</strong> e <strong>Apache</strong>) com Proxies Reversos garante uma entrega de conteúdo extremamente rápida e segura. Permite o balanceamento de carga, hospedagem de múltiplas aplicações no mesmo servidor de forma isolada (via <strong>Docker</strong>) e a gestão automatizada de certificados SSL/TLS (Let's Encrypt).
+                </p>
+                <p>
+                    O Proxy funciona otimizando e controlando o acesso. As páginas e requisições frequentemente visitadas podem ser armazenadas em cache no servidor, proporcionando muito mais rapidez de acesso e menor consumo de largura de banda do seu link de internet, garantindo alta performance para sistemas internos e externos.
+                </p>
+            </div>
+        </article>
+
+        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-neon relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-neon opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
+            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
+                <span class="text-neon mr-3">🛡️</span> Firewall e Controle de Acesso
+            </h3>
+            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
+                <p>
+                    Serviço de controle de acesso à rede interna da empresa, garantindo a proteção dos dados armazenados em servidores e estações de trabalho. A solução possibilita restringir o acesso a serviços com a utilização da mais avançada tecnologia de filtragem de pacotes (como <strong>iptables</strong>, <strong>nftables</strong> e <strong>UFW</strong>).
+                </p>
+                <p>
+                    Com integração a sistemas de prevenção de intrusões (como o <strong>Fail2Ban</strong>), o servidor atua de forma proativa, bloqueando automaticamente ataques de força bruta e tentativas de violação, fornecendo um registro detalhado que contribui para a definição de novas regras de proteção perimetral.
+                </p>
+            </div>
+        </article>
+
+        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-accent relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-accent opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
+            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
+                <span class="text-accent mr-3">🗄️</span> Servidores de Banco de Dados
+            </h3>
+            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
+                <p>
+                    O desempenho de uma aplicação depende diretamente da resposta do seu motor de dados. Soluções como <strong>MySQL</strong>, <strong>MariaDB</strong> e <strong>PostgreSQL</strong> requerem configurações específicas para o tipo de aplicação e perfil de uso.
+                </p>
+                <p>
+                    Não existe uma configuração padrão que garanta o melhor desempenho universal. Por isso, ofereço consultoria especializada no <em>tuning</em> do servidor (otimização de parâmetros de memória e I/O) para extrair o máximo de performance do hardware disponível, aliado à implementação de rotinas rigorosas de backup automatizado.
+                </p>
+            </div>
+        </article>
+
+        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-neon relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-neon opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
+            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
+                <span class="text-neon mr-3">✉️</span> Correio Eletrônico e Anti-Spam
+            </h3>
+            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
+                <p>
+                    Projeto e migração de plataformas, com implementação de correio corporativo próprio (IMAP, POP3 e SMTP) utilizando pilhas de alta confiabilidade (<strong>Postfix</strong> e <strong>Dovecot</strong>). Acesso facilitado através de interfaces Webmail modernas.
+                </p>
+                <p>
+                    Toda mensagem recebida é analisada por sistemas avançados de filtragem. Soluções modernas como <strong>Rspamd</strong> e <strong>ClamAV</strong> analisam as mensagens em tempo real através de inteligência heurística, identificando padrões de SPAM e removendo vírus ou anexos perigosos antes mesmo de chegarem à caixa de entrada do usuário. O sistema "aprende" com o tráfego diário, tornando-se progressivamente mais rigoroso contra ameaças e evitando falsos-positivos.
+                </p>
+            </div>
+        </article>
+
+    </div>
+</div>
+{% endblock %}
