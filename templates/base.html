@@ -81,7 +81,12 @@
                 <a href="/#expertise" class="hover:text-neon transition">./serviços</a>
                 <a href="/#projetos" class="hover:text-neon transition">./projetos</a>
                 <a href="#contato" class="hover:text-neon transition block md:inline">./contato</a>
-                <a href="/admin" class="hover:text-accent transition block md:inline">./login</a>
+                
+                {% if request.cookies.get("session_token") %}
+                <a href="/admin/logout" class="text-red-500 hover:text-red-400 transition block md:inline">./sair</a>
+                {% else %}
+                <a href="/admin" class="hover:text-neon transition block md:inline">./login</a>
+                {% endif %}
             </div>
         </div>
     </nav>

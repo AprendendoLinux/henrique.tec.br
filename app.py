@@ -189,7 +189,8 @@ async def admin_login_post(
         return response
 
     # 1.5 NOVO: Verifica se o dispositivo possui o passaporte de confiança de 30 dias
-    if request.cookies.get("trusted_device") == user.username:
+    # CORREÇÃO DE SEGURANÇA: Só aceita pular o 2FA se o usuário ainda tiver o 2FA ativo no banco!
+    if request.cookies.get("trusted_device") == user.username and user.is_2fa_enabled:
         response = RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
         response.set_cookie(key="session_token", value=user.username, httponly=True)
         return response
@@ -284,13 +285,22 @@ async def admin_2fa_verify_post(request: Request, code: str = Form(...), db: Ses
 
 @app.get("/admin/usuarios/disable_2fa/{usuario_id}")
 async def disable_2fa(request: Request, usuario_id: int, db: Session = Depends(get_db)):
-    if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    current_user = request.cookies.get("session_token")
+    if not current_user: return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    
     user = db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
+    response = RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+    
     if user and user.username != 'admin':
         user.is_2fa_enabled = False
         user.totp_secret = None
         db.commit()
-    return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+        
+        # Se o usuário estiver revogando o próprio 2FA, apaga ativamente o cookie do navegador dele
+        if user.username == current_user:
+            response.delete_cookie("trusted_device")
+            
+    return response
 
 @app.get("/admin/logout")
 async def admin_logout():
