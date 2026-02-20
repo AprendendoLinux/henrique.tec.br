@@ -24,3 +24,9 @@ class Usuario(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True)
     password_hash = Column(String(255)) # Guardará a senha criptografada
+
+class WhatsappConfig(Base):
+    __tablename__ = "whatsapp_config"
+    id = Column(Integer, primary_key=True, index=True)
+    numero = Column(String(50))
+    mensagem = Column(String(255))

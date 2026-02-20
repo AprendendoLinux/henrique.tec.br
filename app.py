@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 from fastapi import FastAPI, Request, Depends, Form, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -27,6 +28,16 @@ def validar_senha_forte(senha: str) -> bool:
     if not any(not c.isalnum() for c in senha): return False
     return True
 
+# --- UTILITÁRIO DO WHATSAPP ---
+def get_whatsapp_url(db: Session):
+    wp = db.query(models.WhatsappConfig).first()
+    if wp and wp.numero:
+        numero_limpo = ''.join(filter(str.isdigit, wp.numero))
+        msg = urllib.parse.quote(wp.mensagem or "")
+        # AQUI ESTÁ A MUDANÇA PARA O LINK DO WHATSAPP WEB
+        return f"https://web.whatsapp.com/send?phone={numero_limpo}&text={msg}"
+    return None
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Henrique.tec.br", description="Infraestrutura e Sistemas")
@@ -34,10 +45,9 @@ app = FastAPI(title="Henrique.tec.br", description="Infraestrutura e Sistemas")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# --- CAPTURA A VERSÃO DO DOCKER ---
 APP_VERSION = os.environ.get("APP_VERSION", "dev-local")
 
-# --- STARTUP: BLINDAGEM DO ADMIN VIA DOCKER ---
+# --- STARTUP ---
 @app.on_event("startup")
 def startup_event():
     db = next(get_db())
@@ -49,6 +59,11 @@ def startup_event():
         db.add(admin_user)
     else:
         admin_user.password_hash = get_password_hash(admin_pwd)
+        
+    if not db.query(models.WhatsappConfig).first():
+        wp_config = models.WhatsappConfig(numero="5500000000000", mensagem="Olá! Gostaria de falar sobre Infraestrutura e Sistemas.")
+        db.add(wp_config)
+        
     db.commit()
 
 # --- ROTAS PÚBLICAS ---
@@ -56,22 +71,26 @@ def startup_event():
 async def read_root(request: Request, db: Session = Depends(get_db)):
     projetos = db.query(models.Projeto).all()
     contatos = db.query(models.Contato).limit(10).all()
-    return templates.TemplateResponse("index.html", {"request": request, "projetos": projetos, "contatos": contatos, "version": APP_VERSION})
+    wp_url = get_whatsapp_url(db)
+    return templates.TemplateResponse("index.html", {"request": request, "projetos": projetos, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
 
 @app.get("/servicos/linux")
 async def servicos_linux(request: Request, db: Session = Depends(get_db)):
     contatos = db.query(models.Contato).limit(10).all()
-    return templates.TemplateResponse("linux.html", {"request": request, "contatos": contatos, "version": APP_VERSION})
+    wp_url = get_whatsapp_url(db)
+    return templates.TemplateResponse("linux.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
 
 @app.get("/servicos/mikrotik")
 async def servicos_mikrotik(request: Request, db: Session = Depends(get_db)):
     contatos = db.query(models.Contato).limit(10).all()
-    return templates.TemplateResponse("mikrotik.html", {"request": request, "contatos": contatos, "version": APP_VERSION})
+    wp_url = get_whatsapp_url(db)
+    return templates.TemplateResponse("mikrotik.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
 
 @app.get("/servicos/manutencao")
 async def servicos_manutencao(request: Request, db: Session = Depends(get_db)):
     contatos = db.query(models.Contato).limit(10).all()
-    return templates.TemplateResponse("manutencao.html", {"request": request, "contatos": contatos, "version": APP_VERSION})
+    wp_url = get_whatsapp_url(db)
+    return templates.TemplateResponse("manutencao.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
 
 # --- ROTAS ADMIN (AUTENTICAÇÃO) ---
 @app.get("/admin")
@@ -96,7 +115,7 @@ async def admin_logout():
     response.delete_cookie("session_token")
     return response
 
-# --- ROTAS ADMIN (PAINEL E PROJETOS/CONTATOS INALTERADOS) ---
+# --- ROTAS ADMIN (PAINEL GERAL) ---
 @app.get("/admin/dashboard")
 async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     current_user = request.cookies.get("session_token")
@@ -106,11 +125,29 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     projetos = db.query(models.Projeto).all()
     contatos = db.query(models.Contato).limit(10).all()
     usuarios = db.query(models.Usuario).all()
+    wp_config = db.query(models.WhatsappConfig).first()
     
     return templates.TemplateResponse("admin_dashboard.html", {
-        "request": request, "projetos": projetos, "contatos": contatos, "usuarios": usuarios, "current_user": current_user, "version": APP_VERSION
+        "request": request, "projetos": projetos, "contatos": contatos, "usuarios": usuarios, 
+        "wp_config": wp_config, "current_user": current_user, "version": APP_VERSION
     })
 
+# --- ROTAS ADMIN (WHATSAPP) ---
+@app.post("/admin/whatsapp/edit")
+async def edit_whatsapp(request: Request, numero: str = Form(...), mensagem: str = Form(...), db: Session = Depends(get_db)):
+    if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    
+    wp = db.query(models.WhatsappConfig).first()
+    if wp:
+        wp.numero = numero
+        wp.mensagem = mensagem
+    else:
+        wp = models.WhatsappConfig(numero=numero, mensagem=mensagem)
+        db.add(wp)
+    db.commit()
+    return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+
+# --- ROTAS ADMIN (AÇÕES: PROJETOS, CONTATOS E USUÁRIOS) ---
 @app.post("/admin/projetos/add")
 async def add_projeto(request: Request, titulo: str = Form(...), descricao: str = Form(...), categoria: str = Form(...), link_projeto: str = Form(None), link_github: str = Form(None), db: Session = Depends(get_db)):
     if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
@@ -174,23 +211,11 @@ async def edit_contato_post(request: Request, contato_id: int, nome: str=Form(..
         db.commit()
     return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
 
-# --- ROTAS ADMIN (AÇÕES: UTILIZADORES COM NOVAS REGRAS) ---
 @app.post("/admin/usuarios/add")
-async def add_usuario(
-    request: Request,
-    username: str = Form(...),
-    password: str = Form(...),
-    confirm_password: str = Form(...),
-    db: Session = Depends(get_db)
-):
+async def add_usuario(request: Request, username: str = Form(...), password: str = Form(...), confirm_password: str = Form(...), db: Session = Depends(get_db)):
     if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
-    
-    if password != confirm_password:
-        return RedirectResponse(url="/admin/dashboard?erro_user=senhas_diferentes", status_code=status.HTTP_302_FOUND)
-        
-    if not validar_senha_forte(password):
-        return RedirectResponse(url="/admin/dashboard?erro_user=senha_fraca", status_code=status.HTTP_302_FOUND)
-
+    if password != confirm_password: return RedirectResponse(url="/admin/dashboard?erro_user=senhas_diferentes", status_code=status.HTTP_302_FOUND)
+    if not validar_senha_forte(password): return RedirectResponse(url="/admin/dashboard?erro_user=senha_fraca", status_code=status.HTTP_302_FOUND)
     existe = db.query(models.Usuario).filter(models.Usuario.username == username).first()
     if not existe:
         novo_usuario = models.Usuario(username=username, password_hash=get_password_hash(password))
@@ -202,53 +227,34 @@ async def add_usuario(
 async def delete_usuario(request: Request, usuario_id: int, db: Session = Depends(get_db)):
     current_user = request.cookies.get("session_token")
     if not current_user: return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
-    
     usuario = db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
-    
     if usuario and usuario.username != 'admin' and usuario.username != current_user:
-        db.delete(usuario)
-        db.commit()
+        db.delete(usuario); db.commit()
     return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
 
 @app.get("/admin/usuarios/edit/{usuario_id}")
 async def edit_usuario_page(request: Request, usuario_id: int, db: Session = Depends(get_db)):
     if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
-    
     usuario = db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
-    if not usuario or usuario.username == 'admin':
-        return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
-        
+    if not usuario or usuario.username == 'admin': return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
     return templates.TemplateResponse("admin_edit_usuario.html", {"request": request, "usuario": usuario, "version": APP_VERSION})
 
 @app.post("/admin/usuarios/edit/{usuario_id}")
-async def edit_usuario_post(
-    request: Request,
-    usuario_id: int,
-    password: str = Form(...),
-    confirm_password: str = Form(...),
-    db: Session = Depends(get_db)
-):
+async def edit_usuario_post(request: Request, usuario_id: int, password: str = Form(...), confirm_password: str = Form(...), db: Session = Depends(get_db)):
     if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
-    
-    if password != confirm_password:
-        return RedirectResponse(url=f"/admin/usuarios/edit/{usuario_id}?erro=senhas_diferentes", status_code=status.HTTP_302_FOUND)
-        
-    if not validar_senha_forte(password):
-        return RedirectResponse(url=f"/admin/usuarios/edit/{usuario_id}?erro=senha_fraca", status_code=status.HTTP_302_FOUND)
-
+    if password != confirm_password: return RedirectResponse(url=f"/admin/usuarios/edit/{usuario_id}?erro=senhas_diferentes", status_code=status.HTTP_302_FOUND)
+    if not validar_senha_forte(password): return RedirectResponse(url=f"/admin/usuarios/edit/{usuario_id}?erro=senha_fraca", status_code=status.HTTP_302_FOUND)
     usuario = db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
     if usuario and usuario.username != 'admin':
         usuario.password_hash = get_password_hash(password)
         db.commit()
-        
     return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
 
+# --- ROTAS SEO ---
 @app.get("/robots.txt")
 async def robots(request: Request):
-    # Renderiza como template e força o formato "text/plain"
     return templates.TemplateResponse("robots.txt", {"request": request}, media_type="text/plain")
 
 @app.get("/sitemap.xml")
 async def sitemap(request: Request):
-    # Renderiza como template e força o formato "application/xml"
     return templates.TemplateResponse("sitemap.xml", {"request": request}, media_type="application/xml")
