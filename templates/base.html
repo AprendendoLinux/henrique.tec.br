@@ -132,10 +132,22 @@
     <script>
         const btn = document.getElementById('menu-toggle');
         const menu = document.getElementById('menu-links');
+        const links = menu.querySelectorAll('a');
 
+        // Abre/fecha o menu ao clicar no botão hambúrguer
         btn.addEventListener('click', () => {
             menu.classList.toggle('hidden');
             menu.classList.toggle('flex');
+        });
+
+        // Fecha o menu automaticamente ao clicar em qualquer link (Modo Mobile)
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                if (!menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                    menu.classList.remove('flex');
+                }
+            });
         });
     </script>
 </body>
