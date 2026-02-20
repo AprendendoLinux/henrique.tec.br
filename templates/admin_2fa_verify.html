@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Verificação 2FA | Henrique Fagundes{% endblock %}
+{% block content %}
+<div class="flex-grow flex items-center justify-center px-6 py-20">
+    <div class="w-full max-w-sm bg-[#0a0a0a] border border-gray-800 rounded-lg shadow-[0_0_30px_rgba(0,255,204,0.05)] overflow-hidden font-mono">
+        
+        <div class="bg-[#111] px-4 py-3 border-b border-gray-800 flex items-center">
+            <div class="mx-auto text-xs text-yellow-500 tracking-wider">AWAITING_TOTP_CODE</div>
+        </div>
+
+        <div class="p-6 md:p-8 text-center">
+            <i class="fa-solid fa-shield-halved text-4xl text-neon mb-4"></i>
+            <h2 class="text-xl font-bold text-white mb-2">>_ Autenticador</h2>
+            <p class="text-gray-400 text-xs mb-8">Insira o código de 6 dígitos gerado pelo seu aplicativo autenticador.</p>
+
+            <form action="/admin/2fa-verify" method="POST" class="space-y-4 text-left">
+                <div>
+                    <input type="text" name="code" required maxlength="6" autocomplete="off" autofocus
+                        class="w-full bg-transparent border border-gray-700 text-neon px-4 py-3 rounded focus:outline-none focus:border-neon transition placeholder-gray-800 text-center tracking-[0.5em] text-2xl"
+                        placeholder="••••••">
+                </div>
+
+                <div class="flex items-center justify-center mt-4 mb-2">
+                    <input type="checkbox" id="trust_device" name="trust_device" class="w-4 h-4 accent-neon bg-[#111] border-gray-700 rounded">
+                    <label for="trust_device" class="ml-2 text-gray-500 text-xs cursor-pointer hover:text-gray-300">Lembrar por 30 dias</label>
+                </div>
+
+                {% if erro %}
+                <div class="text-red-500 text-xs bg-red-900/20 border border-red-900 p-2 rounded text-center">
+                    [!] ERRO: Código incorreto ou expirado.
+                </div>
+                {% endif %}
+
+                <button type="submit" class="w-full py-3 bg-transparent border border-neon text-neon hover:bg-neon hover:text-darkbg transition font-bold tracking-widest text-sm mt-2">
+                    >_ VERIFICAR
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean
 from database import Base
 
 class Projeto(Base):
@@ -18,12 +18,13 @@ class Contato(Base):
     icone = Column(String(50))
     cor_hover = Column(String(50))
 
-# --- NOVA TABELA DE USUÁRIOS ---
 class Usuario(Base):
     __tablename__ = "usuarios"
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True)
-    password_hash = Column(String(255)) # Guardará a senha criptografada
+    password_hash = Column(String(255))
+    totp_secret = Column(String(32), nullable=True)     # Guarda a semente do Google Authenticator
+    is_2fa_enabled = Column(Boolean, default=False)     # Marca se ele já confirmou o código
 
 class WhatsappConfig(Base):
     __tablename__ = "whatsapp_config"

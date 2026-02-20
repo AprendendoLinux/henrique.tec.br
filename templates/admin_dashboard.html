@@ -285,7 +285,7 @@
                     <tr class="bg-gray-900 border-b border-gray-800 text-xs font-mono text-gray-400">
                         <th class="p-4">ID</th>
                         <th class="p-4">LOGIN (Username)</th>
-                        <th class="p-4 text-center">AÇÕES</th>
+                        <th class="p-4 text-center">2FA STATUS</th> <th class="p-4 text-center">AÇÕES</th>
                     </tr>
                 </thead>
                 <tbody class="text-sm text-gray-300">
@@ -296,11 +296,27 @@
                             {{ user.username }}
                             {% if user.username == current_user %}<span class="ml-2 text-xs text-neon">(Você)</span>{% endif %}
                         </td>
+                        
+                        <td class="p-4 text-center">
+                            {% if user.username == 'admin' %}
+                                <span class="text-gray-600 font-mono text-[10px] uppercase border border-gray-700 px-2 py-1 rounded">Isento</span>
+                            {% elif user.is_2fa_enabled %}
+                                <span class="text-green-500 font-mono text-[10px] uppercase border border-green-500 px-2 py-1 rounded shadow-[0_0_10px_rgba(34,197,94,0.2)]">Ativo</span>
+                            {% else %}
+                                <span class="text-yellow-500 font-mono text-[10px] uppercase border border-yellow-500 px-2 py-1 rounded">Pendente</span>
+                            {% endif %}
+                        </td>
+
                         <td class="p-4 text-center">
                             {% if user.username == 'admin' %}
                                 <span class="text-gray-600 font-mono text-xs cursor-not-allowed border border-gray-700 px-2 py-1 rounded" title="Gerenciado no docker-compose.yml">Lock (Docker)</span>
                             {% else %}
                                 <a href="/admin/usuarios/edit/{{ user.id }}" class="text-yellow-500 hover:text-yellow-400 hover:underline font-mono text-xs mr-3">Alterar Senha</a>
+                                
+                                {% if user.is_2fa_enabled %}
+                                    <a href="/admin/usuarios/disable_2fa/{{ user.id }}" class="text-orange-500 hover:text-orange-400 hover:underline font-mono text-xs mr-3">Revogar 2FA</a>
+                                {% endif %}
+
                                 {% if user.username == current_user %}
                                     <span class="text-gray-600 font-mono text-xs cursor-not-allowed" title="Você não pode excluir a si mesmo">Deletar</span>
                                 {% else %}

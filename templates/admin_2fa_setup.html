@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Configurar 2FA | Henrique Fagundes{% endblock %}
+{% block content %}
+<div class="flex-grow flex items-center justify-center px-6 py-20">
+    <div class="w-full max-w-md bg-[#0a0a0a] border border-gray-800 rounded-lg shadow-[0_0_30px_rgba(0,255,204,0.05)] overflow-hidden font-mono">
+        
+        <div class="bg-[#111] px-4 py-3 border-b border-gray-800 flex items-center">
+            <div class="mx-auto text-xs text-neon tracking-wider">SECURE_CHANNEL_REQ</div>
+        </div>
+
+        <div class="p-6 md:p-8 text-center">
+            <h2 class="text-2xl font-bold text-white mb-2">>_ Ativar 2FA</h2>
+            <p class="text-gray-400 text-sm mb-6">Escaneie o código abaixo ou insira a chave manualmente no seu aplicativo autenticador.</p>
+
+            <div class="bg-white p-2 rounded inline-block mb-4 shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code 2FA" class="w-48 h-48">
+            </div>
+
+            <div class="mb-6 flex flex-col items-center">
+                <span class="text-[10px] text-gray-500 mb-1 uppercase tracking-widest">Chave Manual</span>
+                <div class="flex items-center justify-between bg-[#111] border border-gray-700 rounded px-4 py-3 w-full">
+                    <code id="secret-key" class="text-neon text-[11px] md:text-xs tracking-wider font-bold break-all text-left">{{ secret }}</code>
+                    <button type="button" onclick="copySecret()" class="text-gray-400 hover:text-white transition focus:outline-none ml-4 flex-shrink-0" title="Copiar Chave">
+                        <i id="copy-icon" class="fa-regular fa-copy text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <form action="/admin/2fa-setup" method="POST" class="space-y-4 text-left border-t border-gray-800/50 pt-6">
+                <div>
+                    <input type="text" name="code" required maxlength="6" autocomplete="off"
+                        class="w-full bg-transparent border-b border-gray-700 text-white px-0 py-2 focus:outline-none focus:border-neon transition placeholder-gray-800 text-center tracking-[0.5em] text-xl"
+                        placeholder="000000">
+                </div>
+
+                <div class="flex items-center mt-4">
+                    <input type="checkbox" id="trust_device" name="trust_device" class="w-4 h-4 accent-neon bg-[#111] border-gray-700 rounded cursor-pointer">
+                    <label for="trust_device" class="ml-2 text-gray-500 text-xs cursor-pointer hover:text-gray-300 transition">Lembrar este dispositivo por 30 dias</label>
+                </div>
+
+                {% if erro %}
+                <div class="text-red-500 text-xs bg-red-900/20 border border-red-900 p-2 rounded text-center">
+                    [!] ERRO: Código inválido ou expirado.
+                </div>
+                {% endif %}
+
+                <button type="submit" class="w-full py-3 bg-neon text-darkbg hover:bg-white transition font-bold tracking-widest text-sm mt-4">
+                    >_ CONFIRMAR E ATIVAR
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copySecret() {
+        const secret = document.getElementById('secret-key').innerText;
+        navigator.clipboard.writeText(secret).then(() => {
+            const icon = document.getElementById('copy-icon');
+            // Muda para o ícone de check verdinho
+            icon.classList.remove('fa-regular', 'fa-copy', 'text-gray-400');
+            icon.classList.add('fa-solid', 'fa-check', 'text-green-500');
+            
+            // Volta ao normal após 2 segundos
+            setTimeout(() => {
+                icon.classList.remove('fa-solid', 'fa-check', 'text-green-500');
+                icon.classList.add('fa-regular', 'fa-copy', 'text-gray-400');
+            }, 2000);
+        }).catch(err => {
+            console.error('Falha ao copiar: ', err);
+            alert('Não foi possível copiar a chave automaticamente.');
+        });
+    }
+</script>
+{% endblock %}

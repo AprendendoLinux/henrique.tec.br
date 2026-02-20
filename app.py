@@ -4,6 +4,10 @@ import logging
 import urllib.parse
 import urllib.request
 import json
+import pyotp
+import qrcode
+import base64
+from io import BytesIO
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi import FastAPI, Request, Depends, Form, status
 from fastapi.staticfiles import StaticFiles
@@ -151,55 +155,142 @@ async def admin_login_post(
     password: str = Form(...), 
     db: Session = Depends(get_db)
 ):
-    # Recupera o token do reCAPTCHA vindo do formulário (usando await request.form())
     form_data = await request.form()
     g_recaptcha_response = form_data.get("g-recaptcha-response")
-    
     erro_msg = None
 
-    # Validação do reCAPTCHA se estiver ativado
     if ENABLE_RECAPTCHA:
         if not g_recaptcha_response:
             erro_msg = "Por favor, marque a caixa 'Não sou um robô'."
         else:
             url = 'https://www.google.com/recaptcha/api/siteverify'
-            data = urllib.parse.urlencode({
-                'secret': RECAPTCHA_SECRET_KEY,
-                'response': g_recaptcha_response
-            }).encode('utf-8')
+            data = urllib.parse.urlencode({'secret': RECAPTCHA_SECRET_KEY, 'response': g_recaptcha_response}).encode('utf-8')
             req = urllib.request.Request(url, data=data)
             try:
                 with urllib.request.urlopen(req) as response:
-                    result = json.loads(response.read().decode())
-                    if not result.get('success'):
-                        erro_msg = "Falha na validação do reCAPTCHA. Tente novamente."
+                    if not json.loads(response.read().decode()).get('success'):
+                        erro_msg = "Falha na validação do reCAPTCHA."
             except Exception as e:
-                logger.error(f"Erro ao validar reCAPTCHA: {e}")
+                logger.error(f"Erro reCAPTCHA: {e}")
                 erro_msg = "Erro interno ao validar o reCAPTCHA."
 
     user = db.query(models.Usuario).filter(models.Usuario.username == username).first()
     
-    # Se o reCAPTCHA falhou ou as credenciais estão incorretas
     if erro_msg or not user or not verify_password(password, user.password_hash):
-        if not erro_msg:
-            erro_msg = "Credenciais inválidas."
-            
+        if not erro_msg: erro_msg = "Credenciais inválidas."
         contatos = db.query(models.Contato).limit(10).all()
         wp_url = get_whatsapp_url(db)
-        return templates.TemplateResponse("admin_login.html", {
-            "request": request, 
-            "erro": True, 
-            "erro_msg": erro_msg,
-            "contatos": contatos, 
-            "version": APP_VERSION, 
-            "whatsapp_url": wp_url,
-            "enable_recaptcha": ENABLE_RECAPTCHA,
-            "recaptcha_site_key": RECAPTCHA_SITE_KEY
-        })
+        return templates.TemplateResponse("admin_login.html", {"request": request, "erro": True, "erro_msg": erro_msg, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url, "enable_recaptcha": ENABLE_RECAPTCHA, "recaptcha_site_key": RECAPTCHA_SITE_KEY})
     
-    response = RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
-    response.set_cookie(key="session_token", value=user.username, httponly=True)
+    # 1. Se for o admin, pula o 2FA
+    if user.username == 'admin':
+        response = RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+        response.set_cookie(key="session_token", value=user.username, httponly=True)
+        return response
+
+    # 1.5 NOVO: Verifica se o dispositivo possui o passaporte de confiança de 30 dias
+    if request.cookies.get("trusted_device") == user.username:
+        response = RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+        response.set_cookie(key="session_token", value=user.username, httponly=True)
+        return response
+        
+    # 2. Se não for admin e não for dispositivo confiável, vai pro 2FA
+    url_destino = "/admin/2fa-verify" if user.is_2fa_enabled else "/admin/2fa-setup"
+    response = RedirectResponse(url=url_destino, status_code=status.HTTP_302_FOUND)
+    response.set_cookie(key="pre_auth_user", value=user.username, httponly=True, max_age=300)
     return response
+
+# --- ROTAS ADMIN (2FA) ---
+@app.get("/admin/2fa-setup")
+async def admin_2fa_setup(request: Request, db: Session = Depends(get_db)):
+    pre_auth_user = request.cookies.get("pre_auth_user")
+    if not pre_auth_user: return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    
+    user = db.query(models.Usuario).filter(models.Usuario.username == pre_auth_user).first()
+    if not user.totp_secret:
+        user.totp_secret = pyotp.random_base32()
+        db.commit()
+        
+    totp = pyotp.TOTP(user.totp_secret)
+    uri = totp.provisioning_uri(name=user.username, issuer_name="Henrique.tec.br")
+    
+    img = qrcode.make(uri)
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    qr_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    
+    return templates.TemplateResponse("admin_2fa_setup.html", {"request": request, "qr_code": qr_base64, "secret": user.totp_secret, "version": APP_VERSION})
+
+@app.post("/admin/2fa-setup")
+async def admin_2fa_setup_post(request: Request, code: str = Form(...), db: Session = Depends(get_db)):
+    form_data = await request.form()
+    trust_device = form_data.get("trust_device") == "on"
+
+    pre_auth_user = request.cookies.get("pre_auth_user")
+    if not pre_auth_user: return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    
+    user = db.query(models.Usuario).filter(models.Usuario.username == pre_auth_user).first()
+    totp = pyotp.TOTP(user.totp_secret)
+    
+    if totp.verify(code):
+        user.is_2fa_enabled = True
+        db.commit()
+        
+        response = RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+        response.set_cookie(key="session_token", value=user.username, httponly=True)
+        
+        # Cria cookie separado para confiar no dispositivo
+        if trust_device:
+            response.set_cookie(key="trusted_device", value=user.username, httponly=True, max_age=2592000)
+            
+        response.delete_cookie("pre_auth_user")
+        return response
+        
+    uri = totp.provisioning_uri(name=user.username, issuer_name="Henrique.tec.br")
+    img = qrcode.make(uri)
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    qr_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return templates.TemplateResponse("admin_2fa_setup.html", {"request": request, "erro": True, "qr_code": qr_base64, "secret": user.totp_secret, "version": APP_VERSION})
+
+@app.get("/admin/2fa-verify")
+async def admin_2fa_verify(request: Request):
+    if not request.cookies.get("pre_auth_user"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("admin_2fa_verify.html", {"request": request, "version": APP_VERSION})
+
+@app.post("/admin/2fa-verify")
+async def admin_2fa_verify_post(request: Request, code: str = Form(...), db: Session = Depends(get_db)):
+    form_data = await request.form()
+    trust_device = form_data.get("trust_device") == "on"
+
+    pre_auth_user = request.cookies.get("pre_auth_user")
+    if not pre_auth_user: return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    
+    user = db.query(models.Usuario).filter(models.Usuario.username == pre_auth_user).first()
+    totp = pyotp.TOTP(user.totp_secret)
+    
+    if totp.verify(code):
+        response = RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+        response.set_cookie(key="session_token", value=user.username, httponly=True)
+        
+        # Cria cookie separado para confiar no dispositivo
+        if trust_device:
+            response.set_cookie(key="trusted_device", value=user.username, httponly=True, max_age=2592000)
+            
+        response.delete_cookie("pre_auth_user")
+        return response
+        
+    return templates.TemplateResponse("admin_2fa_verify.html", {"request": request, "erro": True, "version": APP_VERSION})
+
+@app.get("/admin/usuarios/disable_2fa/{usuario_id}")
+async def disable_2fa(request: Request, usuario_id: int, db: Session = Depends(get_db)):
+    if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    user = db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
+    if user and user.username != 'admin':
+        user.is_2fa_enabled = False
+        user.totp_secret = None
+        db.commit()
+    return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
 
 @app.get("/admin/logout")
 async def admin_logout():
