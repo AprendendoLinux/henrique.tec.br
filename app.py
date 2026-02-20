@@ -118,16 +118,36 @@ async def servicos_manutencao(request: Request, db: Session = Depends(get_db)):
 
 # --- ROTAS ADMIN (AUTENTICAÇÃO) ---
 @app.get("/admin")
-async def admin_login_page(request: Request):
+async def admin_login_page(request: Request, db: Session = Depends(get_db)):
     if request.cookies.get("session_token"):
         return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
-    return templates.TemplateResponse("admin_login.html", {"request": request, "version": APP_VERSION})
+    
+    # Busca os contatos e WhatsApp para o rodapé/botão flutuante
+    contatos = db.query(models.Contato).limit(10).all()
+    wp_url = get_whatsapp_url(db)
+    
+    return templates.TemplateResponse("admin_login.html", {
+        "request": request, 
+        "contatos": contatos, 
+        "version": APP_VERSION, 
+        "whatsapp_url": wp_url
+    })
 
 @app.post("/admin/login")
 async def admin_login_post(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(models.Usuario).filter(models.Usuario.username == username).first()
+    
+    # Se der erro, precisa carregar os contatos novamente para a página não quebrar
     if not user or not verify_password(password, user.password_hash):
-        return templates.TemplateResponse("admin_login.html", {"request": request, "erro": True, "version": APP_VERSION})
+        contatos = db.query(models.Contato).limit(10).all()
+        wp_url = get_whatsapp_url(db)
+        return templates.TemplateResponse("admin_login.html", {
+            "request": request, 
+            "erro": True, 
+            "contatos": contatos, 
+            "version": APP_VERSION, 
+            "whatsapp_url": wp_url
+        })
     
     response = RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
     response.set_cookie(key="session_token", value=user.username, httponly=True)
