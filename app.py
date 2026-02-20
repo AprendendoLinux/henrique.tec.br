@@ -2,6 +2,8 @@ import os
 import time
 import logging
 import urllib.parse
+import urllib.request
+import json
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi import FastAPI, Request, Depends, Form, status
 from fastapi.staticfiles import StaticFiles
@@ -74,6 +76,11 @@ templates = Jinja2Templates(directory="templates")
 
 APP_VERSION = os.environ.get("APP_VERSION", "dev-local")
 
+# --- CONFIGURAÇÕES DO RECAPTCHA ---
+ENABLE_RECAPTCHA = os.environ.get("ENABLE_RECAPTCHA", "False").lower() == "true"
+RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", "")
+RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", "")
+
 # --- STARTUP ---
 @app.on_event("startup")
 def startup_event():
@@ -125,7 +132,6 @@ async def admin_login_page(request: Request, db: Session = Depends(get_db)):
     if request.cookies.get("session_token"):
         return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
     
-    # Busca os contatos e WhatsApp para o rodapé/botão flutuante
     contatos = db.query(models.Contato).limit(10).all()
     wp_url = get_whatsapp_url(db)
     
@@ -133,23 +139,62 @@ async def admin_login_page(request: Request, db: Session = Depends(get_db)):
         "request": request, 
         "contatos": contatos, 
         "version": APP_VERSION, 
-        "whatsapp_url": wp_url
+        "whatsapp_url": wp_url,
+        "enable_recaptcha": ENABLE_RECAPTCHA,
+        "recaptcha_site_key": RECAPTCHA_SITE_KEY
     })
 
 @app.post("/admin/login")
-async def admin_login_post(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+async def admin_login_post(
+    request: Request, 
+    username: str = Form(...), 
+    password: str = Form(...), 
+    db: Session = Depends(get_db)
+):
+    # Recupera o token do reCAPTCHA vindo do formulário (usando await request.form())
+    form_data = await request.form()
+    g_recaptcha_response = form_data.get("g-recaptcha-response")
+    
+    erro_msg = None
+
+    # Validação do reCAPTCHA se estiver ativado
+    if ENABLE_RECAPTCHA:
+        if not g_recaptcha_response:
+            erro_msg = "Por favor, marque a caixa 'Não sou um robô'."
+        else:
+            url = 'https://www.google.com/recaptcha/api/siteverify'
+            data = urllib.parse.urlencode({
+                'secret': RECAPTCHA_SECRET_KEY,
+                'response': g_recaptcha_response
+            }).encode('utf-8')
+            req = urllib.request.Request(url, data=data)
+            try:
+                with urllib.request.urlopen(req) as response:
+                    result = json.loads(response.read().decode())
+                    if not result.get('success'):
+                        erro_msg = "Falha na validação do reCAPTCHA. Tente novamente."
+            except Exception as e:
+                logger.error(f"Erro ao validar reCAPTCHA: {e}")
+                erro_msg = "Erro interno ao validar o reCAPTCHA."
+
     user = db.query(models.Usuario).filter(models.Usuario.username == username).first()
     
-    # Se der erro, precisa carregar os contatos novamente para a página não quebrar
-    if not user or not verify_password(password, user.password_hash):
+    # Se o reCAPTCHA falhou ou as credenciais estão incorretas
+    if erro_msg or not user or not verify_password(password, user.password_hash):
+        if not erro_msg:
+            erro_msg = "Credenciais inválidas."
+            
         contatos = db.query(models.Contato).limit(10).all()
         wp_url = get_whatsapp_url(db)
         return templates.TemplateResponse("admin_login.html", {
             "request": request, 
             "erro": True, 
+            "erro_msg": erro_msg,
             "contatos": contatos, 
             "version": APP_VERSION, 
-            "whatsapp_url": wp_url
+            "whatsapp_url": wp_url,
+            "enable_recaptcha": ENABLE_RECAPTCHA,
+            "recaptcha_site_key": RECAPTCHA_SITE_KEY
         })
     
     response = RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)

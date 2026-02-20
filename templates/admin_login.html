@@ -3,6 +3,10 @@
 {% block title %}Autenticação | Henrique Fagundes{% endblock %}
 
 {% block content %}
+{% if enable_recaptcha %}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+{% endif %}
+
 <div class="flex-grow flex items-center justify-center px-6 py-20">
     
     <div class="w-full max-w-md bg-[#0a0a0a] border border-gray-800 rounded-lg shadow-[0_0_30px_rgba(0,255,204,0.05)] overflow-hidden font-mono">
@@ -14,12 +18,13 @@
                 <div class="w-3 h-3 rounded-full bg-green-500 opacity-80"></div>
             </div>
             <div class="mx-auto text-xs text-gray-500 tracking-wider">root@henrique.tec.br:~</div>
-            <div class="w-10"></div> </div>
+            <div class="w-10"></div>
+        </div>
 
         <div class="p-6 md:p-8">
             <div class="mb-8">
                 <p class="text-neon text-sm mb-2">>_ INICIANDO PROTOCOLO DE SEGURANÇA...</p>
-                <p class="text-gray-400 text-sm">Acesso restrito ao sistema. Identifique-se.</p>
+                <p class="text-gray-400 text-sm">Acesso restrito. Insira as credenciais administrativas.</p>
             </div>
 
             <form action="/admin/login" method="POST" class="space-y-6">
@@ -38,9 +43,15 @@
                         placeholder="••••••••">
                 </div>
 
+                {% if enable_recaptcha %}
+                <div class="flex justify-center mt-4">
+                    <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-theme="dark"></div>
+                </div>
+                {% endif %}
+
                 {% if erro %}
                 <div class="text-red-500 text-xs mt-4 bg-red-900/20 border border-red-900 p-2 rounded">
-                    [!] ACESSO NEGADO: Credenciais inválidas.
+                    [!] ACESSO NEGADO: {{ erro_msg if erro_msg else "Credenciais inválidas." }}
                 </div>
                 {% endif %}
 
