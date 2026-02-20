@@ -1,3 +1,6 @@
+# Este workflow é responsável por construir e publicar a imagem Docker
+# no GitHub Container Registry (GHCR) sempre que houver um push na branch main,
+# dev ou quando uma nova tag de versão for criada.
 name: Deploy Automático (GHCR)
 
 on:
