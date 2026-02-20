@@ -8,7 +8,7 @@ on:
 env:
   REGISTRY: ghcr.io
   # NOME EM MINÚSCULO OBRIGATÓRIO (Evita erro do Docker)
-  IMAGE_NAME: aprendendolinux/firenet
+  IMAGE_NAME: aprendendolinux/henrique.tec.br
 
 jobs:
   build-and-push:
