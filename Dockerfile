@@ -3,6 +3,10 @@ FROM python:3.11-slim
 # Define o diretório de trabalho dentro do container
 WORKDIR /app
 
+# Versionamento do sistema
+ARG APP_VERSION=dev-local
+ENV APP_VERSION=${APP_VERSION}
+
 # Evita a criação de arquivos .pyc e força o log no terminal (sem buffer)
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1

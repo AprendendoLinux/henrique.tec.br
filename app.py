@@ -34,6 +34,9 @@ app = FastAPI(title="Henrique.tec.br", description="Infraestrutura e Sistemas")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# --- CAPTURA A VERSÃO DO DOCKER ---
+APP_VERSION = os.environ.get("APP_VERSION", "dev-local")
+
 # --- STARTUP: BLINDAGEM DO ADMIN VIA DOCKER ---
 @app.on_event("startup")
 def startup_event():
@@ -53,35 +56,35 @@ def startup_event():
 async def read_root(request: Request, db: Session = Depends(get_db)):
     projetos = db.query(models.Projeto).all()
     contatos = db.query(models.Contato).limit(10).all()
-    return templates.TemplateResponse("index.html", {"request": request, "projetos": projetos, "contatos": contatos})
+    return templates.TemplateResponse("index.html", {"request": request, "projetos": projetos, "contatos": contatos, "version": APP_VERSION})
 
 @app.get("/servicos/linux")
 async def servicos_linux(request: Request, db: Session = Depends(get_db)):
     contatos = db.query(models.Contato).limit(10).all()
-    return templates.TemplateResponse("linux.html", {"request": request, "contatos": contatos})
+    return templates.TemplateResponse("linux.html", {"request": request, "contatos": contatos, "version": APP_VERSION})
 
 @app.get("/servicos/mikrotik")
 async def servicos_mikrotik(request: Request, db: Session = Depends(get_db)):
     contatos = db.query(models.Contato).limit(10).all()
-    return templates.TemplateResponse("mikrotik.html", {"request": request, "contatos": contatos})
+    return templates.TemplateResponse("mikrotik.html", {"request": request, "contatos": contatos, "version": APP_VERSION})
 
 @app.get("/servicos/manutencao")
 async def servicos_manutencao(request: Request, db: Session = Depends(get_db)):
     contatos = db.query(models.Contato).limit(10).all()
-    return templates.TemplateResponse("manutencao.html", {"request": request, "contatos": contatos})
+    return templates.TemplateResponse("manutencao.html", {"request": request, "contatos": contatos, "version": APP_VERSION})
 
 # --- ROTAS ADMIN (AUTENTICAÇÃO) ---
 @app.get("/admin")
 async def admin_login_page(request: Request):
     if request.cookies.get("session_token"):
         return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
-    return templates.TemplateResponse("admin_login.html", {"request": request})
+    return templates.TemplateResponse("admin_login.html", {"request": request, "version": APP_VERSION})
 
 @app.post("/admin/login")
 async def admin_login_post(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(models.Usuario).filter(models.Usuario.username == username).first()
     if not user or not verify_password(password, user.password_hash):
-        return templates.TemplateResponse("admin_login.html", {"request": request, "erro": True})
+        return templates.TemplateResponse("admin_login.html", {"request": request, "erro": True, "version": APP_VERSION})
     
     response = RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
     response.set_cookie(key="session_token", value=user.username, httponly=True)
@@ -105,7 +108,7 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     usuarios = db.query(models.Usuario).all()
     
     return templates.TemplateResponse("admin_dashboard.html", {
-        "request": request, "projetos": projetos, "contatos": contatos, "usuarios": usuarios, "current_user": current_user
+        "request": request, "projetos": projetos, "contatos": contatos, "usuarios": usuarios, "current_user": current_user, "version": APP_VERSION
     })
 
 @app.post("/admin/projetos/add")
@@ -128,7 +131,7 @@ async def edit_projeto_page(request: Request, projeto_id: int, db: Session = Dep
     if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
     projeto = db.query(models.Projeto).filter(models.Projeto.id == projeto_id).first()
     if not projeto: return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
-    return templates.TemplateResponse("admin_edit_projeto.html", {"request": request, "projeto": projeto})
+    return templates.TemplateResponse("admin_edit_projeto.html", {"request": request, "projeto": projeto, "version": APP_VERSION})
 
 @app.post("/admin/projetos/edit/{projeto_id}")
 async def edit_projeto_post(request: Request, projeto_id: int, titulo: str=Form(...), descricao: str=Form(...), categoria: str=Form(...), link_projeto: str=Form(None), link_github: str=Form(None), db: Session=Depends(get_db)):
@@ -160,7 +163,7 @@ async def edit_contato_page(request: Request, contato_id: int, db: Session = Dep
     if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
     contato = db.query(models.Contato).filter(models.Contato.id == contato_id).first()
     if not contato: return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
-    return templates.TemplateResponse("admin_edit_contato.html", {"request": request, "contato": contato})
+    return templates.TemplateResponse("admin_edit_contato.html", {"request": request, "contato": contato, "version": APP_VERSION})
 
 @app.post("/admin/contatos/edit/{contato_id}")
 async def edit_contato_post(request: Request, contato_id: int, nome: str=Form(...), url: str=Form(...), icone: str=Form(None), cor_hover: str=Form(None), db: Session=Depends(get_db)):
@@ -215,7 +218,7 @@ async def edit_usuario_page(request: Request, usuario_id: int, db: Session = Dep
     if not usuario or usuario.username == 'admin':
         return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
         
-    return templates.TemplateResponse("admin_edit_usuario.html", {"request": request, "usuario": usuario})
+    return templates.TemplateResponse("admin_edit_usuario.html", {"request": request, "usuario": usuario, "version": APP_VERSION})
 
 @app.post("/admin/usuarios/edit/{usuario_id}")
 async def edit_usuario_post(

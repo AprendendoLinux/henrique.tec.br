@@ -90,8 +90,14 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="text-center mt-12 text-gray-600 font-mono text-xs">
-            <p>&copy; 2026 Henrique Fagundes. Todos os direitos reservados.</p>
+        
+        <div class="text-center mt-12 flex flex-col items-center gap-3">
+            <p class="text-gray-600 font-mono text-xs">&copy; Todos os direitos reservados.</p>
+            
+            <div class="inline-flex items-center px-2 py-1 bg-gray-900 border border-gray-800 rounded font-mono text-[10px] text-gray-500 hover:border-neon hover:text-neon transition cursor-default">
+                <i class="fa-solid fa-code-branch mr-2"></i>
+                <span>{{ version }}</span>
+            </div>
         </div>
     </footer>
 
