@@ -12,11 +12,13 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # Instala as dependências
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+#COPY requirements.txt .
+COPY . .
+RUN pip install --no-cache-dir -r requirements.txt && rm requirements.txt
 
 # Copia o restante do código para dentro do container
-COPY . .
+#COPY . .
+#RUN rm requirements.txt
 
 # Expõe a porta que a aplicação vai rodar
 EXPOSE 8000

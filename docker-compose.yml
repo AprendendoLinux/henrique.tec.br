@@ -2,7 +2,9 @@
 services:
   app:
     build: .
+    image: henriquetec:latest
     container_name: app
+    hostname: app
     ports:
       - "8000:8000"
     volumes:
@@ -23,6 +25,7 @@ services:
   db:
     image: mysql:latest
     container_name: db
+    hostname: db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root_password_forte
