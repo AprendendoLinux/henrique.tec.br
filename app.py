@@ -220,6 +220,41 @@ async def delete_contato(request: Request, contato_id: int, db: Session = Depend
         db.commit()
     return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
 
+# --- ROTAS ADMIN (AÇÕES: EDITAR CONTACTOS) ---
+@app.get("/admin/contatos/edit/{contato_id}")
+async def edit_contato_page(request: Request, contato_id: int, db: Session = Depends(get_db)):
+    if not request.cookies.get("session_token"):
+        return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    
+    contato = db.query(models.Contato).filter(models.Contato.id == contato_id).first()
+    if not contato:
+        return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+        
+    return templates.TemplateResponse("admin_edit_contato.html", {"request": request, "contato": contato})
+
+@app.post("/admin/contatos/edit/{contato_id}")
+async def edit_contato_post(
+    request: Request,
+    contato_id: int,
+    nome: str = Form(...),
+    url: str = Form(...),
+    icone: str = Form(None),
+    cor_hover: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    if not request.cookies.get("session_token"):
+        return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+    
+    contato = db.query(models.Contato).filter(models.Contato.id == contato_id).first()
+    if contato:
+        contato.nome = nome
+        contato.url = url
+        contato.icone = icone if icone else None
+        contato.cor_hover = cor_hover if cor_hover else "hover:bg-neon"
+        db.commit()
+        
+    return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
+
 # --- ROTAS ADMIN (AÇÕES: UTILIZADORES) ---
 @app.post("/admin/usuarios/add")
 async def add_usuario(

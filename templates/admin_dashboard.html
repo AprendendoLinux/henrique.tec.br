@@ -234,6 +234,7 @@
                         <td class="p-4">{{ contato.nome }}</td>
                         <td class="p-4 font-mono text-xs text-gray-500 truncate max-w-[200px]">{{ contato.url }}</td>
                         <td class="p-4 text-center">
+                            <a href="/admin/contatos/edit/{{ contato.id }}" class="text-accent hover:text-blue-400 hover:underline font-mono text-xs mr-3">Editar</a>
                             <a href="/admin/contatos/delete/{{ contato.id }}" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</a>
                         </td>
                     </tr>

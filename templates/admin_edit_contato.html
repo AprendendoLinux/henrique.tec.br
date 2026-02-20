@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Contato | Henrique Fagundes{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-10 w-full flex-grow">
+    
+    <div class="mb-10">
+        <a href="/admin/dashboard" class="text-neon font-mono text-sm hover:underline"><- Voltar ao Painel</a>
+    </div>
+
+    <div class="glass-card p-6 md:p-8 rounded-xl border-l-2 border-l-accent">
+        <h2 class="text-2xl font-bold text-white mb-6 border-l-2 border-accent pl-3">Editar Contato: {{ contato.nome }}</h2>
+        
+        <form action="/admin/contatos/edit/{{ contato.id }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-gray-400 text-xs font-mono mb-2">NOME (Ex: WhatsApp):</label>
+                <input type="text" name="nome" value="{{ contato.nome }}" maxlength="50" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+            </div>
+            <div>
+                <label class="block text-gray-400 text-xs font-mono mb-2">URL DO LINK:</label>
+                <input type="url" name="url" value="{{ contato.url }}" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+            </div>
+            
+            <div class="md:col-span-2">
+                <label class="block text-gray-400 text-xs font-mono mb-2">ÍCONE DO APLICATIVO:</label>
+                <div class="flex flex-wrap gap-3">
+                    <label class="cursor-pointer" title="WhatsApp">
+                        <input type="radio" name="icone" value="fa-brands fa-whatsapp" class="peer sr-only" {% if contato.icone == 'fa-brands fa-whatsapp' %}checked{% endif %} required>
+                        <div class="w-12 h-12 flex items-center justify-center border border-gray-700 rounded bg-[#111] peer-checked:border-accent peer-checked:text-accent hover:border-gray-400 text-gray-400 transition"><i class="fa-brands fa-whatsapp text-2xl"></i></div>
+                    </label>
+                    <label class="cursor-pointer" title="Telegram">
+                        <input type="radio" name="icone" value="fa-brands fa-telegram" class="peer sr-only" {% if contato.icone == 'fa-brands fa-telegram' %}checked{% endif %}>
+                        <div class="w-12 h-12 flex items-center justify-center border border-gray-700 rounded bg-[#111] peer-checked:border-accent peer-checked:text-accent hover:border-gray-400 text-gray-400 transition"><i class="fa-brands fa-telegram text-2xl"></i></div>
+                    </label>
+                    <label class="cursor-pointer" title="Instagram">
+                        <input type="radio" name="icone" value="fa-brands fa-instagram" class="peer sr-only" {% if contato.icone == 'fa-brands fa-instagram' %}checked{% endif %}>
+                        <div class="w-12 h-12 flex items-center justify-center border border-gray-700 rounded bg-[#111] peer-checked:border-accent peer-checked:text-accent hover:border-gray-400 text-gray-400 transition"><i class="fa-brands fa-instagram text-2xl"></i></div>
+                    </label>
+                    <label class="cursor-pointer" title="LinkedIn">
+                        <input type="radio" name="icone" value="fa-brands fa-linkedin" class="peer sr-only" {% if contato.icone == 'fa-brands fa-linkedin' %}checked{% endif %}>
+                        <div class="w-12 h-12 flex items-center justify-center border border-gray-700 rounded bg-[#111] peer-checked:border-accent peer-checked:text-accent hover:border-gray-400 text-gray-400 transition"><i class="fa-brands fa-linkedin text-2xl"></i></div>
+                    </label>
+                    <label class="cursor-pointer" title="X / Twitter">
+                        <input type="radio" name="icone" value="fa-brands fa-x-twitter" class="peer sr-only" {% if contato.icone == 'fa-brands fa-x-twitter' %}checked{% endif %}>
+                        <div class="w-12 h-12 flex items-center justify-center border border-gray-700 rounded bg-[#111] peer-checked:border-accent peer-checked:text-accent hover:border-gray-400 text-gray-400 transition"><i class="fa-brands fa-x-twitter text-2xl"></i></div>
+                    </label>
+                    <label class="cursor-pointer" title="Facebook">
+                        <input type="radio" name="icone" value="fa-brands fa-facebook" class="peer sr-only" {% if contato.icone == 'fa-brands fa-facebook' %}checked{% endif %}>
+                        <div class="w-12 h-12 flex items-center justify-center border border-gray-700 rounded bg-[#111] peer-checked:border-accent peer-checked:text-accent hover:border-gray-400 text-gray-400 transition"><i class="fa-brands fa-facebook text-2xl"></i></div>
+                    </label>
+                    <label class="cursor-pointer" title="YouTube">
+                        <input type="radio" name="icone" value="fa-brands fa-youtube" class="peer sr-only" {% if contato.icone == 'fa-brands fa-youtube' %}checked{% endif %}>
+                        <div class="w-12 h-12 flex items-center justify-center border border-gray-700 rounded bg-[#111] peer-checked:border-accent peer-checked:text-accent hover:border-gray-400 text-gray-400 transition"><i class="fa-brands fa-youtube text-2xl"></i></div>
+                    </label>
+                    <label class="cursor-pointer" title="E-mail">
+                        <input type="radio" name="icone" value="fa-solid fa-envelope" class="peer sr-only" {% if contato.icone == 'fa-solid fa-envelope' %}checked{% endif %}>
+                        <div class="w-12 h-12 flex items-center justify-center border border-gray-700 rounded bg-[#111] peer-checked:border-accent peer-checked:text-accent hover:border-gray-400 text-gray-400 transition"><i class="fa-solid fa-envelope text-2xl"></i></div>
+                    </label>
+                    <label class="cursor-pointer" title="Website">
+                        <input type="radio" name="icone" value="fa-solid fa-globe" class="peer sr-only" {% if contato.icone == 'fa-solid fa-globe' %}checked{% endif %}>
+                        <div class="w-12 h-12 flex items-center justify-center border border-gray-700 rounded bg-[#111] peer-checked:border-accent peer-checked:text-accent hover:border-gray-400 text-gray-400 transition"><i class="fa-solid fa-globe text-2xl"></i></div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-gray-400 text-xs font-mono mb-2">COR DE DESTAQUE (Ao passar o mouse):</label>
+                <div class="flex flex-wrap gap-3">
+                    <label class="cursor-pointer group" title="Ciano / Neon">
+                        <input type="radio" name="cor_hover" value="hover:border-[#00ffcc] hover:text-[#00ffcc]" class="peer sr-only" {% if contato.cor_hover == 'hover:border-[#00ffcc] hover:text-[#00ffcc]' %}checked{% endif %} required>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-[#00ffcc] mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Verde">
+                        <input type="radio" name="cor_hover" value="hover:border-green-500 hover:text-green-500" class="peer sr-only" {% if contato.cor_hover == 'hover:border-green-500 hover:text-green-500' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-green-500 mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Azul Claro">
+                        <input type="radio" name="cor_hover" value="hover:border-blue-400 hover:text-blue-400" class="peer sr-only" {% if contato.cor_hover == 'hover:border-blue-400 hover:text-blue-400' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-blue-400 mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Azul Escuro">
+                        <input type="radio" name="cor_hover" value="hover:border-blue-600 hover:text-blue-600" class="peer sr-only" {% if contato.cor_hover == 'hover:border-blue-600 hover:text-blue-600' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-blue-600 mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Rosa">
+                        <input type="radio" name="cor_hover" value="hover:border-pink-500 hover:text-pink-500" class="peer sr-only" {% if contato.cor_hover == 'hover:border-pink-500 hover:text-pink-500' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-pink-500 mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Vermelho">
+                        <input type="radio" name="cor_hover" value="hover:border-red-600 hover:text-red-600" class="peer sr-only" {% if contato.cor_hover == 'hover:border-red-600 hover:text-red-600' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-red-600 mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Branco">
+                        <input type="radio" name="cor_hover" value="hover:border-white hover:text-white" class="peer sr-only" {% if contato.cor_hover == 'hover:border-white hover:text-white' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-gray-300 mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="md:col-span-2 text-right mt-4">
+                <button type="submit" class="px-6 py-2 bg-accent text-white font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">>_ ATUALIZAR CONTATO</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
