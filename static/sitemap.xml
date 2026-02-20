@@ -3,27 +3,27 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
     
     <url>
-        <loc>https://henrique.tec.br/</loc>
+        <loc>{{ request.base_url }}</loc>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
         <image:image>
-            <image:loc>https://henrique.tec.br/static/card.jpg</image:loc>
+            <image:loc>{{ request.base_url }}static/card.jpg</image:loc>
             <image:title>Engenharia de Infraestrutura - Henrique Fagundes</image:title>
         </image:image>
     </url>
 
     <url>
-        <loc>https://henrique.tec.br/servicos/linux</loc>
+        <loc>{{ request.base_url }}servicos/linux</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://henrique.tec.br/servicos/mikrotik</loc>
+        <loc>{{ request.base_url }}servicos/mikrotik</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://henrique.tec.br/servicos/manutencao</loc>
+        <loc>{{ request.base_url }}servicos/manutencao</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>

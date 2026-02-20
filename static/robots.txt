@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: https://henrique.tec.br/sitemap.xml
+Sitemap: {{ request.base_url }}sitemap.xml
