@@ -1,0 +1,10 @@
+.git
+.gitignore
+__pycache__
+*.pyc
+docker-compose.yml
+docker-compose-firenet.yml
+Dockerfile
+README.md
+LICENSE
+deploy.sh
