@@ -8,6 +8,7 @@ import bcrypt
 import models
 from database import engine, get_db
 
+# --- FUNÇÕES DE CRIPTOGRAFIA E VALIDAÇÃO ---
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
@@ -18,6 +19,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         plain_password.encode('utf-8'), 
         hashed_password.encode('utf-8')
     )
+
+def validar_senha_forte(senha: str) -> bool:
+    if len(senha) < 8: return False
+    if not any(c.isupper() for c in senha): return False
+    if not any(c.isdigit() for c in senha): return False
+    if not any(not c.isalnum() for c in senha): return False
+    return True
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -30,14 +38,13 @@ templates = Jinja2Templates(directory="templates")
 @app.on_event("startup")
 def startup_event():
     db = next(get_db())
-    admin_pwd = os.environ.get("ADMIN_PASSWORD", "admin") # Lê do Docker ou usa 'admin' como fallback
+    admin_pwd = os.environ.get("ADMIN_PASSWORD", "admin") 
     
     admin_user = db.query(models.Usuario).filter(models.Usuario.username == "admin").first()
     if not admin_user:
         admin_user = models.Usuario(username="admin", password_hash=get_password_hash(admin_pwd))
         db.add(admin_user)
     else:
-        # Força a senha do admin a sempre sincronizar com o docker-compose no boot
         admin_user.password_hash = get_password_hash(admin_pwd)
     db.commit()
 
@@ -86,7 +93,7 @@ async def admin_logout():
     response.delete_cookie("session_token")
     return response
 
-# --- ROTAS ADMIN (PAINEL GERAL E PROJETOS/CONTATOS INALTERADOS) ---
+# --- ROTAS ADMIN (PAINEL E PROJETOS/CONTATOS INALTERADOS) ---
 @app.get("/admin/dashboard")
 async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     current_user = request.cookies.get("session_token")
@@ -177,6 +184,9 @@ async def add_usuario(
     
     if password != confirm_password:
         return RedirectResponse(url="/admin/dashboard?erro_user=senhas_diferentes", status_code=status.HTTP_302_FOUND)
+        
+    if not validar_senha_forte(password):
+        return RedirectResponse(url="/admin/dashboard?erro_user=senha_fraca", status_code=status.HTTP_302_FOUND)
 
     existe = db.query(models.Usuario).filter(models.Usuario.username == username).first()
     if not existe:
@@ -192,7 +202,6 @@ async def delete_usuario(request: Request, usuario_id: int, db: Session = Depend
     
     usuario = db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
     
-    # Regra: Não pode deletar 'admin' nem a si próprio
     if usuario and usuario.username != 'admin' and usuario.username != current_user:
         db.delete(usuario)
         db.commit()
@@ -203,7 +212,6 @@ async def edit_usuario_page(request: Request, usuario_id: int, db: Session = Dep
     if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
     
     usuario = db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
-    # Regra: Ninguém edita a senha do Admin pelo painel
     if not usuario or usuario.username == 'admin':
         return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
         
@@ -220,10 +228,12 @@ async def edit_usuario_post(
     if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
     
     if password != confirm_password:
-        return RedirectResponse(url=f"/admin/usuarios/edit/{usuario_id}?erro=1", status_code=status.HTTP_302_FOUND)
+        return RedirectResponse(url=f"/admin/usuarios/edit/{usuario_id}?erro=senhas_diferentes", status_code=status.HTTP_302_FOUND)
+        
+    if not validar_senha_forte(password):
+        return RedirectResponse(url=f"/admin/usuarios/edit/{usuario_id}?erro=senha_fraca", status_code=status.HTTP_302_FOUND)
 
     usuario = db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
-    # Dupla verificação: barra alteração do admin no POST
     if usuario and usuario.username != 'admin':
         usuario.password_hash = get_password_hash(password)
         db.commit()

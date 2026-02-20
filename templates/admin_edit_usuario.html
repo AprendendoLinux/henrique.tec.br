@@ -15,20 +15,28 @@
         
         <form action="/admin/usuarios/edit/{{ usuario.id }}" method="POST" class="space-y-6">
             
-            <div class="relative">
+            <div>
                 <label class="block text-gray-400 text-xs font-mono mb-2">NOVA SENHA:</label>
-                <input type="password" id="edit_pwd" name="password" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition pr-10">
-                <button type="button" onclick="togglePassword('edit_pwd', 'eye_edit_pwd')" class="absolute bottom-2 right-3 text-gray-500 hover:text-white transition focus:outline-none">
-                    <i id="eye_edit_pwd" class="fa-solid fa-eye"></i>
-                </button>
+                <div class="relative">
+                    <input type="password" id="edit_pwd" name="password" required 
+                           pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}"
+                           title="Mínimo 8 caracteres, 1 maiúscula, 1 número e 1 símbolo."
+                           class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition pr-10">
+                    <button type="button" onclick="togglePassword('edit_pwd', 'eye_edit_pwd')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition focus:outline-none">
+                        <i id="eye_edit_pwd" class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-1 font-mono">Requisito: Min 8 chars, 1 Maiúscula, 1 Número, 1 Símbolo.</p>
             </div>
 
-            <div class="relative">
+            <div>
                 <label class="block text-gray-400 text-xs font-mono mb-2">CONFIRMAR NOVA SENHA:</label>
-                <input type="password" id="edit_conf_pwd" name="confirm_password" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition pr-10">
-                <button type="button" onclick="togglePassword('edit_conf_pwd', 'eye_edit_conf')" class="absolute bottom-2 right-3 text-gray-500 hover:text-white transition focus:outline-none">
-                    <i id="eye_edit_conf" class="fa-solid fa-eye"></i>
-                </button>
+                <div class="relative">
+                    <input type="password" id="edit_conf_pwd" name="confirm_password" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition pr-10">
+                    <button type="button" onclick="togglePassword('edit_conf_pwd', 'eye_edit_conf')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition focus:outline-none">
+                        <i id="eye_edit_conf" class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="text-right mt-8">
@@ -53,11 +61,12 @@
         }
     }
 
-    // Captura erro caso as senhas digitadas sejam diferentes
     document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.get('erro')) {
+        if(urlParams.get('erro') === 'senhas_diferentes') {
             alert('[!] ACESSO NEGADO: As senhas digitadas não conferem. Tente novamente.');
+        } else if(urlParams.get('erro') === 'senha_fraca') {
+            alert('[!] ACESSO NEGADO: A senha deve ter no mínimo 8 caracteres, 1 letra maiúscula, 1 número e 1 símbolo.');
         }
     });
 </script>

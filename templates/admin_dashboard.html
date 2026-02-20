@@ -157,56 +157,48 @@
                 <div class="md:col-span-2">
                     <label class="block text-gray-400 text-xs font-mono mb-2">COR DE DESTAQUE (Ao passar o mouse):</label>
                     <div class="flex flex-wrap gap-3">
-                        
                         <label class="cursor-pointer group" title="Ciano / Neon (Padrão)">
                             <input type="radio" name="cor_hover" value="hover:border-[#00ffcc] hover:text-[#00ffcc]" class="peer sr-only" required>
                             <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center">
                                 <div class="w-6 h-6 rounded bg-[#00ffcc] mb-1 group-hover:scale-110 transition"></div>
                             </div>
                         </label>
-                        
                         <label class="cursor-pointer group" title="Verde">
                             <input type="radio" name="cor_hover" value="hover:border-green-500 hover:text-green-500" class="peer sr-only">
                             <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center">
                                 <div class="w-6 h-6 rounded bg-green-500 mb-1 group-hover:scale-110 transition"></div>
                             </div>
                         </label>
-
                         <label class="cursor-pointer group" title="Azul Claro">
                             <input type="radio" name="cor_hover" value="hover:border-blue-400 hover:text-blue-400" class="peer sr-only">
                             <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center">
                                 <div class="w-6 h-6 rounded bg-blue-400 mb-1 group-hover:scale-110 transition"></div>
                             </div>
                         </label>
-
                         <label class="cursor-pointer group" title="Azul Escuro">
                             <input type="radio" name="cor_hover" value="hover:border-blue-600 hover:text-blue-600" class="peer sr-only">
                             <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center">
                                 <div class="w-6 h-6 rounded bg-blue-600 mb-1 group-hover:scale-110 transition"></div>
                             </div>
                         </label>
-
                         <label class="cursor-pointer group" title="Rosa">
                             <input type="radio" name="cor_hover" value="hover:border-pink-500 hover:text-pink-500" class="peer sr-only">
                             <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center">
                                 <div class="w-6 h-6 rounded bg-pink-500 mb-1 group-hover:scale-110 transition"></div>
                             </div>
                         </label>
-
                         <label class="cursor-pointer group" title="Vermelho">
                             <input type="radio" name="cor_hover" value="hover:border-red-600 hover:text-red-600" class="peer sr-only">
                             <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center">
                                 <div class="w-6 h-6 rounded bg-red-600 mb-1 group-hover:scale-110 transition"></div>
                             </div>
                         </label>
-
                         <label class="cursor-pointer group" title="Branco">
                             <input type="radio" name="cor_hover" value="hover:border-white hover:text-white" class="peer sr-only">
                             <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center">
                                 <div class="w-6 h-6 rounded bg-gray-300 mb-1 group-hover:scale-110 transition"></div>
                             </div>
                         </label>
-
                     </div>
                 </div>
 
@@ -246,7 +238,7 @@
         </div>
     </div>
 
-<div id="tab-usuarios" class="tab-content hidden">
+    <div id="tab-usuarios" class="tab-content hidden">
         <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-yellow-500">
             <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-yellow-500 pl-3">Registrar Novo Administrador</h2>
             <form action="/admin/usuarios/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -255,23 +247,31 @@
                     <input type="text" name="username" maxlength="50" required autocomplete="off" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition">
                 </div>
                 
-                <div class="relative">
+                <div>
                     <label class="block text-gray-400 text-xs font-mono mb-2">SENHA:</label>
-                    <input type="password" id="new_pwd" name="password" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition pr-10">
-                    <button type="button" onclick="togglePassword('new_pwd', 'eye_new_pwd')" class="absolute bottom-2 right-3 text-gray-500 hover:text-white transition focus:outline-none">
-                        <i id="eye_new_pwd" class="fa-solid fa-eye"></i>
-                    </button>
+                    <div class="relative">
+                        <input type="password" id="new_pwd" name="password" required 
+                               pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}"
+                               title="Mínimo 8 caracteres, 1 maiúscula, 1 número e 1 símbolo."
+                               class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition pr-10">
+                        <button type="button" onclick="togglePassword('new_pwd', 'eye_new_pwd')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition focus:outline-none">
+                            <i id="eye_new_pwd" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-gray-500 mt-1 font-mono">Requisito: Min 8 chars, 1 Maiúscula, 1 Número, 1 Símbolo.</p>
                 </div>
 
-                <div class="relative">
+                <div>
                     <label class="block text-gray-400 text-xs font-mono mb-2">CONFIRMAR SENHA:</label>
-                    <input type="password" id="conf_pwd" name="confirm_password" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition pr-10">
-                    <button type="button" onclick="togglePassword('conf_pwd', 'eye_conf_pwd')" class="absolute bottom-2 right-3 text-gray-500 hover:text-white transition focus:outline-none">
-                        <i id="eye_conf_pwd" class="fa-solid fa-eye"></i>
-                    </button>
+                    <div class="relative">
+                        <input type="password" id="conf_pwd" name="confirm_password" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition pr-10">
+                        <button type="button" onclick="togglePassword('conf_pwd', 'eye_conf_pwd')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition focus:outline-none">
+                            <i id="eye_conf_pwd" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="md:col-span-2 text-right">
+                <div class="md:col-span-2 text-right mt-2">
                     <button type="submit" class="px-6 py-2 bg-yellow-500 text-darkbg font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">>_ REGISTRAR USUÁRIO</button>
                 </div>
             </form>
@@ -317,7 +317,6 @@
 </div>
 
 <script>
-    // Gerenciador de Abas com LocalStorage
     function openTab(tabName) {
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.add('hidden');
@@ -342,15 +341,19 @@
         const savedTab = localStorage.getItem('adminActiveTab') || 'projetos';
         openTab(savedTab);
         
-        // Verifica se a URL retornou com erro de senha
         const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.get('erro_user')) {
+        if(urlParams.get('erro_user') === 'senhas_diferentes') {
             alert('[!] ACESSO NEGADO: As senhas digitadas não conferem.');
-            openTab('usuarios'); // Força a aba de usuários a abrir
+            openTab('usuarios');
+        } else if(urlParams.get('erro_user') === 'senha_fraca') {
+            alert('[!] ACESSO NEGADO: A senha deve ter no mínimo 8 caracteres, 1 letra maiúscula, 1 número e 1 símbolo.');
+            openTab('usuarios');
+        } else if(urlParams.get('erro_user')) { // Captura erro genérico se houver
+            alert('[!] ACESSO NEGADO: As senhas não conferem.');
+            openTab('usuarios');
         }
     });
 
-    // Função dos "Olhinhos" nas senhas
     function togglePassword(inputId, iconId) {
         const input = document.getElementById(inputId);
         const icon = document.getElementById(iconId);
