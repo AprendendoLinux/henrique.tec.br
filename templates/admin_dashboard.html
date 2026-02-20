@@ -246,18 +246,31 @@
         </div>
     </div>
 
-    <div id="tab-usuarios" class="tab-content hidden">
+<div id="tab-usuarios" class="tab-content hidden">
         <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-yellow-500">
             <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-yellow-500 pl-3">Registrar Novo Administrador</h2>
             <form action="/admin/usuarios/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+                <div class="md:col-span-2">
                     <label class="block text-gray-400 text-xs font-mono mb-2">LOGIN (Username):</label>
-                    <input type="text" name="username" maxlength="50" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition">
+                    <input type="text" name="username" maxlength="50" required autocomplete="off" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition">
                 </div>
-                <div>
+                
+                <div class="relative">
                     <label class="block text-gray-400 text-xs font-mono mb-2">SENHA:</label>
-                    <input type="password" name="password" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition">
+                    <input type="password" id="new_pwd" name="password" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition pr-10">
+                    <button type="button" onclick="togglePassword('new_pwd', 'eye_new_pwd')" class="absolute bottom-2 right-3 text-gray-500 hover:text-white transition focus:outline-none">
+                        <i id="eye_new_pwd" class="fa-solid fa-eye"></i>
+                    </button>
                 </div>
+
+                <div class="relative">
+                    <label class="block text-gray-400 text-xs font-mono mb-2">CONFIRMAR SENHA:</label>
+                    <input type="password" id="conf_pwd" name="confirm_password" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition pr-10">
+                    <button type="button" onclick="togglePassword('conf_pwd', 'eye_conf_pwd')" class="absolute bottom-2 right-3 text-gray-500 hover:text-white transition focus:outline-none">
+                        <i id="eye_conf_pwd" class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+
                 <div class="md:col-span-2 text-right">
                     <button type="submit" class="px-6 py-2 bg-yellow-500 text-darkbg font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">>_ REGISTRAR USUÁRIO</button>
                 </div>
@@ -278,12 +291,20 @@
                     {% for user in usuarios %}
                     <tr class="border-b border-gray-800/50 hover:bg-gray-900/30">
                         <td class="p-4 font-mono text-xs">#00{{ user.id }}</td>
-                        <td class="p-4">{{ user.username }}</td>
+                        <td class="p-4">
+                            {{ user.username }}
+                            {% if user.username == current_user %}<span class="ml-2 text-xs text-neon">(Você)</span>{% endif %}
+                        </td>
                         <td class="p-4 text-center">
                             {% if user.username == 'admin' %}
-                            <span class="text-gray-600 font-mono text-xs cursor-not-allowed" title="Usuário mestre não pode ser apagado">Protegido</span>
+                                <span class="text-gray-600 font-mono text-xs cursor-not-allowed border border-gray-700 px-2 py-1 rounded" title="Gerenciado no docker-compose.yml">Lock (Docker)</span>
                             {% else %}
-                            <a href="/admin/usuarios/delete/{{ user.id }}" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</a>
+                                <a href="/admin/usuarios/edit/{{ user.id }}" class="text-yellow-500 hover:text-yellow-400 hover:underline font-mono text-xs mr-3">Alterar Senha</a>
+                                {% if user.username == current_user %}
+                                    <span class="text-gray-600 font-mono text-xs cursor-not-allowed" title="Você não pode excluir a si mesmo">Deletar</span>
+                                {% else %}
+                                    <a href="/admin/usuarios/delete/{{ user.id }}" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</a>
+                                {% endif %}
                             {% endif %}
                         </td>
                     </tr>
@@ -296,17 +317,16 @@
 </div>
 
 <script>
+    // Gerenciador de Abas com LocalStorage
     function openTab(tabName) {
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.add('hidden');
             tab.classList.remove('block');
         });
-        
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('text-neon', 'border-neon', 'bg-gray-900/50');
             btn.classList.add('text-gray-500', 'border-transparent');
         });
-
         document.getElementById('tab-' + tabName).classList.remove('hidden');
         document.getElementById('tab-' + tabName).classList.add('block');
         
@@ -315,13 +335,34 @@
             activeBtn.classList.remove('text-gray-500', 'border-transparent');
             activeBtn.classList.add('text-neon', 'border-neon', 'bg-gray-900/50');
         }
-
         localStorage.setItem('adminActiveTab', tabName);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         const savedTab = localStorage.getItem('adminActiveTab') || 'projetos';
         openTab(savedTab);
+        
+        // Verifica se a URL retornou com erro de senha
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('erro_user')) {
+            alert('[!] ACESSO NEGADO: As senhas digitadas não conferem.');
+            openTab('usuarios'); // Força a aba de usuários a abrir
+        }
     });
+
+    // Função dos "Olhinhos" nas senhas
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash", "text-neon");
+        } else {
+            input.type = "password";
+            icon.classList.remove("fa-eye-slash", "text-neon");
+            icon.classList.add("fa-eye");
+        }
+    }
 </script>
 {% endblock %}
