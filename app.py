@@ -41,7 +41,7 @@ def get_whatsapp_url(db: Session):
     if wp and wp.numero:
         numero_limpo = ''.join(filter(str.isdigit, wp.numero))
         msg = urllib.parse.quote(wp.mensagem or "")
-        return f"https://web.whatsapp.com/send?phone={numero_limpo}&text={msg}"
+        return f"https://api.whatsapp.com/send?phone={numero_limpo}&text={msg}"
     return None
 
 # --- PRELOAD: VERIFICAÇÃO DE DISPONIBILIDADE DO BANCO DE DADOS ---
