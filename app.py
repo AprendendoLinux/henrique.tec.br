@@ -1,13 +1,20 @@
 import os
+import time
+import logging
 import urllib.parse
 from fastapi import FastAPI, Request, Depends, Form, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
 import bcrypt
 import models
 from database import engine, get_db
+
+# --- CONFIGURAÇÃO DE LOG ---
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # --- FUNÇÕES DE CRIPTOGRAFIA E VALIDAÇÃO ---
 def get_password_hash(password: str) -> str:
@@ -34,10 +41,27 @@ def get_whatsapp_url(db: Session):
     if wp and wp.numero:
         numero_limpo = ''.join(filter(str.isdigit, wp.numero))
         msg = urllib.parse.quote(wp.mensagem or "")
-        # AQUI ESTÁ A MUDANÇA PARA O LINK DO WHATSAPP WEB
         return f"https://web.whatsapp.com/send?phone={numero_limpo}&text={msg}"
     return None
 
+# --- PRELOAD: VERIFICAÇÃO DE DISPONIBILIDADE DO BANCO DE DADOS ---
+def wait_for_db():
+    retries = 30
+    while retries > 0:
+        try:
+            # Tenta estabelecer uma conexão real com o banco
+            with engine.connect() as conn:
+                logger.info("[OK] Conexão com o banco de dados estabelecida com sucesso!")
+                return
+        except OperationalError:
+            retries -= 1
+            logger.warning(f"[AGUARDANDO] Banco de dados indisponível. Retentando em 2 segundos... ({retries} tentativas restantes)")
+            time.sleep(2)
+    logger.error("[ERRO FATAL] Não foi possível conectar ao banco de dados após múltiplas tentativas.")
+    exit(1)
+
+# Executa a verificação ANTES de tentar criar as tabelas
+wait_for_db()
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Henrique.tec.br", description="Infraestrutura e Sistemas")

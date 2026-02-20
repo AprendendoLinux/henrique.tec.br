@@ -7,19 +7,15 @@ services:
     hostname: app
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_USER=henrique
       - DB_PASSWORD=senha_segura
-      - DB_NAME=henriquetec
-      - ADMIN_PASSWORD=123@Mudar
-    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+      - DB_NAME=henrique
+      - ADMIN_PASSWORD=admin
     restart: unless-stopped
 
   db:
@@ -28,16 +24,11 @@ services:
     hostname: db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root_password_forte
-      MYSQL_DATABASE: henriquetec
+      MYSQL_ROOT_PASSWORD: senha_de_root
+      MYSQL_DATABASE: henrique
       MYSQL_USER: henrique
       MYSQL_PASSWORD: senha_segura
     ports:
       - "3306:3306"
     volumes:
       - /srv/app/db:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
