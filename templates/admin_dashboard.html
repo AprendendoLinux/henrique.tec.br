@@ -16,12 +16,12 @@
     </div>
 
     <div class="flex space-x-2 border-b border-gray-800 mb-8 font-mono text-sm overflow-x-auto">
-        <button onclick="openTab('projetos')" id="btn-projetos" class="tab-btn px-6 py-3 text-neon border-b-2 border-neon bg-gray-900/50 transition">Projetos Ativos</button>
-        <button onclick="openTab('contatos')" id="btn-contatos" class="tab-btn px-6 py-3 text-gray-500 hover:text-gray-300 border-b-2 border-transparent transition">Contatos (Rodapé)</button>
-        <button onclick="openTab('usuarios')" id="btn-usuarios" class="tab-btn px-6 py-3 text-gray-500 hover:text-gray-300 border-b-2 border-transparent transition">Usuários</button>
+        <button onclick="openTab('projetos')" id="btn-projetos" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Projetos Ativos</button>
+        <button onclick="openTab('contatos')" id="btn-contatos" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Contatos (Rodapé)</button>
+        <button onclick="openTab('usuarios')" id="btn-usuarios" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Usuários</button>
     </div>
 
-    <div id="tab-projetos" class="tab-content block">
+    <div id="tab-projetos" class="tab-content hidden">
         <div class="glass-card p-6 md:p-8 rounded-xl mb-10">
             <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-neon pl-3">Cadastrar Novo Projeto</h2>
             <form action="/admin/projetos/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -93,14 +93,39 @@
                     <label class="block text-gray-400 text-xs font-mono mb-2">URL DO LINK:</label>
                     <input type="url" name="url" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
                 </div>
+                
                 <div>
-                    <label class="block text-gray-400 text-xs font-mono mb-2">ÍCONE / EMOJI (Opcional, ex: 📱):</label>
-                    <input type="text" name="icone" maxlength="50" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+                    <label class="block text-gray-400 text-xs font-mono mb-2">ÍCONE / EMOJI:</label>
+                    <select name="icone" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition appearance-none">
+                        <option value="">Selecione um ícone...</option>
+                        <option value="📱">📱 Celular / Dispositivo</option>
+                        <option value="✉️">✉️ E-mail</option>
+                        <option value="💬">💬 Balão de Chat</option>
+                        <option value="🐦">🐦 Pássaro (X/Twitter)</option>
+                        <option value="📷">📷 Câmera (Instagram)</option>
+                        <option value="💼">💼 Maleta (LinkedIn)</option>
+                        <option value="📘">📘 Livro/Página (Facebook)</option>
+                        <option value="✈️">✈️ Avião (Telegram)</option>
+                        <option value="🌐">🌐 Globo (Site)</option>
+                        <option value="▶️">▶️ Play (YouTube)</option>
+                        <option value=">_">>_ Terminal</option>
+                    </select>
                 </div>
+                
                 <div>
-                    <label class="block text-gray-400 text-xs font-mono mb-2">COR HOVER (Tailwind, ex: hover:bg-green-500):</label>
-                    <input type="text" name="cor_hover" value="hover:bg-neon" maxlength="50" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+                    <label class="block text-gray-400 text-xs font-mono mb-2">COR DE DESTAQUE (Hover):</label>
+                    <select name="cor_hover" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition appearance-none">
+                        <option value="hover:bg-neon">Ciano / Neon (Sistema)</option>
+                        <option value="hover:bg-accent">Azul Padrão (Sistema)</option>
+                        <option value="hover:bg-green-500">Verde (WhatsApp)</option>
+                        <option value="hover:bg-blue-400">Azul Claro (Telegram / X)</option>
+                        <option value="hover:bg-blue-600">Azul Escuro (LinkedIn / Facebook)</option>
+                        <option value="hover:bg-pink-600">Rosa (Instagram)</option>
+                        <option value="hover:bg-red-600">Vermelho (YouTube / E-mail)</option>
+                        <option value="hover:bg-gray-300">Cinza / Branco Neutro</option>
+                    </select>
                 </div>
+
                 <div class="md:col-span-2 text-right">
                     <button type="submit" class="px-6 py-2 bg-accent text-white font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">>_ SALVAR CONTATO</button>
                 </div>
@@ -121,7 +146,7 @@
                 <tbody class="text-sm text-gray-300">
                     {% for contato in contatos %}
                     <tr class="border-b border-gray-800/50 hover:bg-gray-900/30">
-                        <td class="p-4">{{ contato.icone }}</td>
+                        <td class="p-4 text-lg">{{ contato.icone }}</td>
                         <td class="p-4">{{ contato.nome }}</td>
                         <td class="p-4 font-mono text-xs text-gray-500 truncate max-w-[200px]">{{ contato.url }}</td>
                         <td class="p-4 text-center">
@@ -188,8 +213,10 @@
 <script>
     function openTab(tabName) {
         // Esconde todas as abas
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('block'));
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.add('hidden');
+            tab.classList.remove('block');
+        });
         
         // Reseta o estilo de todos os botões
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -197,13 +224,24 @@
             btn.classList.add('text-gray-500', 'border-transparent');
         });
 
-        // Mostra a aba clicada e aplica o estilo ao botão ativo
+        // Mostra a aba atual e marca o botão como ativo
         document.getElementById('tab-' + tabName).classList.remove('hidden');
         document.getElementById('tab-' + tabName).classList.add('block');
         
         const activeBtn = document.getElementById('btn-' + tabName);
-        activeBtn.classList.remove('text-gray-500', 'border-transparent');
-        activeBtn.classList.add('text-neon', 'border-neon', 'bg-gray-900/50');
+        if (activeBtn) {
+            activeBtn.classList.remove('text-gray-500', 'border-transparent');
+            activeBtn.classList.add('text-neon', 'border-neon', 'bg-gray-900/50');
+        }
+
+        // Salva a preferência no navegador
+        localStorage.setItem('adminActiveTab', tabName);
     }
+
+    // Ao carregar a página, verifica se há uma aba gravada. Se não, abre 'projetos'.
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTab = localStorage.getItem('adminActiveTab') || 'projetos';
+        openTab(savedTab);
+    });
 </script>
 {% endblock %}
