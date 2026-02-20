@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Destino Inacessível | Henrique Fagundes{% endblock %}
+
+{% block content %}
+<div class="flex-grow flex flex-col items-center justify-center px-6 py-10 text-center w-full">
+    <div class="glass-card p-8 md:p-12 rounded-2xl border-t-4 border-t-neon max-w-2xl w-full">
+        
+        <h1 class="text-7xl md:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-neon to-accent mb-2 font-mono glow-text">404</h1>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-8 font-mono">>_ Página não encontrada</h2>
+        
+        <div class="bg-[#050505] border border-gray-800 rounded p-5 text-left font-mono text-sm md:text-base text-gray-400 mb-10 w-full shadow-inner overflow-x-auto">
+            <p class="text-red-500 mb-2"><span class="text-gray-500">root@henrique.tec.br:~#</span> ping {{ request.url.path }}</p>
+            <p class="mb-1">ping: {{ request.url.path }}: Name or service not known</p>
+            <p class="text-yellow-500 mt-4">[!] ERRO FATAL: A página solicitada não existe no servidor.</p>
+        </div>
+
+        <a href="/" class="px-8 py-3 rounded-md bg-neon text-darkbg font-bold font-mono hover:bg-white transition duration-300 shadow-[0_0_20px_rgba(0,255,204,0.4)] inline-block">
+            <- RETORNAR À BASE
+        </a>
+        
+    </div>
+</div>
+{% endblock %}

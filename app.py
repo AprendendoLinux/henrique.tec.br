@@ -2,6 +2,7 @@ import os
 import time
 import logging
 import urllib.parse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi import FastAPI, Request, Depends, Form, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -46,17 +47,19 @@ def get_whatsapp_url(db: Session):
 
 # --- PRELOAD: VERIFICAÇÃO DE DISPONIBILIDADE DO BANCO DE DADOS ---
 def wait_for_db():
-    retries = 30
+    retries = 60  # Aumentamos para 60 tentativas
     while retries > 0:
         try:
             # Tenta estabelecer uma conexão real com o banco
             with engine.connect() as conn:
                 logger.info("[OK] Conexão com o banco de dados estabelecida com sucesso!")
                 return
-        except OperationalError:
+        except Exception as e:
             retries -= 1
-            logger.warning(f"[AGUARDANDO] Banco de dados indisponível. Retentando em 2 segundos... ({retries} tentativas restantes)")
-            time.sleep(2)
+            logger.warning(f"[AGUARDANDO] Banco de dados iniciando. Retentando em 3s... ({retries} restantes)")
+            logger.error(f"Motivo da recusa: {e}")
+            time.sleep(3)
+            
     logger.error("[ERRO FATAL] Não foi possível conectar ao banco de dados após múltiplas tentativas.")
     exit(1)
 
@@ -302,3 +305,22 @@ async def robots(request: Request):
 @app.get("/sitemap.xml")
 async def sitemap(request: Request):
     return templates.TemplateResponse("sitemap.xml", {"request": request}, media_type="application/xml")
+
+# --- TRATAMENTO DE ERRO 404 ---
+@app.exception_handler(404)
+async def custom_404_handler(request: Request, exc: StarletteHTTPException):
+    # Instancia o banco de dados manualmente para o rodapé não quebrar
+    db = next(get_db())
+    contatos = db.query(models.Contato).limit(10).all()
+    wp_url = get_whatsapp_url(db)
+    
+    return templates.TemplateResponse(
+        "404.html", 
+        {
+            "request": request, 
+            "contatos": contatos, 
+            "version": APP_VERSION, 
+            "whatsapp_url": wp_url
+        }, 
+        status_code=404
+    )
