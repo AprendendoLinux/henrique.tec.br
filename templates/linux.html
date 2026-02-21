@@ -3,85 +3,101 @@
 {% block title %}Servidores Linux | Henrique Fagundes{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-6 py-16 w-full">
-    <a href="/#expertise" class="inline-flex items-center text-neon font-mono text-sm hover:text-white transition mb-10">
-        <span class="mr-2"><-</span> Retornar ao Terminal Principal
-    </a>
+<div class="max-w-5xl mx-auto px-6 py-12 w-full flex-grow font-mono">
     
-    <div class="mb-12 border-b border-gray-800/50 pb-8">
-        <span class="text-xs font-mono bg-gray-900 border border-gray-700 px-3 py-1 rounded-full text-gray-300 mb-6 inline-block">
-            Infraestrutura Avançada
-        </span>
-        <h1 class="text-4xl md:text-5xl font-extrabold text-white leading-tight border-l-4 border-neon pl-4">
-            Servidores Linux
-        </h1>
-        <p class="mt-6 text-gray-400 text-lg leading-relaxed">
-            Soluções específicas e sob medida para cada empresa, dependendo das suas necessidades operacionais. Conheça abaixo algumas das soluções baseadas em sistemas Linux (como Debian, Ubuntu Server e AlmaLinux) que posso desenhar e implementar.
-        </p>
+    <div class="mb-8">
+        <a href="/#expertise" class="text-gray-500 hover:text-neon transition text-sm">
+            <i class="fa-solid fa-arrow-left mr-2"></i> ./voltar_para_servicos
+        </a>
     </div>
 
-    <div class="space-y-8 mt-12">
+    <div class="glass-card rounded-xl overflow-hidden border border-gray-800 shadow-[0_0_40px_rgba(0,255,204,0.05)] mb-12">
+        <div class="bg-[#111] px-4 py-3 border-b border-gray-800 flex items-center">
+            <div class="flex space-x-2">
+                <div class="w-3 h-3 rounded-full bg-red-500 opacity-80"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500 opacity-80"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500 opacity-80"></div>
+            </div>
+            <div class="mx-auto text-xs text-yellow-500 tracking-widest uppercase">/sys/os/linux-server</div>
+            <div class="w-10"></div>
+        </div>
         
-        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-accent relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-accent opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
-            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
-                <i class="fa-solid fa-globe text-accent mr-3"></i> Servidores Web e Proxy Reverso
-            </h3>
-            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
-                <p>
-                    A combinação de servidores Web robustos (como <strong>Nginx</strong> e <strong>Apache</strong>) com Proxies Reversos garante uma entrega de conteúdo extremamente rápida e segura. Permite o balanceamento de carga, hospedagem de múltiplas aplicações no mesmo servidor de forma isolada (via <strong>Docker</strong>) e a gestão automatizada de certificados SSL/TLS (Let's Encrypt).
-                </p>
-                <p>
-                    O Proxy funciona otimizando e controlando o acesso. As páginas e requisições frequentemente visitadas podem ser armazenadas em cache no servidor, proporcionando muito mais rapidez de acesso e menor consumo de largura de banda do seu link de internet, garantindo alta performance para sistemas internos e externos.
-                </p>
+        <div class="p-8 md:p-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-6 glow-text">
+                <i class="fa-brands fa-linux text-yellow-500 mr-4"></i>Administração Linux_
+            </h1>
+            <p class="text-gray-400 leading-relaxed text-lg mb-6">
+                O motor invisível que impulsiona a internet moderna. Planejo, instalo e administro servidores baseados em Debian, Ubuntu e distribuições Enterprise. Foco absoluto em entregar o máximo de requisições por segundo com a menor latência e segurança inegociável.
+            </p>
+            <div class="inline-block bg-[#111] border border-gray-800 text-yellow-500 px-4 py-2 rounded text-sm tracking-widest">
+                >_ STATUS: UPTIME 99.9%
             </div>
-        </article>
+        </div>
+    </div>
 
-        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-neon relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-neon opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
-            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
-                <i class="fa-solid fa-shield-halved text-neon mr-3"></i> Firewall e Controle de Acesso
-            </h3>
-            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
-                <p>
-                    Serviço de controle de acesso à rede interna da empresa, garantindo a proteção dos dados armazenados em servidores e estações de trabalho. A solução possibilita restringir o acesso a serviços com a utilização da mais avançada tecnologia de filtragem de pacotes (como <strong>iptables</strong>, <strong>nftables</strong> e <strong>UFW</strong>).
-                </p>
-                <p>
-                    Com integração a sistemas de prevenção de intrusões (como o <strong>Fail2Ban</strong>), o servidor atua de forma proativa, bloqueando automaticamente ataques de força bruta e tentativas de violação, fornecendo um registro detalhado que contribui para a definição de novas regras de proteção perimetral.
-                </p>
-            </div>
-        </article>
+    <h2 class="text-2xl font-bold text-white mb-8 border-l-4 border-yellow-500 pl-4">A Stack de Infraestrutura</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        
+        <div class="bg-[#0a0a0a] border border-gray-800 rounded-lg p-8 hover:border-[#009639] transition group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-[#009639]/5 rounded-bl-[100px] -z-10 group-hover:bg-[#009639]/10 transition"></div>
+            <div class="text-[#009639] text-4xl mb-6"><i class="fa-solid fa-network-wired"></i></div>
+            <h3 class="text-2xl font-bold text-white mb-4">Web Servers & Proxies</h3>
+            <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                Substituição de stacks defasadas por arquiteturas de alta concorrência utilizando Nginx e HAProxy como camada de borda.
+            </p>
+            <ul class="text-sm text-gray-500 space-y-3">
+                <li class="flex items-start"><span class="text-[#009639] mr-2">▹</span> Configuração avançada de Proxy Reverso.</li>
+                <li class="flex items-start"><span class="text-[#009639] mr-2">▹</span> Balanceamento de carga (Load Balancing) entre servidores.</li>
+                <li class="flex items-start"><span class="text-[#009639] mr-2">▹</span> Emissão e renovação automática de certificados SSL (Let's Encrypt).</li>
+            </ul>
+        </div>
 
-        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-accent relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-accent opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
-            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
-                <i class="fa-solid fa-database text-accent mr-3"></i> Servidores de Banco de Dados
-            </h3>
-            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
-                <p>
-                    O desempenho de uma aplicação depende diretamente da resposta do seu motor de dados. Soluções como <strong>MySQL</strong>, <strong>MariaDB</strong> e <strong>PostgreSQL</strong> requerem configurações específicas para o tipo de aplicação e perfil de uso.
-                </p>
-                <p>
-                    Não existe uma configuração padrão que garanta o melhor desempenho universal. Por isso, ofereço consultoria especializada no <em>tuning</em> do servidor (otimização de parâmetros de memória e I/O) para extrair o máximo de performance do hardware disponível, aliado à implementação de rotinas rigorosas de backup automatizado.
-                </p>
-            </div>
-        </article>
-
-        <article class="glass-card p-8 rounded-2xl border-l-2 border-l-neon relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-neon opacity-5 blur-[60px] group-hover:opacity-10 transition"></div>
-            <h3 class="text-2xl font-bold text-white mb-4 flex items-center">
-                <i class="fa-solid fa-envelope text-neon mr-3"></i> Correio Eletrônico e Anti-Spam
-            </h3>
-            <div class="text-gray-400 text-sm leading-relaxed space-y-4">
-                <p>
-                    Projeto e migração de plataformas, com implementação de correio corporativo próprio (IMAP, POP3 e SMTP) utilizando pilhas de alta confiabilidade (<strong>Postfix</strong> e <strong>Dovecot</strong>). Acesso facilitado através de interfaces Webmail modernas.
-                </p>
-                <p>
-                    Toda mensagem recebida é analisada por sistemas avançados de filtragem. Soluções modernas como <strong>Rspamd</strong> e <strong>ClamAV</strong> analisam as mensagens em tempo real através de inteligência heurística, identificando padrões de SPAM e removendo vírus ou anexos perigosos antes mesmo de chegarem à caixa de entrada do usuário. O sistema "aprende" com o tráfego diário, tornando-se progressivamente mais rigoroso contra ameaças e evitando falsos-positivos.
-                </p>
-            </div>
-        </article>
+        <div class="bg-[#0a0a0a] border border-gray-800 rounded-lg p-8 hover:border-[#EE0000] transition group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-[#EE0000]/5 rounded-bl-[100px] -z-10 group-hover:bg-[#EE0000]/10 transition"></div>
+            <div class="text-[#EE0000] text-4xl mb-6"><i class="fa-solid fa-terminal"></i></div>
+            <h3 class="text-2xl font-bold text-white mb-4">Automação (IaC)</h3>
+            <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                Gestão de Infraestrutura como Código. Abandono as configurações manuais propensas a erro em favor de automação escalável.
+            </p>
+            <ul class="text-sm text-gray-500 space-y-3">
+                <li class="flex items-start"><span class="text-[#EE0000] mr-2">▹</span> Playbooks do Ansible para provisionamento em massa.</li>
+                <li class="flex items-start"><span class="text-[#EE0000] mr-2">▹</span> Shell Scripting avançado (Bash) para rotinas de manutenção.</li>
+                <li class="flex items-start"><span class="text-[#EE0000] mr-2">▹</span> Agendamento inteligente de backups e purga de logs (Cron/Logrotate).</li>
+            </ul>
+        </div>
 
     </div>
+
+    <h2 class="text-2xl font-bold text-white mb-8 border-l-4 border-yellow-500 pl-4">Foco em Performance e Segurança</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div class="glass-card p-6 rounded border border-gray-800">
+            <i class="fa-solid fa-shield-halved text-yellow-500 text-2xl mb-4"></i>
+            <h4 class="text-white font-bold mb-2">Hardening</h4>
+            <p class="text-gray-400 text-xs">Blindagem do sistema operacional. Bloqueio de portas não utilizadas, desativação de root login e proteção de memória.</p>
+        </div>
+        <div class="glass-card p-6 rounded border border-gray-800">
+            <i class="fa-solid fa-user-secret text-yellow-500 text-2xl mb-4"></i>
+            <h4 class="text-white font-bold mb-2">Mitigação Ativa</h4>
+            <p class="text-gray-400 text-xs">Uso de Fail2Ban e firewalls locais (UFW/Iptables) para banir automaticamente IPs que tentam ataques de força bruta.</p>
+        </div>
+        <div class="glass-card p-6 rounded border border-gray-800">
+            <i class="fa-solid fa-gauge-high text-yellow-500 text-2xl mb-4"></i>
+            <h4 class="text-white font-bold mb-2">Kernel Tuning</h4>
+            <p class="text-gray-400 text-xs">Ajuste de parâmetros do Sysctl para suportar milhares de conexões simultâneas TCP sem esgotar os recursos da máquina.</p>
+        </div>
+    </div>
+
+    <div class="text-center py-10 bg-[#111] border border-gray-800 rounded-xl px-4">
+        <h3 class="text-xl font-bold text-white mb-4">Seus servidores estão entregando o máximo?</h3>
+        <p class="text-gray-400 text-sm mb-8 max-w-2xl mx-auto">
+            Uma configuração padrão de fábrica desperdiça até 60% do potencial do seu hardware. Vamos extrair a verdadeira performance do seu servidor.
+        </p>
+        <a href="{{ whatsapp_url if whatsapp_url else '#contato' }}" class="inline-block w-full md:w-auto px-4 md:px-8 py-4 bg-neon text-darkbg font-bold tracking-widest text-sm hover:bg-white transition shadow-[0_0_20px_rgba(0,255,204,0.3)] text-center font-mono overflow-hidden whitespace-nowrap text-ellipsis">
+            >_ SOLICITAR AUDITORIA LINUX
+        </a>
+    </div>
+
 </div>
 {% endblock %}
