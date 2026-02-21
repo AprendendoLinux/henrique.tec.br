@@ -118,11 +118,12 @@ async def servicos_linux(request: Request, db: Session = Depends(get_db)):
     wp_url = get_whatsapp_url(db)
     return templates.TemplateResponse("linux.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
 
-@app.get("/servicos/mikrotik")
-async def servicos_mikrotik(request: Request, db: Session = Depends(get_db)):
+@app.get("/servicos/firewall")
+async def servicos_firewall(request: Request, db: Session = Depends(get_db)):
     contatos = db.query(models.Contato).limit(10).all()
     wp_url = get_whatsapp_url(db)
-    return templates.TemplateResponse("mikrotik.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
+    # Note que já deixei preparado para buscar o arquivo firewall.html que criaremos em seguida
+    return templates.TemplateResponse("firewall.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
 
 @app.get("/servicos/manutencao")
 async def servicos_manutencao(request: Request, db: Session = Depends(get_db)):

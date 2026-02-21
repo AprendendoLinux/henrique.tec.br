@@ -18,7 +18,7 @@
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>{{ request.base_url }}servicos/mikrotik</loc>
+        <loc>{{ request.base_url }}servicos/firewall</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>

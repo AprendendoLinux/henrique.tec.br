@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Firewall e Segurança | Henrique Fagundes{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-6 py-12 w-full flex-grow font-mono">
+    
+    <div class="mb-8">
+        <a href="/#expertise" class="text-gray-500 hover:text-neon transition text-sm">
+            <i class="fa-solid fa-arrow-left mr-2"></i> ./voltar_para_servicos
+        </a>
+    </div>
+
+    <div class="glass-card rounded-xl overflow-hidden border border-gray-800 shadow-[0_0_40px_rgba(0,255,204,0.05)] mb-12">
+        <div class="bg-[#111] px-4 py-3 border-b border-gray-800 flex items-center">
+            <div class="flex space-x-2">
+                <div class="w-3 h-3 rounded-full bg-red-500 opacity-80"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500 opacity-80"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500 opacity-80"></div>
+            </div>
+            <div class="mx-auto text-xs text-neon tracking-widest uppercase">/sys/network/security</div>
+            <div class="w-10"></div>
+        </div>
+        
+        <div class="p-8 md:p-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-6 glow-text">
+                <i class="fa-solid fa-shield-halved text-neon mr-4"></i>Firewall e Segurança_
+            </h1>
+            <p class="text-gray-400 leading-relaxed text-lg mb-6">
+                Em um cenário digital onde ameaças são constantes e silenciosas, um roteador genérico não é suficiente. 
+                A proteção da borda da sua rede é uma questão de <span class="text-white font-bold">sobrevivência corporativa</span>. 
+                Atuo no desenho, implantação e monitoramento de arquiteturas de rede blindadas, garantindo que sua infraestrutura 
+                esteja sempre disponível e impenetrável.
+            </p>
+            <div class="inline-block bg-[#111] border border-gray-800 text-neon px-4 py-2 rounded text-sm tracking-widest">
+                >_ STATUS: BLINDADO
+            </div>
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-white mb-8 border-l-4 border-neon pl-4">Tecnologias de Borda</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        
+        <div class="bg-[#0a0a0a] border border-gray-800 rounded-lg p-8 hover:border-blue-500 transition group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-bl-[100px] -z-10 group-hover:bg-blue-500/10 transition"></div>
+            <div class="text-blue-500 text-4xl mb-6"><i class="fa-solid fa-route"></i></div>
+            <h3 class="text-2xl font-bold text-white mb-4">MikroTik RouterOS</h3>
+            <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                Poder absoluto sobre o tráfego da rede. Utilizado para cenários que exigem roteamento dinâmico agressivo, 
+                gerenciamento de banda cirúrgico e topologias complexas de interconexão.
+            </p>
+            <ul class="text-sm text-gray-500 space-y-3">
+                <li class="flex items-start"><span class="text-blue-500 mr-2">▹</span> Regras de Firewall Stateful e Mangle avançado.</li>
+                <li class="flex items-start"><span class="text-blue-500 mr-2">▹</span> Roteamento BGP e OSPF para alta disponibilidade.</li>
+                <li class="flex items-start"><span class="text-blue-500 mr-2">▹</span> Controle de QoS e engenharia de tráfego.</li>
+                <li class="flex items-start"><span class="text-blue-500 mr-2">▹</span> Balanceamento de múltiplos links (Load Balance PCC).</li>
+            </ul>
+        </div>
+
+        <div class="bg-[#0a0a0a] border border-gray-800 rounded-lg p-8 hover:border-red-500 transition group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-bl-[100px] -z-10 group-hover:bg-red-500/10 transition"></div>
+            <div class="text-red-500 text-4xl mb-6"><i class="fa-solid fa-shield-virus"></i></div>
+            <h3 class="text-2xl font-bold text-white mb-4">pfSense (Netgate)</h3>
+            <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                Firewall de classe empresarial de código aberto. A melhor escolha para inspeção profunda de pacotes, 
+                bloqueios baseados em listas de ameaças globais e relatórios gerenciais detalhados.
+            </p>
+            <ul class="text-sm text-gray-500 space-y-3">
+                <li class="flex items-start"><span class="text-red-500 mr-2">▹</span> IDS/IPS (Suricata/Snort) para prevenção de intrusões.</li>
+                <li class="flex items-start"><span class="text-red-500 mr-2">▹</span> Bloqueio geográfico e antispam (pfBlockerNG).</li>
+                <li class="flex items-start"><span class="text-red-500 mr-2">▹</span> Proxy Transparente e filtro de conteúdo web.</li>
+                <li class="flex items-start"><span class="text-red-500 mr-2">▹</span> Alta Disponibilidade corporativa com CARP.</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <h2 class="text-2xl font-bold text-white mb-8 border-l-4 border-neon pl-4">Soluções Aplicadas</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div class="glass-card p-6 rounded border border-gray-800">
+            <i class="fa-solid fa-link-slash text-neon text-2xl mb-4"></i>
+            <h4 class="text-white font-bold mb-2">Failover Automático</h4>
+            <p class="text-gray-400 text-xs">Seu link principal caiu? O link de backup assume em milissegundos, sem que os usuários da rede percebam a interrupção.</p>
+        </div>
+        
+        <div class="glass-card p-6 rounded border border-gray-800">
+            <i class="fa-solid fa-lock text-neon text-2xl mb-4"></i>
+            <h4 class="text-white font-bold mb-2">VPN Corporativa</h4>
+            <p class="text-gray-400 text-xs">Interligação de matriz e filiais (Site-to-Site) ou acesso remoto para Home Office (Road Warrior) usando IPsec, WireGuard ou OpenVPN.</p>
+        </div>
+        
+        <div class="glass-card p-6 rounded border border-gray-800">
+            <i class="fa-solid fa-bug-slash text-neon text-2xl mb-4"></i>
+            <h4 class="text-white font-bold mb-2">Prevenção de Ataques</h4>
+            <p class="text-gray-400 text-xs">Mitigação de ataques de negação de serviço (DDoS), escaneamento de portas e bloqueio de IPs maliciosos conhecidos.</p>
+        </div>
+    </div>
+
+    <div class="text-center py-10 bg-[#111] border border-gray-800 rounded-xl px-4">
+        <h3 class="text-xl font-bold text-white mb-4">Sua rede está realmente segura?</h3>
+        <p class="text-gray-400 text-sm mb-8 max-w-2xl mx-auto">
+            Não espere um ataque ransomware ou uma queda drástica de produtividade para agir. 
+            Vamos desenhar uma topologia de segurança definitiva para a sua empresa.
+        </p>
+        <a href="{{ whatsapp_url if whatsapp_url else '#contato' }}" class="inline-block w-full md:w-auto px-4 md:px-8 py-4 bg-neon text-darkbg font-bold tracking-widest text-sm hover:bg-white transition shadow-[0_0_20px_rgba(0,255,204,0.3)] text-center font-mono overflow-hidden whitespace-nowrap text-ellipsis">
+            >_ SOLICITAR AUDITORIA DE REDE
+        </a>
+    </div>
+
+</div>
+{% endblock %}
