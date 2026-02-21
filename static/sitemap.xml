@@ -27,5 +27,19 @@
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
-
+    <url>
+        <loc>{{ request.base_url }}servicos/docker</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>{{ request.base_url }}servicos/virtualizacao</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>{{ request.base_url }}servicos/desenvolvimento</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
 </urlset>

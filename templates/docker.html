@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Containerização & CI/CD | Henrique Fagundes{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-6 py-12 w-full flex-grow font-mono">
+    
+    <div class="mb-8">
+        <a href="/#expertise" class="text-gray-500 hover:text-neon transition text-sm">
+            <i class="fa-solid fa-arrow-left mr-2"></i> ./voltar_para_servicos
+        </a>
+    </div>
+
+    <div class="glass-card rounded-xl overflow-hidden border border-gray-800 shadow-[0_0_40px_rgba(0,255,204,0.05)] mb-12">
+        <div class="bg-[#111] px-4 py-3 border-b border-gray-800 flex items-center">
+            <div class="flex space-x-2">
+                <div class="w-3 h-3 rounded-full bg-red-500 opacity-80"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500 opacity-80"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500 opacity-80"></div>
+            </div>
+            <div class="mx-auto text-xs text-neon tracking-widest uppercase">/sys/devops/docker</div>
+            <div class="w-10"></div>
+        </div>
+        
+        <div class="p-8 md:p-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-6 glow-text">
+                <i class="fa-brands fa-docker text-neon mr-4"></i>Container & CI/CD_
+            </h1>
+            <p class="text-gray-400 leading-relaxed text-lg mb-6">
+                O fim do "na minha máquina funciona". Transformo aplicações pesadas em microsserviços ágeis, portáteis e isolados. 
+                Com pipelines de CI/CD, suas atualizações de software deixam de ser um evento de risco e passam a ser rotinas invisíveis 
+                e automatizadas de zero-downtime.
+            </p>
+            <div class="inline-block bg-[#111] border border-gray-800 text-neon px-4 py-2 rounded text-sm tracking-widest">
+                >_ STATUS: AUTOMATIZADO
+            </div>
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-white mb-8 border-l-4 border-neon pl-4">Stack DevOps</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        
+        <div class="bg-[#0a0a0a] border border-gray-800 rounded-lg p-8 hover:border-[#2496ED] transition group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-[#2496ED]/5 rounded-bl-[100px] -z-10 group-hover:bg-[#2496ED]/10 transition"></div>
+            <div class="text-[#2496ED] text-4xl mb-6"><i class="fa-brands fa-docker"></i></div>
+            <h3 class="text-2xl font-bold text-white mb-4">Docker & Portainer</h3>
+            <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                Padronização absoluta de ambientes. Criação de imagens otimizadas (Dockerfiles) e orquestração visual de containers.
+            </p>
+            <ul class="text-sm text-gray-500 space-y-3">
+                <li class="flex items-start"><span class="text-[#2496ED] mr-2">▹</span> Mapeamento de volumes para persistência de dados.</li>
+                <li class="flex items-start"><span class="text-[#2496ED] mr-2">▹</span> Redes bridge/overlay para isolamento de serviços.</li>
+                <li class="flex items-start"><span class="text-[#2496ED] mr-2">▹</span> Gestão centralizada via GUI do Portainer.</li>
+            </ul>
+        </div>
+
+        <div class="bg-[#0a0a0a] border border-gray-800 rounded-lg p-8 hover:border-purple-500 transition group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-bl-[100px] -z-10 group-hover:bg-purple-500/10 transition"></div>
+            <div class="text-purple-500 text-4xl mb-6"><i class="fa-brands fa-github"></i></div>
+            <h3 class="text-2xl font-bold text-white mb-4">CI/CD & GitHub</h3>
+            <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                A ponte entre o código do desenvolvedor e o servidor de produção, acionada automaticamente a cada novo commit.
+            </p>
+            <ul class="text-sm text-gray-500 space-y-3">
+                <li class="flex items-start"><span class="text-purple-500 mr-2">▹</span> Configuração de Webhooks e Actions.</li>
+                <li class="flex items-start"><span class="text-purple-500 mr-2">▹</span> Deploy contínuo sem queda de serviço (Zero-Downtime).</li>
+                <li class="flex items-start"><span class="text-purple-500 mr-2">▹</span> Scripts bash para atualização automatizada.</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <h2 class="text-2xl font-bold text-white mb-8 border-l-4 border-neon pl-4">Vantagens Operacionais</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div class="glass-card p-6 rounded border border-gray-800">
+            <i class="fa-solid fa-server text-neon text-2xl mb-4"></i>
+            <h4 class="text-white font-bold mb-2">Escalabilidade</h4>
+            <p class="text-gray-400 text-xs">Crescimento sob demanda. Multiplique as instâncias da sua aplicação em segundos caso o tráfego aumente de repente.</p>
+        </div>
+        <div class="glass-card p-6 rounded border border-gray-800">
+            <i class="fa-solid fa-box-archive text-neon text-2xl mb-4"></i>
+            <h4 class="text-white font-bold mb-2">Isolamento</h4>
+            <p class="text-gray-400 text-xs">Se um serviço travar ou for comprometido, os outros continuam rodando perfeitamente em seus próprios containers.</p>
+        </div>
+        <div class="glass-card p-6 rounded border border-gray-800">
+            <i class="fa-solid fa-bolt text-neon text-2xl mb-4"></i>
+            <h4 class="text-white font-bold mb-2">Deploy Ágil</h4>
+            <p class="text-gray-400 text-xs">Atualize sua aplicação em produção com um simples "git push". O servidor faz o pull, rebuild e restart automaticamente.</p>
+        </div>
+    </div>
+
+    <div class="text-center py-10 bg-[#111] border border-gray-800 rounded-xl px-4">
+        <h3 class="text-xl font-bold text-white mb-4">Pronto para modernizar seu deploy?</h3>
+        <p class="text-gray-400 text-sm mb-8 max-w-2xl mx-auto">
+            Chega de enviar arquivos por FTP ou derrubar o sistema para atualizar. Vamos conteinerizar sua aplicação.
+        </p>
+        <a href="{{ whatsapp_url if whatsapp_url else '#contato' }}" class="inline-block w-full md:w-auto px-4 md:px-8 py-4 bg-neon text-darkbg font-bold tracking-widest text-sm hover:bg-white transition shadow-[0_0_20px_rgba(0,255,204,0.3)] text-center font-mono overflow-hidden whitespace-nowrap text-ellipsis">
+            >_ INICIAR PROJETO DEVOPS
+        </a>
+    </div>
+
+</div>
+{% endblock %}

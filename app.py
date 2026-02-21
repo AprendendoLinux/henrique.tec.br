@@ -131,6 +131,24 @@ async def servicos_manutencao(request: Request, db: Session = Depends(get_db)):
     wp_url = get_whatsapp_url(db)
     return templates.TemplateResponse("manutencao.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
 
+@app.get("/servicos/docker")
+async def servicos_docker(request: Request, db: Session = Depends(get_db)):
+    contatos = db.query(models.Contato).limit(10).all()
+    wp_url = get_whatsapp_url(db)
+    return templates.TemplateResponse("docker.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
+
+@app.get("/servicos/virtualizacao")
+async def servicos_virtualizacao(request: Request, db: Session = Depends(get_db)):
+    contatos = db.query(models.Contato).limit(10).all()
+    wp_url = get_whatsapp_url(db)
+    return templates.TemplateResponse("virtualizacao.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
+
+@app.get("/servicos/desenvolvimento")
+async def servicos_desenvolvimento(request: Request, db: Session = Depends(get_db)):
+    contatos = db.query(models.Contato).limit(10).all()
+    wp_url = get_whatsapp_url(db)
+    return templates.TemplateResponse("desenvolvimento.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
+
 # --- ROTAS ADMIN (AUTENTICAÇÃO) ---
 @app.get("/admin")
 async def admin_login_page(request: Request, db: Session = Depends(get_db)):
