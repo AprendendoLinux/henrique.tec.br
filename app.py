@@ -125,11 +125,11 @@ async def servicos_firewall(request: Request, db: Session = Depends(get_db)):
     # Note que já deixei preparado para buscar o arquivo firewall.html que criaremos em seguida
     return templates.TemplateResponse("firewall.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
 
-@app.get("/servicos/manutencao")
-async def servicos_manutencao(request: Request, db: Session = Depends(get_db)):
+@app.get("/servicos/desktop")
+async def servicos_desktop(request: Request, db: Session = Depends(get_db)):
     contatos = db.query(models.Contato).limit(10).all()
     wp_url = get_whatsapp_url(db)
-    return templates.TemplateResponse("manutencao.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
+    return templates.TemplateResponse("desktop.html", {"request": request, "contatos": contatos, "version": APP_VERSION, "whatsapp_url": wp_url})
 
 @app.get("/servicos/docker")
 async def servicos_docker(request: Request, db: Session = Depends(get_db)):
