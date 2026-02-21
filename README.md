@@ -19,7 +19,7 @@ O sistema possui uma identidade visual única no estilo "Terminal/Hacker" utiliz
 * **Projetos Dinâmicos:** Grade de projetos ativos alimentada diretamente pelo banco de dados.
 * **Rodapé Dinâmico:** Botões de contato e redes sociais com renderização condicional de ícones (FontAwesome) e cores (Hover).
 * **WhatsApp Flutuante:** Botão de contato rápido integrado a todas as páginas com animação CSS personalizada.
-* **SEO & Open Graph Automáticos:** Rotas dinâmicas geram o `sitemap.xml` e `robots.txt` com URLs absolutas nativas baseadas no domínio atual (`request.base_url`), além de um card `card.jpg` renderizado para compartilhamento em redes sociais.
+* **SEO & Open Graph Automáticos:** Rotas dinâmicas geram o `sitemap.xml` e `robots.txt` com URLs absolutas nativas baseadas no domínio atual (`request.base_url`), além de um card `social-card.jpg` renderizado para compartilhamento em redes sociais.
 
 ### 🔒 Back-end e Painel Admin (`/admin`)
 * **Autenticação Segura:** Login via cookies de sessão (HTTPOnly) e senhas criptografadas com `bcrypt`.
@@ -56,7 +56,7 @@ O sistema possui uma identidade visual única no estilo "Terminal/Hacker" utiliz
 ├── docker-compose.yml      # Orquestração dos serviços Docker
 ├── Dockerfile              # Imagem do servidor Python
 ├── static/
-│   ├── card.jpg            # Imagem Open Graph para redes sociais
+│   ├── social-card.jpg            # Imagem Open Graph para redes sociais
 │   └── ...                 # Outros assets
 └── templates/
     ├── base.html           # Layout mestre (Header, Footer, Tailwind config)
