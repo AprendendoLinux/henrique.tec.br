@@ -46,7 +46,7 @@
         .glass-card {
             background: rgba(255, 255, 255, 0.02);
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px); /* FIX: Força o efeito de vidro no iPhone/iPad */
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: transform 0.3s ease, border-color 0.3s ease;
         }
@@ -95,21 +95,21 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer id="contato" class="w-full border-t border-gray-800 mt-auto py-12 glass-card">
-        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center text-center md:text-left">
+    <footer id="contato" class="w-full border-t border-gray-800 mt-auto py-8 glass-card">
+        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-6 items-center text-center md:text-left">
             <div>
-                <h2 class="text-2xl font-bold font-mono text-white mb-2">Estabelecer Contato_</h2>
-                <p class="text-gray-400 text-sm mb-6">Pronto para modernizar sua infraestrutura ou necessita de suporte técnico especializado?</p>
-                <a href="mailto:henrique@henrique.tec.br" class="text-neon font-mono hover:underline inline-block mb-4">henrique@henrique.tec.br</a>
+                <h2 class="text-xl font-bold font-mono text-white mb-2">Estabelecer Contato_</h2>
+                <p class="text-gray-400 text-sm mb-2">Pronto para modernizar sua infraestrutura ou suporte especializado?</p>
+                <a href="mailto:henrique@henrique.tec.br" class="text-neon font-mono text-sm hover:underline inline-block">henrique@henrique.tec.br</a>
             </div>
             
-            <div class="flex flex-wrap justify-center md:justify-end gap-3">
+            <div class="flex flex-wrap justify-center md:justify-end gap-4 mt-6 md:mt-0">
                 {% for contato in contatos %}
-                <a href="{{ contato.url }}" target="_blank" class="px-4 py-3 bg-gray-900 border border-transparent rounded-lg text-gray-400 {{ contato.cor_hover }} transition flex items-center">
+                <a href="{{ contato.url }}" target="_blank" title="{{ contato.nome }}" 
+                   class="w-12 h-12 bg-gray-900 border border-gray-800 rounded-full text-gray-400 {{ contato.cor_hover }} hover:scale-110 transition-all duration-300 flex items-center justify-center group">
                     {% if contato.icone %}
-                        <i class="{{ contato.icone }} text-lg mr-2"></i>
+                        <i class="{{ contato.icone }} text-xl group-hover:drop-shadow-[0_0_8px_currentColor] transition-all"></i>
                     {% endif %}
-                    <span class="font-mono text-sm">{{ contato.nome }}</span>
                 </a>
                 {% else %}
                 <span class="text-gray-600 font-mono text-sm">Contatos em atualização.</span>
@@ -117,8 +117,8 @@
             </div>
         </div>
         
-        <div class="text-center mt-12 flex flex-col items-center gap-3">
-            <p class="text-gray-600 font-mono text-xs">&copy; Todos os direitos reservados.</p>
+        <div class="max-w-6xl mx-auto px-6 mt-8 pt-6 border-t border-gray-800/50 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-gray-600 font-mono text-xs">&copy; Henrique Fagundes. Todos os direitos reservados.</p>
             
             <div class="inline-flex items-center px-2 py-1 bg-gray-900 border border-gray-800 rounded font-mono text-[10px] text-gray-500 hover:border-neon hover:text-neon transition cursor-default">
                 <i class="fa-solid fa-code-branch mr-2"></i>
@@ -139,13 +139,11 @@
         const menu = document.getElementById('menu-links');
         const links = menu.querySelectorAll('a');
 
-        // Abre/fecha o menu ao clicar no botão hambúrguer
         btn.addEventListener('click', () => {
             menu.classList.toggle('hidden');
             menu.classList.toggle('flex');
         });
 
-        // Fecha o menu automaticamente ao clicar em qualquer link (Modo Mobile)
         links.forEach(link => {
             link.addEventListener('click', () => {
                 if (!menu.classList.contains('hidden')) {
