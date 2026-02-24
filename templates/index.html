@@ -135,33 +135,78 @@
     <section id="projetos" class="max-w-6xl mx-auto px-6 py-20 w-full border-t border-gray-800/50">
         <h2 class="text-3xl font-bold mb-10 font-mono text-white border-l-4 border-neon pl-4">Projetos Ativos</h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             {% for proj in projetos %}
-            <div class="glass-card p-6 rounded-xl border-l-2 {% if loop.index % 2 == 0 %}border-l-accent{% else %}border-l-neon{% endif %} flex flex-col h-full">
-                <h3 class="text-lg font-bold text-white mb-2 truncate">{{ proj.titulo }}</h3>
-                <p class="text-sm text-gray-400 mb-6 flex-grow overflow-hidden">{{ proj.descricao }}</p>
+            
+            {% set cat_lower = proj.categoria | lower %}
+            {% if 'web' in cat_lower or 'dev' in cat_lower or 'api' in cat_lower or 'site' in cat_lower or 'sistema' in cat_lower %}
+                {% set icon_class = 'fa-solid fa-code' %}
+                {% set icon_color = 'text-accent' %}
+            {% elif 'infra' in cat_lower or 'serv' in cat_lower or 'linux' in cat_lower or 'docker' in cat_lower %}
+                {% set icon_class = 'fa-solid fa-server' %}
+                {% set icon_color = 'text-yellow-500' %}
+            {% elif 'rede' in cat_lower or 'firewall' in cat_lower or 'sec' in cat_lower or 'mikrotik' in cat_lower %}
+                {% set icon_class = 'fa-solid fa-shield-halved' %}
+                {% set icon_color = 'text-red-500' %}
+            {% else %}
+                {% set icon_class = 'fa-solid fa-terminal' %}
+                {% set icon_color = 'text-neon' %}
+            {% endif %}
+
+            <div class="glass-card rounded-xl border border-gray-800 flex flex-col h-full group hover:scale-[1.02] transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,255,204,0.1)] hover:border-neon relative overflow-hidden">
                 
-                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-800/50 pt-4">
-                    <span class="text-xs font-mono bg-gray-800 px-2 py-1 rounded text-gray-300">{{ proj.categoria }}</span>
+                <div class="absolute inset-0 bg-gradient-to-br from-neon/5 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 pointer-events-none"></div>
+
+                <div class="bg-[#111] px-4 py-2 border-b border-gray-800 flex items-center justify-between relative z-10">
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                    </div>
+                    <div class="text-[10px] text-gray-500 font-mono tracking-widest bg-darkbg px-2 py-0.5 rounded border border-gray-800">
+                        [ID: #00{{ proj.id }}]
+                    </div>
+                </div>
+
+                <div class="p-6 md:p-8 flex flex-col flex-grow relative z-10">
                     
-                    <div class="flex gap-2">
+                    <div class="flex items-start mb-4">
+                        <div class="{{ icon_color }} text-2xl mr-4 mt-1 bg-[#111] p-3 rounded-lg border border-gray-800 group-hover:border-current transition">
+                            <i class="{{ icon_class }}"></i>
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <h3 class="text-xl font-bold text-white group-hover:text-neon transition truncate" title="{{ proj.titulo }}">{{ proj.titulo }}</h3>
+                            
+                            <div class="mt-2 inline-flex items-center text-[10px] font-mono font-bold bg-[#0a0a0a] border border-gray-700 px-2 py-1 rounded text-gray-400 tracking-widest uppercase shadow-inner">
+                                <i class="fa-solid fa-microchip mr-1.5 {{ icon_color }}"></i>{{ proj.categoria }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-gray-400 mb-8 flex-grow leading-relaxed">
+                        {{ proj.descricao }}
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-3 mt-auto pt-4 border-t border-gray-800/50">
                         {% if proj.link_github %}
-                        <a href="{{ proj.link_github }}" target="_blank" class="px-3 py-1 bg-gray-900 border border-gray-700 hover:border-white text-gray-300 hover:text-white text-xs font-mono rounded transition">
-                            <span class="mr-1">&lt;/&gt;</span> Código
+                        <a href="{{ proj.link_github }}" target="_blank" class="flex-1 text-center px-4 py-2.5 bg-[#111] border border-gray-700 hover:border-white text-gray-400 hover:text-white text-xs font-mono rounded transition flex items-center justify-center group/btn">
+                            <i class="fa-brands fa-github mr-2 group-hover/btn:scale-110 transition"></i> Source
                         </a>
                         {% endif %}
                         
                         {% if proj.link_projeto %}
-                        <a href="{{ proj.link_projeto }}" target="_blank" class="px-3 py-1 bg-accent/20 border border-accent/50 hover:bg-accent hover:text-white text-accent text-xs font-mono rounded transition glow-text">
-                            Ver Projeto ->
+                        <a href="{{ proj.link_projeto }}" target="_blank" class="flex-1 text-center px-4 py-2.5 bg-transparent border border-neon hover:bg-neon hover:text-darkbg text-neon text-xs font-bold font-mono rounded transition flex items-center justify-center group/btn shadow-[0_0_15px_rgba(0,255,204,0.1)] hover:shadow-[0_0_20px_rgba(0,255,204,0.4)]">
+                            Execute_ <i class="fa-solid fa-terminal text-[10px] ml-2 group-hover/btn:animate-pulse"></i>
                         </a>
                         {% endif %}
                     </div>
+
                 </div>
             </div>
             {% else %}
-            <div class="col-span-2 text-center text-gray-500 font-mono py-10">
-                [!] Nenhum projeto cadastrado no banco de dados.
+            <div class="col-span-full text-center py-16 glass-card rounded-xl border border-gray-800 border-dashed">
+                <i class="fa-solid fa-database text-4xl text-gray-600 mb-4"></i>
+                <p class="text-gray-500 font-mono text-sm">[!] Nenhum projeto ativo localizado na base de dados.</p>
             </div>
             {% endfor %}
         </div>
