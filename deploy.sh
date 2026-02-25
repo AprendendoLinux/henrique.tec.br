@@ -26,7 +26,7 @@ echo -e "${GREEN}2. Atualizando Main e fazendo Merge da Dev...${NC}"
 git checkout main
 git pull origin main
 
-# --- MUDANÇA AQUI: Mensagem automática com data/hora ---
+# --- Mensagem automática com data/hora ---
 DATA_HORA=$(date "+%d/%m/%Y às %H:%Mh")
 MENSAGEM="Merge branch 'dev' em $DATA_HORA"
 
@@ -34,9 +34,8 @@ if ! git merge dev -m "$MENSAGEM"; then
     echo -e "${RED}ERRO: Conflito no merge. Resolva manualmente.${NC}"
     exit 1
 fi
-# -------------------------------------------------------
 
-# 4. CÁLCULO AUTOMÁTICO DA VERSÃO
+# 4. CÁLCULO AUTOMÁTICO E INTELIGENTE DA VERSÃO
 echo -e "${GREEN}3. Calculando próxima versão...${NC}"
 
 # Busca todas as tags do repositório remoto para não errar a conta
@@ -50,7 +49,7 @@ if [ -z "$LAST_TAG" ]; then
     NEW_TAG="v1.0.0"
     echo -e "Nenhuma tag encontrada. Iniciando versão: ${YELLOW}$NEW_TAG${NC}"
 else
-    # Remove o 'v' inicial para fazer a conta (ex: 1.0.5)
+    # Remove o 'v' inicial para fazer a conta (ex: 1.0.9)
     VERSION=${LAST_TAG#v}
     
     # Quebra em partes pelo ponto (Major.Minor.Patch)
@@ -59,16 +58,29 @@ else
     MINOR=${parts[1]}
     PATCH=${parts[2]}
     
-    # Soma 1 no Patch (último número)
-    NEW_PATCH=$((PATCH + 1))
+    # --- NOVA LÓGICA DE ROLAGEM (ROLLOVER) ---
+    if [ "$PATCH" -eq 9 ]; then
+        NEW_PATCH=0
+        if [ "$MINOR" -eq 9 ]; then
+            NEW_MINOR=0
+            NEW_MAJOR=$((MAJOR + 1))
+        else
+            NEW_MINOR=$((MINOR + 1))
+            NEW_MAJOR=$MAJOR
+        fi
+    else
+        NEW_PATCH=$((PATCH + 1))
+        NEW_MINOR=$MINOR
+        NEW_MAJOR=$MAJOR
+    fi
     
     # Monta a nova tag
-    NEW_TAG="v$MAJOR.$MINOR.$NEW_PATCH"
+    NEW_TAG="v$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
     echo -e "Versão Anterior: $LAST_TAG"
     echo -e "NOVA VERSÃO:     ${YELLOW}$NEW_TAG${NC}"
 fi
 
-# Pausa rápida para você conferir (opcional, pode remover o read se quiser 100% direto)
+# Pausa rápida para você conferir
 read -p "Pressione [Enter] para confirmar o lançamento da $NEW_TAG..."
 
 # 5. Envia para o GitHub (Dispara o Actions)
