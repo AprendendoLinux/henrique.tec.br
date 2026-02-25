@@ -65,6 +65,35 @@
             </div>
 
             <div class="md:col-span-2">
+                <label class="block text-gray-400 text-xs font-mono mb-2">COR DO ÍCONE (Padrão):</label>
+                <div class="flex flex-wrap gap-3">
+                    <label class="cursor-pointer group" title="Cinza (Padrão)">
+                        <input type="radio" name="cor_icone" value="text-gray-400" class="peer sr-only" {% if contato.cor_icone == 'text-gray-400' or not contato.cor_icone %}checked{% endif %} required>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-gray-400 mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Ciano / Neon">
+                        <input type="radio" name="cor_icone" value="text-[#00ffcc]" class="peer sr-only" {% if contato.cor_icone == 'text-[#00ffcc]' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-[#00ffcc] mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Branco">
+                        <input type="radio" name="cor_icone" value="text-white" class="peer sr-only" {% if contato.cor_icone == 'text-white' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-white mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Verde">
+                        <input type="radio" name="cor_icone" value="text-green-500" class="peer sr-only" {% if contato.cor_icone == 'text-green-500' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-green-500 mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Azul">
+                        <input type="radio" name="cor_icone" value="text-blue-500" class="peer sr-only" {% if contato.cor_icone == 'text-blue-500' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-blue-500 mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                    <label class="cursor-pointer group" title="Vermelho">
+                        <input type="radio" name="cor_icone" value="text-red-500" class="peer sr-only" {% if contato.cor_icone == 'text-red-500' %}checked{% endif %}>
+                        <div class="p-2 border border-gray-700 rounded bg-[#111] peer-checked:border-white transition flex flex-col items-center"><div class="w-6 h-6 rounded bg-red-500 mb-1 group-hover:scale-110 transition"></div></div>
+                    </label>
+                </div>
+            </div>
+            <div class="md:col-span-2">
                 <label class="block text-gray-400 text-xs font-mono mb-2">COR DE DESTAQUE (Ao passar o mouse):</label>
                 <div class="flex flex-wrap gap-3">
                     <label class="cursor-pointer group" title="Ciano / Neon">

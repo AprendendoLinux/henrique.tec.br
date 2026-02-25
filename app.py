@@ -392,10 +392,11 @@ async def edit_projeto_post(request: Request, projeto_id: int, titulo: str=Form(
     return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
 
 @app.post("/admin/contatos/add")
-async def add_contato(request: Request, nome: str = Form(...), url: str = Form(...), icone: str = Form(None), cor_hover: str = Form(None), db: Session = Depends(get_db)):
+async def add_contato(request: Request, nome: str = Form(...), url: str = Form(...), icone: str = Form(None), cor_icone: str = Form(None), cor_hover: str = Form(None), db: Session = Depends(get_db)):
     if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
     if db.query(models.Contato).count() < 10:
-        novo_contato = models.Contato(nome=nome, url=url, icone=icone, cor_hover=cor_hover or "hover:bg-neon")
+        # Adicione o cor_icone na linha abaixo
+        novo_contato = models.Contato(nome=nome, url=url, icone=icone, cor_icone=cor_icone or "text-gray-400", cor_hover=cor_hover or "hover:bg-neon")
         db.add(novo_contato)
         db.commit()
     return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
@@ -415,11 +416,13 @@ async def edit_contato_page(request: Request, contato_id: int, db: Session = Dep
     return templates.TemplateResponse("admin_edit_contato.html", {"request": request, "contato": contato, "version": APP_VERSION})
 
 @app.post("/admin/contatos/edit/{contato_id}")
-async def edit_contato_post(request: Request, contato_id: int, nome: str=Form(...), url: str=Form(...), icone: str=Form(None), cor_hover: str=Form(None), db: Session=Depends(get_db)):
+async def edit_contato_post(request: Request, contato_id: int, nome: str=Form(...), url: str=Form(...), icone: str=Form(None), cor_icone: str=Form(None), cor_hover: str=Form(None), db: Session=Depends(get_db)):
     if not request.cookies.get("session_token"): return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
     contato = db.query(models.Contato).filter(models.Contato.id == contato_id).first()
     if contato:
-        contato.nome = nome; contato.url = url; contato.icone = icone; contato.cor_hover = cor_hover or "hover:bg-neon"
+        contato.nome = nome; contato.url = url; contato.icone = icone; 
+        contato.cor_icone = cor_icone or "text-gray-400" # Nova linha aqui
+        contato.cor_hover = cor_hover or "hover:bg-neon"
         db.commit()
     return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_302_FOUND)
 

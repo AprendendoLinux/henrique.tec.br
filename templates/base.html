@@ -106,7 +106,7 @@
             <div class="flex flex-wrap justify-center md:justify-end gap-4 mt-6 md:mt-0">
                 {% for contato in contatos %}
                 <a href="{{ contato.url }}" target="_blank" title="{{ contato.nome }}" 
-                   class="w-12 h-12 bg-gray-900 border border-gray-800 rounded-full text-gray-400 {{ contato.cor_hover }} hover:scale-110 transition-all duration-300 flex items-center justify-center group">
+                   class="w-12 h-12 bg-gray-900 border border-gray-800 rounded-full {{ contato.cor_icone or 'text-gray-400' }} {{ contato.cor_hover }} hover:scale-110 transition-all duration-300 flex items-center justify-center group">
                     {% if contato.icone %}
                         <i class="{{ contato.icone }} text-xl group-hover:drop-shadow-[0_0_8px_currentColor] transition-all"></i>
                     {% endif %}

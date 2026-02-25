@@ -16,6 +16,7 @@ class Contato(Base):
     nome = Column(String(50))
     url = Column(String(255))
     icone = Column(String(50))
+    cor_icone = Column(String(50), default="text-gray-400") # Nova linha aqui
     cor_hover = Column(String(50))
 
 class Usuario(Base):
