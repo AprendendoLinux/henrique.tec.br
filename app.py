@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import OperationalError
 import bcrypt
 import models
-from database import engine, get_db
+from database import engine, get_db, SessionLocal
 
 # --- CONFIGURAÇÃO DE LOG ---
 logging.basicConfig(level=logging.INFO)
@@ -477,18 +477,22 @@ async def sitemap(request: Request):
 # --- TRATAMENTO DE ERRO 404 ---
 @app.exception_handler(404)
 async def custom_404_handler(request: Request, exc: StarletteHTTPException):
-    # Instancia o banco de dados manualmente para o rodapé não quebrar
-    db = next(get_db())
-    contatos = db.query(models.Contato).limit(10).all()
-    wp_url = get_whatsapp_url(db)
-    
-    return templates.TemplateResponse(
-        "404.html", 
-        {
-            "request": request, 
-            "contatos": contatos, 
-            "version": APP_VERSION, 
-            "whatsapp_url": wp_url
-        }, 
-        status_code=404
-    )
+    # Instancia a sessão do banco de dados manualmente
+    db = SessionLocal()
+    try:
+        contatos = db.query(models.Contato).limit(10).all()
+        wp_url = get_whatsapp_url(db)
+        
+        return templates.TemplateResponse(
+            "404.html", 
+            {
+                "request": request, 
+                "contatos": contatos, 
+                "version": APP_VERSION, 
+                "whatsapp_url": wp_url
+            }, 
+            status_code=404
+        )
+    finally:
+        # Garante que a conexão será devolvida ao pool, mesmo se der erro
+        db.close()
