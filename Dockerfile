@@ -1,27 +1,20 @@
 FROM python:3.11-slim
 
-# Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Versionamento do sistema
 ARG APP_VERSION=dev-local
-ENV APP_VERSION=${APP_VERSION}
+ENV APP_VERSION=${APP_VERSION} \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Evita a criação de arquivos .pyc e força o log no terminal (sem buffer)
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Instala as dependências
-#COPY requirements.txt .
-COPY . .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && rm requirements.txt
 
-# Copia o restante do código para dentro do container
-#COPY . .
-#RUN rm requirements.txt
+COPY . .
 
-# Expõe a porta que a aplicação vai rodar
+RUN useradd --system --no-create-home app && chown -R app /app
+USER app
+
 EXPOSE 8000
 
-# O comando padrão será sobrescrito no docker-compose para o ambiente de dev
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--no-proxy-headers"]

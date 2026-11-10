@@ -69,7 +69,7 @@ def migrar_dados():
                 titulo=titulo,
                 descricao=descricao_resumida,
                 categoria=categoria,
-                link="#"
+                link_projeto=None
             )
             
             db.add(novo_registro)

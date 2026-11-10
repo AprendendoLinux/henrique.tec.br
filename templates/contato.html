@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitar Orçamento | Henrique Fagundes{% endblock %}
+
+{% block content %}
+{% if enable_recaptcha %}<script src="https://www.google.com/recaptcha/api.js" async defer></script>{% endif %}
+<section class="flex-grow px-6 py-14">
+    <div class="max-w-3xl mx-auto">
+        <span class="text-xs font-mono bg-neon text-darkbg px-2 py-1 rounded inline-block mb-3">CANAL SEGURO</span>
+        <h1 class="text-3xl md:text-4xl font-bold font-mono text-white glow-text mb-2">Solicitar Orçamento_</h1>
+        <p class="text-gray-400 text-sm mb-8">Descreva sua necessidade e retorno o mais rápido possível.</p>
+
+        {% if enviado %}
+        <div class="glass-card p-8 rounded-xl border-l-2 border-l-neon text-center">
+            <i class="fa-solid fa-circle-check text-5xl text-neon mb-4"></i>
+            <h2 class="text-xl font-bold font-mono text-white mb-2">>_ Mensagem enviada</h2>
+            <p class="text-gray-400 text-sm mb-6">Recebi seu contato e responderei em breve.</p>
+            <a href="/" class="px-6 py-3 rounded-md bg-neon text-darkbg font-bold font-mono hover:bg-white transition shadow-[0_0_20px_rgba(0,255,204,0.4)] inline-block">&lt;- VOLTAR AO INÍCIO</a>
+        </div>
+        {% else %}
+        <form action="/contato" method="POST" class="glass-card p-6 md:p-8 rounded-xl grid grid-cols-1 md:grid-cols-2 gap-6 hover:transform-none" style="transform:none">
+            {{ csrf_input(request) }}
+
+            <div>
+                <label for="nome" class="block text-gray-400 text-xs font-mono mb-2">NOME:</label>
+                <input type="text" id="nome" name="nome" maxlength="100" required value="{{ form.nome or '' }}"
+                    class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+            </div>
+            <div>
+                <label for="email" class="block text-gray-400 text-xs font-mono mb-2">E-MAIL:</label>
+                <input type="email" id="email" name="email" maxlength="254" required value="{{ form.email or '' }}"
+                    class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+            </div>
+            <div>
+                <label for="telefone" class="block text-gray-400 text-xs font-mono mb-2">TELEFONE / WHATSAPP (opcional):</label>
+                <input type="tel" id="telefone" name="telefone" maxlength="30" value="{{ form.telefone or '' }}"
+                    class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+            </div>
+            <div>
+                <label for="servico" class="block text-gray-400 text-xs font-mono mb-2">SERVIÇO:</label>
+                <select id="servico" name="servico" required
+                    class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+                    {% for s in servicos %}<option value="{{ s }}" {% if form.servico == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="md:col-span-2">
+                <label for="prazo" class="block text-gray-400 text-xs font-mono mb-2">PRAZO (opcional):</label>
+                <select id="prazo" name="prazo"
+                    class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+                    <option value="">Não informado</option>
+                    {% for p in prazos %}<option value="{{ p }}" {% if form.prazo == p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="md:col-span-2">
+                <label for="mensagem" class="block text-gray-400 text-xs font-mono mb-2">DESCREVA SUA NECESSIDADE:</label>
+                <textarea id="mensagem" name="mensagem" rows="6" minlength="10" maxlength="3000" required
+                    class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">{{ form.mensagem or '' }}</textarea>
+            </div>
+
+            <div style="position:absolute;left:-9999px;" aria-hidden="true">
+                <label>Não preencha: <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+            </div>
+
+            {% if enable_recaptcha %}
+            <div class="md:col-span-2"><div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-theme="dark"></div></div>
+            {% endif %}
+
+            {% if erro %}
+            <div class="md:col-span-2 text-red-500 text-xs font-mono bg-red-900/20 border border-red-900 p-3 rounded">[!] {{ erro }}</div>
+            {% endif %}
+            {% if not envio_ok %}
+            <div class="md:col-span-2 text-yellow-500 text-xs font-mono bg-yellow-900/20 border border-yellow-900 p-3 rounded">[!] Envio não configurado neste ambiente.</div>
+            {% endif %}
+
+            <div class="md:col-span-2">
+                <button type="submit" class="w-full py-3 bg-transparent border border-neon text-neon hover:bg-neon hover:text-darkbg transition font-bold font-mono tracking-widest text-sm shadow-[0_0_20px_rgba(0,255,204,0.2)]">
+                    >_ ENVIAR SOLICITAÇÃO
+                </button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

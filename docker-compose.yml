@@ -1,4 +1,3 @@
-
 services:
   app:
     build: .
@@ -8,30 +7,36 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_USER=henrique
       - DB_PASSWORD=senha_segura
       - DB_NAME=henrique
-      - ADMIN_PASSWORD=admin
-      - ENABLE_RECAPTCHA=False
-      - RECAPTCHA_SITE_KEY=fake_recaptcha_site_key_jkl012
-      - RECAPTCHA_SECRET_KEY=fake_recaptcha_secret_mno345
+      # Demais configurações (SMTP, Telegram, reCAPTCHA, rede/segurança) ficam no painel admin.
+      # DB_PASSWORD também protege os segredos salvos no banco: trocá-la exige reconfigurá-los.
     restart: unless-stopped
 
   db:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: db
     hostname: db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: senha_de_root
+      MYSQL_ROOT_PASSWORD: "senha_de_root"
       MYSQL_DATABASE: henrique
       MYSQL_USER: henrique
-      MYSQL_PASSWORD: senha_segura
-    ports:
-      - "3306:3306"
+      MYSQL_PASSWORD: "senha_segura"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
     volumes:
-      - /srv/app/db:/var/lib/mysql
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

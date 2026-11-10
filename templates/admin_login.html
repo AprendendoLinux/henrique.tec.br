@@ -28,6 +28,7 @@
             </div>
 
             <form action="/admin/login" method="POST" class="space-y-6">
+{{ csrf_input(request) }}
                 
                 <div>
                     <label for="username" class="block text-gray-500 text-xs mb-2">LOGIN:</label>

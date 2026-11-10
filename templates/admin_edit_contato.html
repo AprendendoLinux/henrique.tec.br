@@ -13,6 +13,7 @@
         <h2 class="text-2xl font-bold text-white mb-6 border-l-2 border-accent pl-3">Editar Contato: {{ contato.nome }}</h2>
         
         <form action="/admin/contatos/edit/{{ contato.id }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
             <div>
                 <label class="block text-gray-400 text-xs font-mono mb-2">NOME (Ex: WhatsApp):</label>
                 <input type="text" name="nome" value="{{ contato.nome }}" maxlength="50" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">

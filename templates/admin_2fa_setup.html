@@ -27,6 +27,7 @@
             </div>
 
             <form action="/admin/2fa-setup" method="POST" class="space-y-4 text-left border-t border-gray-800/50 pt-6">
+{{ csrf_input(request) }}
                 <div>
                     <input type="text" name="code" required maxlength="6" autocomplete="off"
                         class="w-full bg-transparent border-b border-gray-700 text-white px-0 py-2 focus:outline-none focus:border-neon transition placeholder-gray-800 text-center tracking-[0.5em] text-xl"

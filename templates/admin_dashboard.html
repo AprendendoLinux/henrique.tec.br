@@ -10,22 +10,33 @@
             <span class="text-xs font-mono bg-neon text-darkbg px-2 py-1 rounded mb-2 inline-block">SESSÃO ATIVA</span>
             <h1 class="text-3xl font-bold font-mono text-white glow-text">Painel de Controle_</h1>
         </div>
-        <a href="/admin/logout" class="mt-4 md:mt-0 px-4 py-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-sm rounded transition">
-            [ EXIT / LOGOUT ]
-        </a>
+        <form action="/admin/logout" method="POST" class="mt-4 md:mt-0">
+{{ csrf_input(request) }}
+            <button type="submit" class="px-4 py-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-sm rounded transition">
+                [ EXIT / LOGOUT ]
+            </button>
+        </form>
     </div>
+
+    {% if flash %}
+    <div class="mb-6 px-4 py-3 rounded font-mono text-sm border {% if flash.ok %}border-green-500 text-green-400 bg-green-900/20{% else %}border-red-500 text-red-400 bg-red-900/20{% endif %}">{{ flash.msg }}</div>
+    {% endif %}
 
     <div class="flex space-x-2 border-b border-gray-800 mb-8 font-mono text-sm overflow-x-auto">
         <button onclick="openTab('projetos')" id="btn-projetos" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Projetos Ativos</button>
         <button onclick="openTab('contatos')" id="btn-contatos" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Contatos (Rodapé)</button>
         <button onclick="openTab('usuarios')" id="btn-usuarios" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Usuários</button>
         <button onclick="openTab('whatsapp')" id="btn-whatsapp" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">WhatsApp</button>
+        <button onclick="openTab('telegram')" id="btn-telegram" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Telegram</button>
+        <button onclick="openTab('config')" id="btn-config" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Configurações</button>
+        <button onclick="openTab('conta')" id="btn-conta" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Minha Conta</button>
     </div>
 
     <div id="tab-projetos" class="tab-content hidden">
         <div class="glass-card p-6 md:p-8 rounded-xl mb-10">
             <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-neon pl-3">Cadastrar Novo Projeto</h2>
             <form action="/admin/projetos/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
                 <div class="md:col-span-2">
                     <label class="block text-gray-400 text-xs font-mono mb-2">TÍTULO (Max 60 chars):</label>
                     <input type="text" name="titulo" maxlength="60" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
@@ -71,7 +82,7 @@
                         <td class="p-4 font-mono text-xs">{{ proj.categoria }}</td>
                         <td class="p-4 text-center">
                             <a href="/admin/projetos/edit/{{ proj.id }}" class="text-accent hover:text-blue-400 hover:underline font-mono text-xs mr-3">Editar</a>
-                            <a href="/admin/projetos/delete/{{ proj.id }}" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</a>
+                            <form action="/admin/projetos/delete/{{ proj.id }}" method="POST" class="inline" onsubmit="return confirm('Confirmar exclusão?')">{{ csrf_input(request) }}<button type="submit" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</button></form>
                         </td>
                     </tr>
                     {% else %}
@@ -86,6 +97,7 @@
         <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-accent">
             <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-accent pl-3">Adicionar Contato (Rodapé)</h2>
             <form action="/admin/contatos/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
                 <div>
                     <label class="block text-gray-400 text-xs font-mono mb-2">NOME (Ex: WhatsApp):</label>
                     <input type="text" name="nome" maxlength="50" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
@@ -258,7 +270,7 @@
                         <td class="p-4 font-mono text-xs text-gray-500 truncate max-w-[200px]">{{ contato.url }}</td>
                         <td class="p-4 text-center">
                             <a href="/admin/contatos/edit/{{ contato.id }}" class="text-accent hover:text-blue-400 hover:underline font-mono text-xs mr-3">Editar</a>
-                            <a href="/admin/contatos/delete/{{ contato.id }}" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</a>
+                            <form action="/admin/contatos/delete/{{ contato.id }}" method="POST" class="inline" onsubmit="return confirm('Confirmar exclusão?')">{{ csrf_input(request) }}<button type="submit" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</button></form>
                         </td>
                     </tr>
                     {% else %}
@@ -270,9 +282,11 @@
     </div>
 
     <div id="tab-usuarios" class="tab-content hidden">
+{% if is_admin %}
         <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-yellow-500">
             <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-yellow-500 pl-3">Registrar Novo Administrador</h2>
             <form action="/admin/usuarios/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
                 <div class="md:col-span-2">
                     <label class="block text-gray-400 text-xs font-mono mb-2">LOGIN (Username):</label>
                     <input type="text" name="username" maxlength="50" required autocomplete="off" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-yellow-500 transition">
@@ -315,7 +329,7 @@
                     <tr class="bg-gray-900 border-b border-gray-800 text-xs font-mono text-gray-400">
                         <th class="p-4">ID</th>
                         <th class="p-4">LOGIN (Username)</th>
-                        <th class="p-4 text-center">2FA STATUS</th> <th class="p-4 text-center">AÇÕES</th>
+                        <th class="p-4 text-center">PERFIL</th> <th class="p-4 text-center">2FA STATUS</th> <th class="p-4 text-center">AÇÕES</th>
                     </tr>
                 </thead>
                 <tbody class="text-sm text-gray-300">
@@ -328,9 +342,15 @@
                         </td>
                         
                         <td class="p-4 text-center">
-                            {% if user.username == 'admin' %}
-                                <span class="text-gray-600 font-mono text-[10px] uppercase border border-gray-700 px-2 py-1 rounded">Isento</span>
-                            {% elif user.is_2fa_enabled %}
+                            {% if user.is_admin %}
+                                <span class="text-neon font-mono text-[10px] uppercase border border-neon px-2 py-1 rounded">Admin</span>
+                            {% else %}
+                                <span class="text-gray-400 font-mono text-[10px] uppercase border border-gray-600 px-2 py-1 rounded">Usuário</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="p-4 text-center">
+                            {% if user.is_2fa_enabled %}
                                 <span class="text-green-500 font-mono text-[10px] uppercase border border-green-500 px-2 py-1 rounded shadow-[0_0_10px_rgba(34,197,94,0.2)]">Ativo</span>
                             {% else %}
                                 <span class="text-yellow-500 font-mono text-[10px] uppercase border border-yellow-500 px-2 py-1 rounded">Pendente</span>
@@ -339,18 +359,22 @@
 
                         <td class="p-4 text-center">
                             {% if user.username == 'admin' %}
-                                <span class="text-gray-600 font-mono text-xs cursor-not-allowed border border-gray-700 px-2 py-1 rounded" title="Gerenciado no docker-compose.yml">Lock (Docker)</span>
+                                <span class="text-gray-500 font-mono text-xs border border-gray-700 px-2 py-1 rounded" title="Use a aba Minha Conta">Minha Conta</span>
                             {% else %}
                                 <a href="/admin/usuarios/edit/{{ user.id }}" class="text-yellow-500 hover:text-yellow-400 hover:underline font-mono text-xs mr-3">Alterar Senha</a>
+
+                                {% if user.username != current_user %}
+                                    <form action="/admin/usuarios/toggle_admin/{{ user.id }}" method="POST" class="inline" onsubmit="return confirm('{{ 'Remover' if user.is_admin else 'Conceder' }} permissão de administrador de {{ user.username }}?')">{{ csrf_input(request) }}<button type="submit" class="text-neon hover:underline font-mono text-xs mr-3">{{ 'Remover admin' if user.is_admin else 'Tornar admin' }}</button></form>
+                                {% endif %}
                                 
                                 {% if user.is_2fa_enabled %}
-                                    <a href="/admin/usuarios/disable_2fa/{{ user.id }}" class="text-orange-500 hover:text-orange-400 hover:underline font-mono text-xs mr-3">Revogar 2FA</a>
+                                    <form action="/admin/usuarios/disable_2fa/{{ user.id }}" method="POST" class="inline" onsubmit="return confirm('Revogar o 2FA deste usuário?')">{{ csrf_input(request) }}<button type="submit" class="text-orange-500 hover:text-orange-400 hover:underline font-mono text-xs mr-3">Revogar 2FA</button></form>
                                 {% endif %}
 
                                 {% if user.username == current_user %}
                                     <span class="text-gray-600 font-mono text-xs cursor-not-allowed" title="Você não pode excluir a si mesmo">Deletar</span>
                                 {% else %}
-                                    <a href="/admin/usuarios/delete/{{ user.id }}" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</a>
+                                    <form action="/admin/usuarios/delete/{{ user.id }}" method="POST" class="inline" onsubmit="return confirm('Confirmar exclusão?')">{{ csrf_input(request) }}<button type="submit" class="text-red-500 hover:text-red-400 hover:underline font-mono text-xs">Deletar</button></form>
                                 {% endif %}
                             {% endif %}
                         </td>
@@ -359,11 +383,15 @@
                 </tbody>
             </table>
         </div>
+{% else %}
+        <p class="text-gray-500 font-mono text-sm">Apenas o administrador gerencia usuários.</p>
+{% endif %}
     </div>
     <div id="tab-whatsapp" class="tab-content hidden">
             <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-green-500">
                 <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-green-500 pl-3">Configuração do WhatsApp</h2>
                 <form action="/admin/whatsapp/edit" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
                     <div>
                         <label class="block text-gray-400 text-xs font-mono mb-2">NÚMERO (Ex: 5521999999999):</label>
                         <input type="text" name="numero" value="{{ wp_config.numero if wp_config else '' }}" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-green-500 transition">
@@ -372,12 +400,139 @@
                         <label class="block text-gray-400 text-xs font-mono mb-2">MENSAGEM AUTOMÁTICA:</label>
                         <textarea name="mensagem" rows="3" required class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-green-500 transition resize-none">{{ wp_config.mensagem if wp_config else '' }}</textarea>
                     </div>
+                    <div class="md:col-span-2">
+                        <label class="flex items-center cursor-pointer text-gray-300 text-sm font-mono">
+                            <input type="checkbox" name="ativo" {% if not wp_config or wp_config.ativo %}checked{% endif %} class="w-4 h-4 accent-neon mr-2">
+                            Exibir botão no site
+                        </label>
+                    </div>
                     <div class="md:col-span-2 text-right">
                         <button type="submit" class="px-6 py-2 bg-green-500 text-darkbg font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">>_ SALVAR WHATSAPP</button>
                     </div>
                 </form>
             </div>
         </div>
+    <div id="tab-telegram" class="tab-content hidden">
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-accent">
+            <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-accent pl-3">Botão de Contato por Telegram</h2>
+            <form action="/admin/telegram/edit" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
+                <div>
+                    <label class="block text-gray-400 text-xs font-mono mb-2">USUÁRIO (Ex: caradolinux):</label>
+                    <input type="text" name="usuario" maxlength="80" value="{{ tg_config.usuario if tg_config and tg_config.usuario else '' }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition">
+                </div>
+                <div class="flex items-end">
+                    <label class="flex items-center cursor-pointer text-gray-300 text-sm font-mono">
+                        <input type="checkbox" name="ativo" {% if tg_config and tg_config.ativo %}checked{% endif %} class="w-4 h-4 accent-neon mr-2">
+                        Exibir botão no site
+                    </label>
+                </div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="px-6 py-2 bg-accent text-white font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">>_ SALVAR TELEGRAM</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="tab-config" class="tab-content hidden">
+{% if is_admin %}
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-8 border-l-2 border-l-neon">
+            <h2 class="text-xl font-bold text-white mb-2 border-l-2 border-neon pl-3">E-mail (SMTP) do formulário de orçamento</h2>
+            <p class="text-gray-500 text-xs font-mono mb-4">Atalhos:
+                <button type="button" onclick="smtpPreset(587,'starttls',true)" class="text-neon hover:underline mx-1">587 STARTTLS + login</button>|
+                <button type="button" onclick="smtpPreset(465,'ssl',true)" class="text-neon hover:underline mx-1">465 SSL/TLS + login</button>|
+                <button type="button" onclick="smtpPreset(25,'none',false)" class="text-neon hover:underline mx-1">25 relay sem autenticação</button>
+            </p>
+            <form action="/admin/config/smtp" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">SERVIDOR SMTP:</label><input type="text" name="smtp_host" id="smtp_host" maxlength="253" value="{{ c.smtp_host }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">PORTA:</label><input type="number" name="smtp_port" id="smtp_port" min="1" max="65535" value="{{ c.smtp_port }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">SEGURANÇA:</label>
+                    <select name="smtp_security" id="smtp_security" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+                        <option value="starttls" {% if c.smtp_security == 'starttls' %}selected{% endif %}>STARTTLS (587)</option>
+                        <option value="ssl" {% if c.smtp_security == 'ssl' %}selected{% endif %}>SSL/TLS (465)</option>
+                        <option value="none" {% if c.smtp_security == 'none' %}selected{% endif %}>Nenhuma (25)</option>
+                    </select></div>
+                <div class="flex items-end"><label class="flex items-center cursor-pointer text-gray-300 text-sm font-mono"><input type="checkbox" name="smtp_verify_tls" {% if c.smtp_verify_tls %}checked{% endif %} class="w-4 h-4 accent-neon mr-2">Validar certificado TLS</label></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">USUÁRIO (vazio = sem autenticação):</label><input type="text" name="smtp_user" id="smtp_user" maxlength="254" autocomplete="off" value="{{ c.smtp_user }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">SENHA:</label><input type="password" name="smtp_password" id="smtp_password" maxlength="200" autocomplete="new-password" placeholder="{% if c.smtp_password_set %}Já definido — deixe em branco para manter{% else %}Não definido{% endif %}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">REMETENTE (From):</label><input type="email" name="smtp_from" maxlength="254" value="{{ c.smtp_from }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">NOME DO REMETENTE:</label><input type="text" name="smtp_from_name" maxlength="60" value="{{ c.smtp_from_name }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div class="md:col-span-2"><label class="block text-gray-400 text-xs font-mono mb-2">DESTINATÁRIO DOS ORÇAMENTOS:</label><input type="email" name="contact_to" maxlength="254" value="{{ c.contact_to }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="px-6 py-2 bg-neon text-darkbg font-bold font-mono rounded hover:bg-white transition">&gt;_ SALVAR E-MAIL</button>
+                </div>
+            </form>
+            <form action="/admin/config/test-email" method="POST" class="mt-3 text-right">
+{{ csrf_input(request) }}
+                <button type="submit" class="px-4 py-2 border border-neon text-neon font-mono text-xs rounded hover:bg-neon hover:text-darkbg transition">Enviar e-mail de teste (após salvar)</button>
+            </form>
+        </div>
+
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-8 border-l-2 border-l-accent">
+            <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-accent pl-3">Notificações por Telegram (bot)</h2>
+            <form action="/admin/config/telegram-bot" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">TOKEN DO BOT:</label><input type="password" name="telegram_bot_token" maxlength="100" autocomplete="new-password" placeholder="{% if c.telegram_bot_token_set %}Já definido — deixe em branco para manter{% else %}Não definido{% endif %}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">ID DO CHAT QUE RECEBE:</label><input type="text" name="telegram_chat_id" maxlength="40" value="{{ c.telegram_chat_id }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="px-6 py-2 bg-accent text-white font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">&gt;_ SALVAR BOT</button>
+                </div>
+            </form>
+            <form action="/admin/config/test-telegram" method="POST" class="mt-3 text-right">
+{{ csrf_input(request) }}
+                <button type="submit" class="px-4 py-2 border border-accent text-accent font-mono text-xs rounded hover:bg-accent hover:text-white transition">Enviar mensagem de teste (após salvar)</button>
+            </form>
+        </div>
+
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-8 border-l-2 border-l-yellow-500">
+            <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-yellow-500 pl-3">reCAPTCHA</h2>
+            <form action="/admin/config/recaptcha" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">CHAVE DO SITE:</label><input type="text" name="recaptcha_site_key" maxlength="100" autocomplete="off" value="{{ c.recaptcha_site_key }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">CHAVE SECRETA:</label><input type="password" name="recaptcha_secret" maxlength="100" autocomplete="new-password" placeholder="{% if c.recaptcha_secret_set %}Já definido — deixe em branco para manter{% else %}Não definido{% endif %}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div class="md:col-span-2"><label class="flex items-center cursor-pointer text-gray-300 text-sm font-mono"><input type="checkbox" name="recaptcha_enabled" {% if c.recaptcha_enabled %}checked{% endif %} class="w-4 h-4 accent-neon mr-2">Exigir reCAPTCHA no login e no formulário de orçamento</label>
+                    <p class="text-gray-600 text-[11px] font-mono mt-2">Atenção: com chaves de outro domínio você pode ficar sem acesso. Recuperação: <code>docker compose exec app python manage.py disable-recaptcha</code></p></div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="px-6 py-2 bg-yellow-500 text-darkbg font-bold font-mono rounded hover:bg-white transition">&gt;_ SALVAR RECAPTCHA</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-purple-500">
+            <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-purple-500 pl-3">Rede e Segurança</h2>
+            <form action="/admin/config/rede" method="POST" class="grid grid-cols-1 gap-6">
+{{ csrf_input(request) }}
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">PROXIES DE CONFIANÇA (CIDRs separados por vírgula) — só eles podem informar o IP real do visitante:</label>
+                    <textarea name="trusted_proxies" rows="2" maxlength="2000" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">{{ c.trusted_proxies }}</textarea></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">CABEÇALHOS PARA O IP DO VISITANTE (em ordem de prioridade):</label>
+                    <input type="text" name="client_ip_headers" maxlength="200" value="{{ c.client_ip_headers }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+                    <p class="text-gray-600 text-[11px] font-mono mt-1">Permitidos: cf-connecting-ip, true-client-ip, x-real-ip, x-forwarded-for</p></div>
+                <div><label class="flex items-center cursor-pointer text-gray-300 text-sm font-mono"><input type="checkbox" name="cookie_secure" {% if c.cookie_secure %}checked{% endif %} class="w-4 h-4 accent-neon mr-2">Cookies somente HTTPS (ative em produção; acessos por HTTPS já usam cookie seguro automaticamente)</label></div>
+                <div class="text-right">
+                    <button type="submit" class="px-6 py-2 bg-purple-500 text-white font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">&gt;_ SALVAR REDE</button>
+                </div>
+            </form>
+        </div>
+{% else %}
+        <p class="text-gray-500 font-mono text-sm">Apenas o administrador altera as configurações do sistema.</p>
+{% endif %}
+    </div>
+
+    <div id="tab-conta" class="tab-content hidden">
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-neon">
+            <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-neon pl-3">Alterar Minha Senha ({{ current_user }})</h2>
+            <form action="/admin/conta/senha" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
+                <div class="md:col-span-2"><label class="block text-gray-400 text-xs font-mono mb-2">SENHA ATUAL:</label><input type="password" name="senha_atual" maxlength="128" required autocomplete="current-password" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">NOVA SENHA:</label><input type="password" name="password" maxlength="128" required autocomplete="new-password" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">CONFIRMAR NOVA SENHA:</label><input type="password" name="confirm_password" maxlength="128" required autocomplete="new-password" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <p class="md:col-span-2 text-gray-600 text-[11px] font-mono">Mínimo 8 caracteres, com maiúscula, número e símbolo.</p>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="px-6 py-2 bg-neon text-darkbg font-bold font-mono rounded hover:bg-white transition">&gt;_ ALTERAR SENHA</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -412,11 +567,20 @@
         } else if(urlParams.get('erro_user') === 'senha_fraca') {
             alert('[!] ACESSO NEGADO: A senha deve ter no mínimo 8 caracteres, 1 letra maiúscula, 1 número e 1 símbolo.');
             openTab('usuarios');
+        } else if(urlParams.get('erro_user') === 'usuario_invalido') {
+            alert('[!] Login inválido: use 3 a 50 caracteres (letras, números, ponto, hífen e sublinhado).');
+            openTab('usuarios');
         } else if(urlParams.get('erro_user')) { // Captura erro genérico se houver
             alert('[!] ACESSO NEGADO: As senhas não conferem.');
             openTab('usuarios');
         }
     });
+
+    function smtpPreset(porta, seguranca, auth) {
+        document.getElementById('smtp_port').value = porta;
+        document.getElementById('smtp_security').value = seguranca;
+        if (!auth) { document.getElementById('smtp_user').value = ''; document.getElementById('smtp_password').value = ''; }
+    }
 
     function togglePassword(inputId, iconId) {
         const input = document.getElementById(inputId);
