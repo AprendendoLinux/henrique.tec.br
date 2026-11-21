@@ -1,27 +1,30 @@
-<svg class="hero-bg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+{#- Variáveis: hb (prefixo dos ids), modo ("fundo" = hero inteiro no desktop; "mobile" = recorte no personagem) -#}
+{%- set p = hb|default("hb") -%}
+{%- set mobile = (modo|default("fundo")) == "mobile" -%}
+<svg class="hero-bg{{ ' hero-mobile' if mobile }}" viewBox="{{ '905 150 310 450' if mobile else '0 0 1200 600' }}" preserveAspectRatio="{{ 'xMidYMax meet' if mobile else 'xMidYMid slice' }}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
     <defs>
-        <pattern id="hb-grade" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#1f2937"/></pattern>
-        <linearGradient id="hb-piso" x1="0" y1="0" x2="0" y2="1">
+        <pattern id="{{ p }}-grade" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#1f2937"/></pattern>
+        <linearGradient id="{{ p }}-piso" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#00ffcc" stop-opacity="0"/><stop offset="1" stop-color="#00ffcc" stop-opacity=".08"/>
         </linearGradient>
-        <linearGradient id="hb-rack" x1="0" y1="0" x2="1" y2="0">
+        <linearGradient id="{{ p }}-rack" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stop-color="#0d1117"/><stop offset=".5" stop-color="#141a22"/><stop offset="1" stop-color="#0d1117"/>
         </linearGradient>
         <!-- Pessoa -->
-        <linearGradient id="hb-moletom" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id="{{ p }}-moletom" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#263244"/><stop offset="1" stop-color="#151c27"/>
         </linearGradient>
-        <linearGradient id="hb-pele" x1="0" y1="0" x2="1" y2="0">
+        <linearGradient id="{{ p }}-pele" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stop-color="#f6d2b4"/><stop offset="1" stop-color="#e3b08c"/>
         </linearGradient>
-        <linearGradient id="hb-tampa" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="{{ p }}-tampa" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#3a414c"/><stop offset="1" stop-color="#22272e"/>
         </linearGradient>
-        <filter id="hb-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <filter id="{{ p }}-glow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
         <!-- Uma gaveta de servidor (1U) com LEDs -->
-        <g id="hb-1u">
+        <g id="{{ p }}-1u">
             <rect width="118" height="16" rx="1.5" fill="#0b1018" stroke="#1f2937"/>
             <rect x="6" y="5" width="44" height="6" rx="1" fill="#111827"/>
             <rect x="56" y="5" width="22" height="6" rx="1" fill="#111827"/>
@@ -29,26 +32,26 @@
             <circle class="led az d2" cx="100" cy="8" r="2"/>
             <circle class="led am d3" cx="108" cy="8" r="2"/>
         </g>
-        <g id="hb-1u-b">
+        <g id="{{ p }}-1u-b">
             <rect width="118" height="16" rx="1.5" fill="#0b1018" stroke="#1f2937"/>
             <g fill="#1e293b"><rect x="6" y="4" width="6" height="8"/><rect x="14" y="4" width="6" height="8"/><rect x="22" y="4" width="6" height="8"/><rect x="30" y="4" width="6" height="8"/><rect x="38" y="4" width="6" height="8"/><rect x="46" y="4" width="6" height="8"/></g>
             <circle class="led d1" cx="100" cy="8" r="2"/>
             <circle class="led d4" cx="108" cy="8" r="2"/>
         </g>
-        <g id="hb-2u">
+        <g id="{{ p }}-2u">
             <rect width="118" height="34" rx="2" fill="#0b1018" stroke="#1f2937"/>
             <g stroke="#1e293b" stroke-width="2"><path d="M8 9 H70"/><path d="M8 15 H70"/><path d="M8 21 H70"/><path d="M8 27 H70"/></g>
             <circle class="led az d1" cx="100" cy="12" r="2.2"/>
             <circle class="led d3" cx="108" cy="12" r="2.2"/>
             <circle class="led d2" cx="108" cy="22" r="2.2"/>
         </g>
-        <g id="hb-rack-cheio">
-            <rect x="-8" y="-10" width="134" height="520" rx="4" fill="url(#hb-rack)" stroke="#1f2937"/>
-            <use href="#hb-2u" y="0"/><use href="#hb-1u" y="40"/><use href="#hb-1u-b" y="60"/><use href="#hb-1u" y="80"/>
-            <use href="#hb-2u" y="104"/><use href="#hb-1u-b" y="144"/><use href="#hb-1u" y="164"/><use href="#hb-2u" y="188"/>
-            <use href="#hb-1u" y="228"/><use href="#hb-1u-b" y="248"/><use href="#hb-2u" y="272"/><use href="#hb-1u" y="312"/>
-            <use href="#hb-1u-b" y="332"/><use href="#hb-2u" y="356"/><use href="#hb-1u" y="396"/><use href="#hb-1u-b" y="416"/>
-            <use href="#hb-2u" y="440"/><use href="#hb-1u" y="480"/>
+        <g id="{{ p }}-rack-cheio">
+            <rect x="-8" y="-10" width="134" height="520" rx="4" fill="url(#{{ p }}-rack)" stroke="#1f2937"/>
+            <use href="#{{ p }}-2u" y="0"/><use href="#{{ p }}-1u" y="40"/><use href="#{{ p }}-1u-b" y="60"/><use href="#{{ p }}-1u" y="80"/>
+            <use href="#{{ p }}-2u" y="104"/><use href="#{{ p }}-1u-b" y="144"/><use href="#{{ p }}-1u" y="164"/><use href="#{{ p }}-2u" y="188"/>
+            <use href="#{{ p }}-1u" y="228"/><use href="#{{ p }}-1u-b" y="248"/><use href="#{{ p }}-2u" y="272"/><use href="#{{ p }}-1u" y="312"/>
+            <use href="#{{ p }}-1u-b" y="332"/><use href="#{{ p }}-2u" y="356"/><use href="#{{ p }}-1u" y="396"/><use href="#{{ p }}-1u-b" y="416"/>
+            <use href="#{{ p }}-2u" y="440"/><use href="#{{ p }}-1u" y="480"/>
         </g>
     </defs>
     <style>
@@ -58,7 +61,7 @@
         .hero-bg .d3 { animation-delay: -1.4s; animation-duration: 0.9s; } .hero-bg .d4 { animation-delay: -.2s; animation-duration: 3.1s; }
         .hero-bg .cabo { fill: none; stroke-width: 2.2; stroke-linecap: round; }
         .hero-bg .fluxo { fill: none; stroke: #00ffcc; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 5 90;
-                          animation: hb-fluxo 3.5s linear infinite; filter: url(#hb-glow); }
+                          animation: hb-fluxo 3.5s linear infinite; }
         .hero-bg .tela-logo { animation: hb-pulso 3s ease-in-out infinite; }
         .hero-bg .cursor { animation: hb-blink 1.05s steps(1) infinite; }
         .hero-bg .respira { animation: hb-respira 5s ease-in-out infinite; transform-origin: 1095px 600px; }
@@ -68,32 +71,36 @@
         @keyframes hb-blink { 50% { opacity: 0; } }
         @keyframes hb-respira { 50% { transform: translateY(-2px) scaleY(1.004); } }
         /* Telas estreitas cortam as laterais: some a pessoa, ficam os racks ao fundo */
-        @media (max-width: 1099px) { .hero-bg .pessoa { display: none; } }
+        @media (max-width: 1099px) { .hero-bg:not(.hero-mobile) .pessoa, .hero-bg:not(.hero-mobile) .bandeja { display: none; } }
         @media (prefers-reduced-motion: reduce) {
             .hero-bg .led, .hero-bg .fluxo, .hero-bg .tela-logo, .hero-bg .cursor, .hero-bg .respira { animation: none; }
         }
     </style>
 
     <!-- Ambiente -->
-    <rect width="1200" height="600" fill="#070707"/>
-    <rect width="1200" height="600" fill="url(#hb-grade)"/>
-    <rect y="420" width="1200" height="180" fill="url(#hb-piso)"/>
+    {%- if not mobile %}
+    <rect width="1300" height="600" fill="#070707"/>
+    <rect width="1300" height="600" fill="url(#{{ p }}-grade)"/>
+    <rect y="420" width="1300" height="180" fill="url(#{{ p }}-piso)"/>
+    {%- endif %}
     <!-- Bandeja de cabos no teto com tráfego -->
-    <path d="M0 18 H1200" stroke="#1f2937" stroke-width="8"/>
-    <path class="fluxo" d="M0 18 H1200"/>
-    <path class="fluxo d2" d="M1200 18 H0" style="stroke:#3b82f6"/>
+    <g class="bandeja">
+        <path d="M0 18 H1200" stroke="#1f2937" stroke-width="8"/>
+        <path class="fluxo" d="M0 18 H1200" filter="url(#{{ p }}-glow)"/>
+        <path class="fluxo d2" d="M1200 18 H0" style="stroke:#3b82f6" filter="url(#{{ p }}-glow)"/>
+    </g>
 
     <!-- Racks à esquerda -->
-    <g transform="translate(28 60)"><use href="#hb-rack-cheio"/></g>
-    <g transform="translate(176 90) scale(.86)" opacity=".55"><use href="#hb-rack-cheio"/></g>
+    <g transform="translate(28 60)"><use href="#{{ p }}-rack-cheio"/></g>
+    <g transform="translate(176 90) scale(.86)" opacity=".55"><use href="#{{ p }}-rack-cheio"/></g>
     <!-- cabos descendo do teto até os racks -->
     <path class="cabo" d="M60 22 C 60 40, 70 40, 70 52" stroke="#00ffcc" stroke-opacity=".5"/>
     <path class="cabo" d="M110 22 C 110 40, 120 40, 120 52" stroke="#3b82f6" stroke-opacity=".5"/>
     <path class="cabo" d="M220 22 C 220 50, 230 60, 230 82" stroke="#eab308" stroke-opacity=".35"/>
 
     <!-- Rack ao fundo, à direita (atrás da pessoa) -->
-    <g transform="translate(1040 70) scale(.92)" opacity=".5"><use href="#hb-rack-cheio"/></g>
-    <g transform="translate(925 110) scale(.8)" opacity=".28"><use href="#hb-rack-cheio"/></g>
+    <g transform="translate(1040 70) scale(.92)" opacity=".5"><use href="#{{ p }}-rack-cheio"/></g>
+    <g transform="translate(925 110) scale(.8)" opacity=".28"><use href="#{{ p }}-rack-cheio"/></g>
     <path class="cabo" d="M1100 22 C 1100 45, 1095 50, 1095 62" stroke="#00ffcc" stroke-opacity=".45"/>
 
     <!-- Sysadmin virtual: homem branco, levemente acima do peso, barba e óculos, segurando o notebook -->
@@ -102,7 +109,7 @@
             <!-- tronco / moletom: ombros largos e barriga arredondada -->
             <path d="M992 600 C 984 560, 986 520, 996 480 C 1002 440, 1004 400, 1012 375
                      C 1020 352, 1040 340, 1068 334 L 1122 334 C 1150 340, 1170 352, 1178 375
-                     C 1186 400, 1188 440, 1194 480 C 1204 520, 1206 560, 1198 600 Z" fill="url(#hb-moletom)"/>
+                     C 1186 400, 1188 440, 1194 480 C 1204 520, 1206 560, 1198 600 Z" fill="url(#{{ p }}-moletom)"/>
             <!-- volume da barriga -->
             <ellipse cx="1095" cy="560" rx="88" ry="60" fill="#2a3647" opacity=".55"/>
             <path d="M1040 598 C 1060 584, 1130 584, 1150 598" stroke="#0f141c" stroke-width="3" fill="none" opacity=".6"/>
@@ -114,7 +121,7 @@
             <!-- pescoço -->
             <path d="M1076 298 L 1076 330 C 1088 338, 1102 338, 1114 330 L 1114 298 Z" fill="#dba582"/>
             <!-- cabeça -->
-            <ellipse cx="1095" cy="262" rx="41" ry="47" fill="url(#hb-pele)"/>
+            <ellipse cx="1095" cy="262" rx="41" ry="47" fill="url(#{{ p }}-pele)"/>
             <ellipse cx="1136" cy="266" rx="8" ry="12" fill="#e3b08c"/>
             <ellipse cx="1054" cy="266" rx="8" ry="12" fill="#f0c6a4"/>
             <!-- cabelo curto -->
@@ -151,9 +158,9 @@
             <rect x="1018" y="480" width="22" height="10" rx="4" fill="#1b2431"/>
             <rect x="1150" y="480" width="22" height="10" rx="4" fill="#1b2431"/>
             <!-- notebook (tampa voltada para quem vê, com o logo do site) -->
-            <path d="M1030 404 L 1160 404 L 1166 492 L 1024 492 Z" fill="url(#hb-tampa)" stroke="#4b5563"/>
+            <path d="M1030 404 L 1160 404 L 1166 492 L 1024 492 Z" fill="url(#{{ p }}-tampa)" stroke="#4b5563"/>
             <path d="M1018 492 L 1172 492 L 1178 502 L 1012 502 Z" fill="#2a2f37"/>
-            <g class="tela-logo" filter="url(#hb-glow)">
+            <g class="tela-logo" filter="url(#{{ p }}-glow)">
                 <text x="1095" y="456" text-anchor="middle" font-family="JetBrains Mono, Fira Code, monospace" font-weight="700" font-size="22" fill="#00ffcc">~/<tspan class="cursor">_</tspan></text>
             </g>
             <!-- mãos segurando o notebook -->

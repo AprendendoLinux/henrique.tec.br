@@ -158,3 +158,5 @@ def test_admin_salva_config_wiki_com_segredo_criptografado(client, monkeypatch):
 def test_imagem_principal_e_ilustracao_propria(client):
     html = client.get("/").text
     assert 'class="hero-bg"' in html and 'class="pessoa"' in html and "unsplash" not in html
+    assert 'class="hero-bg hero-mobile"' in html  # versão do celular, abaixo do botão
+    assert 'id="hb-moletom"' in html and 'id="hbm-moletom"' in html  # ids únicos por instância

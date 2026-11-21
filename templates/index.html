@@ -29,6 +29,12 @@
                 <a href="/contato" class="px-8 py-4 rounded-md bg-neon text-darkbg font-bold font-mono hover:bg-white transition duration-300 shadow-[0_0_20px_rgba(0,255,204,0.3)]">
                     >_ SOLICITAR PROPOSTA
                 </a>
+
+                <!-- Celular/tablet: o personagem aparece abaixo do botão (no desktop ele fica na lateral do fundo) -->
+                <div class="min-[1100px]:hidden w-full max-w-[280px] mx-auto mt-10 -mb-16 md:-mb-20"
+                     style="-webkit-mask-image: radial-gradient(ellipse 70% 85% at 50% 72%, #000 60%, transparent 100%); mask-image: radial-gradient(ellipse 70% 85% at 50% 72%, #000 60%, transparent 100%);">
+                    {% with hb="hbm", modo="mobile" %}{% include "partials/hero_bg.svg" %}{% endwith %}
+                </div>
             </div>
         </div>
     </section>
