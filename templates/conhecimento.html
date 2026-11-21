@@ -69,9 +69,13 @@
     </div>
     <p id="kb-vazio" class="hidden text-gray-500 text-sm mt-4">Nenhum artigo encontrado.</p>
 
+    <nav id="kb-paginacao" class="hidden mt-8 flex flex-wrap items-center justify-center gap-2 text-xs" aria-label="Paginação dos artigos"></nav>
+
     <script>
     (function () {
+        const POR_PAGINA = 12;
         const lista = document.getElementById('kb-lista'), campo = document.getElementById('kb-busca');
+        const nav = document.getElementById('kb-paginacao');
         const itens = Array.from(lista.querySelectorAll('.kb-item')), botoes = document.querySelectorAll('.kb-ordem');
         const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
         const ATIVO = ['border-neon', 'text-neon', 'bg-neon/10'], INATIVO = ['border-gray-700', 'text-gray-400', 'hover:border-neon', 'hover:text-neon'];
@@ -81,34 +85,82 @@
             atualizados: (a, b) => b.dataset.atualizado - a.dataset.atualizado,
             az: (a, b) => a.dataset.nome.localeCompare(b.dataset.nome, 'pt-BR'),
         };
-        function ordenar(ordem) {
-            if (!comparar[ordem]) ordem = 'recentes';
-            itens.slice().sort(comparar[ordem]).forEach(el => lista.appendChild(el));
+        const params = new URLSearchParams(location.search);
+        let ordem = params.get('ordem'), pagina = parseInt(params.get('pagina'), 10) || 1;
+        if (!ordem) { try { ordem = localStorage.getItem('kb-ordem'); } catch (e) {} }
+        if (!comparar[ordem]) ordem = 'recentes';
+
+        function botao(rotulo, alvo, opcoes) {
+            const el = document.createElement(opcoes.desabilitado ? 'span' : 'button');
+            el.textContent = rotulo;
+            el.className = 'px-3 py-1.5 rounded border transition ' + (opcoes.atual
+                ? 'border-neon text-neon bg-neon/10' : opcoes.desabilitado
+                ? 'border-gray-800 text-gray-700 cursor-not-allowed' : 'border-gray-700 text-gray-400 hover:border-neon hover:text-neon');
+            if (opcoes.atual) el.setAttribute('aria-current', 'page');
+            if (opcoes.rotuloAcessivel) el.setAttribute('aria-label', opcoes.rotuloAcessivel);
+            if (el.tagName === 'BUTTON') {
+                el.type = 'button';
+                el.addEventListener('click', () => { pagina = alvo; render(true); lista.scrollIntoView({behavior: 'smooth', block: 'start'}); });
+            }
+            return el;
+        }
+
+        function numeros(total) {  // 1 … 4 5 6 … 10
+            const ns = new Set([1, total, pagina - 1, pagina, pagina + 1]);
+            const ordenados = [...ns].filter(n => n >= 1 && n <= total).sort((a, b) => a - b), saida = [];
+            ordenados.forEach((n, i) => { if (i && n - ordenados[i - 1] > 1) saida.push(null); saida.push(n); });
+            return saida;
+        }
+
+        function render(novaEntrada) {
+            const termos = norm(campo.value).split(/\s+/).filter(Boolean);
+            const visiveis = itens.slice().sort(comparar[ordem])
+                .filter(el => termos.every(t => norm(el.dataset.busca).includes(t)));
+            const totalPaginas = Math.max(1, Math.ceil(visiveis.length / POR_PAGINA));
+            pagina = Math.min(Math.max(1, pagina), totalPaginas);
+            const inicio = (pagina - 1) * POR_PAGINA, daPagina = new Set(visiveis.slice(inicio, inicio + POR_PAGINA));
+
+            itens.forEach(el => el.classList.add('hidden'));
+            visiveis.forEach(el => { lista.appendChild(el); el.classList.toggle('hidden', !daPagina.has(el)); });
+            document.getElementById('kb-total').textContent = visiveis.length;
+            document.getElementById('kb-vazio').classList.toggle('hidden', visiveis.length > 0);
+
             botoes.forEach(b => {
                 const on = b.dataset.ordem === ordem;
                 b.setAttribute('aria-pressed', on);
                 b.classList.remove(...(on ? INATIVO : ATIVO)); b.classList.add(...(on ? ATIVO : INATIVO));
             });
+
+            nav.replaceChildren();
+            nav.classList.toggle('hidden', totalPaginas < 2);
+            if (totalPaginas > 1) {
+                nav.appendChild(botao('< anterior', pagina - 1, {desabilitado: pagina === 1, rotuloAcessivel: 'Página anterior'}));
+                numeros(totalPaginas).forEach(n => {
+                    if (n === null) { const r = document.createElement('span'); r.textContent = '…'; r.className = 'px-1 text-gray-600'; nav.appendChild(r); }
+                    else nav.appendChild(botao(String(n), n, {atual: n === pagina, rotuloAcessivel: 'Página ' + n}));
+                });
+                nav.appendChild(botao('próxima >', pagina + 1, {desabilitado: pagina === totalPaginas, rotuloAcessivel: 'Próxima página'}));
+            }
+
             const url = new URL(location.href);
             ordem === 'recentes' ? url.searchParams.delete('ordem') : url.searchParams.set('ordem', ordem);
-            history.replaceState(null, '', url);
-            try { localStorage.setItem('kb-ordem', ordem); } catch (e) {}
+            pagina === 1 ? url.searchParams.delete('pagina') : url.searchParams.set('pagina', pagina);
+            if (url.href !== location.href) history[novaEntrada ? 'pushState' : 'replaceState'](null, '', url);
         }
-        botoes.forEach(b => b.addEventListener('click', () => ordenar(b.dataset.ordem)));
-        let inicial = new URLSearchParams(location.search).get('ordem');
-        if (!inicial) { try { inicial = localStorage.getItem('kb-ordem'); } catch (e) {} }
-        if (inicial && inicial !== 'recentes') ordenar(inicial);
 
-        campo.addEventListener('input', () => {
-            const termos = norm(campo.value).split(/\s+/).filter(Boolean);
-            let n = 0;
-            itens.forEach(el => {
-                const ok = termos.every(t => norm(el.dataset.busca).includes(t));
-                el.classList.toggle('hidden', !ok); if (ok) n++;
-            });
-            document.getElementById('kb-total').textContent = n;
-            document.getElementById('kb-vazio').classList.toggle('hidden', n > 0);
+        window.addEventListener('popstate', () => {  // botão "voltar" do navegador entre páginas
+            const p = new URLSearchParams(location.search);
+            ordem = comparar[p.get('ordem')] ? p.get('ordem') : 'recentes';
+            pagina = parseInt(p.get('pagina'), 10) || 1;
+            render();
         });
+
+        botoes.forEach(b => b.addEventListener('click', () => {
+            ordem = b.dataset.ordem; pagina = 1; render();
+            try { localStorage.setItem('kb-ordem', ordem); } catch (e) {}
+        }));
+        campo.addEventListener('input', () => { pagina = 1; render(); });
+        render();
     })();
     </script>
     {% endif %}

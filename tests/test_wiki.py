@@ -75,6 +75,7 @@ def test_ordem_padrao_por_publicacao_e_botoes_de_ordenacao(client, wiki_on):
     for ordem in ("recentes", "antigos", "atualizados", "az"):
         assert f'data-ordem="{ordem}"' in html
     assert "10/01/2026 12:30" in html  # 15:30 UTC exibido no horário de Brasília
+    assert 'id="kb-paginacao"' in html and "const POR_PAGINA = 12;" in html
 
 
 def test_api_usa_url_interna_quando_configurada(monkeypatch):
