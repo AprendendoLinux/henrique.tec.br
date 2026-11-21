@@ -76,6 +76,12 @@
         @keyframes hk-blink { 50% { opacity: 0; } }
         @media (max-width: 600px) { .hk-logo { font-size: 1.05rem; } }
         @media (prefers-reduced-motion: reduce) { .hk-cursor { animation: none; } }
+        /* Celular deitado: botões flutuantes compactos e no canto */
+        @media (max-height: 500px) and (orientation: landscape) {
+            a.flutuante { width: 2.75rem; height: 2.75rem; font-size: 1.4rem; right: .75rem; }
+            a.flutuante.bg-\[\#25D366\] { bottom: .75rem; }
+            a.flutuante.bg-\[\#229ED9\] { bottom: 4rem; }
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
@@ -144,14 +150,14 @@
 
     {% if telegram_url %}
     <a href="{{ telegram_url }}" target="_blank" rel="noopener" title="Fale comigo no Telegram"
-       class="fixed {% if whatsapp_url %}bottom-24{% else %}bottom-6{% endif %} right-6 z-50 bg-[#229ED9] text-white w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(34,158,217,0.4)] hover:scale-110 transition-transform duration-300 animate-float-wp">
+       class="fixed {% if whatsapp_url %}bottom-[4.25rem] md:bottom-24{% else %}bottom-4 md:bottom-6{% endif %} right-3 md:right-6 z-50 flutuante bg-[#229ED9] text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-2xl md:text-3xl shadow-[0_0_20px_rgba(34,158,217,0.4)] hover:scale-110 transition-transform duration-300 animate-float-wp">
         <i class="fa-brands fa-telegram"></i>
     </a>
     {% endif %}
 
     {% if whatsapp_url %}
     <a href="{{ whatsapp_url }}" target="_blank" title="Fale comigo no WhatsApp" 
-       class="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(37,211,102,0.4)] hover:scale-110 transition-transform duration-300 animate-float-wp">
+       class="fixed bottom-4 md:bottom-6 right-3 md:right-6 z-50 flutuante bg-[#25D366] text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-2xl md:text-3xl shadow-[0_0_20px_rgba(37,211,102,0.4)] hover:scale-110 transition-transform duration-300 animate-float-wp">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
     {% endif %}
