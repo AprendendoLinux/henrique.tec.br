@@ -154,7 +154,7 @@ def test_admin_salva_config_wiki_com_segredo_criptografado(client, monkeypatch):
                                        "wiki_token_id": "", "wiki_token_secret": ""}, page=dash)
 
 
-def test_imagem_principal_servida_com_tipo_correto(client):
-    r = client.get("/static/hero-datacenter.webp")
-    assert r.status_code == 200 and r.headers["content-type"] == "image/webp"
-    assert 'srcset="/static/hero-datacenter.webp"' in client.get("/").text
+
+def test_imagem_principal_e_ilustracao_propria(client):
+    html = client.get("/").text
+    assert 'class="hero-bg"' in html and 'class="pessoa"' in html and "unsplash" not in html
