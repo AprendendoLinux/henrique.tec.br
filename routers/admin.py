@@ -159,7 +159,7 @@ def config_wiki(
     wiki_token_id: str = Form("", max_length=64), wiki_token_secret: str = Form("", max_length=64),
     db: Session = Depends(get_db),
 ):
-    url, slug = wiki_url.strip().rstrip("/"), wiki_book_slug.strip().lower()
+    url, slug = wiki_url.strip().rstrip("/"), wiki_book_slug.strip()
     token_id, segredo = wiki_token_id.strip(), wiki_token_secret.strip()
     if url and not URL_HTTP_RE.match(url):
         raise HTTPException(status_code=400, detail="URL da wiki inválida.")

@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 CACHE_TTL = 30  # segundos
 TIMEOUT = 6
-SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,190}$")
+SLUG_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]{0,190}$")
 
 
 class WikiIndisponivel(Exception):

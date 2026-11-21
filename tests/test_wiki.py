@@ -9,7 +9,8 @@ from tests.conftest import login_admin, post
 LIVRO = {"id": 7, "name": "Público", "description": "Meus tutoriais", "contents": [
     {"type": "page", "id": 1, "slug": "chroot", "name": "Fazer chroot", "updated_at": "2026-10-01T10:00:00.000000Z"},
     {"type": "chapter", "name": "Redes", "pages": [
-        {"id": 2, "slug": "wireguard", "name": "Túnel WireGuard", "updated_at": "2026-11-01T10:00:00.000000Z"}]},
+        {"id": 2, "slug": "wireguard", "name": "Túnel WireGuard", "updated_at": "2026-11-01T10:00:00.000000Z"},
+        {"id": 4, "slug": "wireguard-cWb", "name": "Túnel WireGuard (cópia)", "updated_at": "2026-11-02T10:00:00Z"}]},
     {"type": "page", "id": 3, "slug": "rascunho", "name": "Rascunho", "draft": True},
 ]}
 PAGINAS = {
@@ -17,6 +18,7 @@ PAGINAS = {
         "html": '<h2 id="a">Passo</h2><script>alert(1)</script><p onclick="x()">ok <a href="https://wiki.henrique.tec.br/books/publico/page/wireguard#s">wg</a> '
                 '<a href="https://debian.org">debian</a> <img src="/uploads/images/x.png"></p>'
                 '<pre><code class="language-bash">chroot /mnt</code></pre><iframe src="https://evil"></iframe>'},
+    4: {"id": 4, "book_id": 7, "name": "Túnel WireGuard (cópia)", "html": "<p>copia</p>"},
     2: {"id": 2, "book_id": 7, "name": "Túnel WireGuard", "updated_at": "2026-11-01T10:00:00Z", "html": "<p>wg</p>"},
 }
 
@@ -78,6 +80,7 @@ def test_pagina_sanitizada_e_links_reescritos(client, wiki_on):
 
 
 def test_pagina_fora_do_livro_e_rascunho_dao_404(client, wiki_on):
+    assert client.get("/conhecimento/wireguard-cWb").status_code == 200  # slug com maiúsculas (nome repetido)
     assert client.get("/conhecimento/nao-existe").status_code == 404
     assert client.get("/conhecimento/rascunho").status_code == 404
     assert client.get("/conhecimento/..%2Fadmin").status_code == 404
@@ -105,7 +108,7 @@ def test_admin_salva_config_wiki_com_segredo_criptografado(client, monkeypatch):
         monkeypatch.setitem(store._v, k, store.get(k))
     login_admin(client)
     dash = "/admin/dashboard"
-    r = post(client, "/admin/config/wiki", {"wiki_url": "https://wiki.exemplo.com/", "wiki_book_slug": "Publico",
+    r = post(client, "/admin/config/wiki", {"wiki_url": "https://wiki.exemplo.com/", "wiki_book_slug": "publico",
                                            "wiki_token_id": "TokenId123", "wiki_token_secret": "Segredo12345"}, page=dash)
     assert r.status_code == 302
     assert store.get("wiki_url") == "https://wiki.exemplo.com" and store.get("wiki_book_slug") == "publico"
