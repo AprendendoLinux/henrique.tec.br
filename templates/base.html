@@ -39,7 +39,7 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap');
         
         body { background-color: #050505; color: #e5e5e5; }
         
@@ -65,13 +65,25 @@
         .animate-float-wp {
             animation: float-wp 3s ease-in-out infinite;
         }
+
+        /* Logo em estilo terminal (mesmo da wiki), com cursor piscando */
+        .hk-logo { font-family: "JetBrains Mono", "Fira Code", monospace; font-weight: 700; font-size: 1.32rem;
+                   color: #00ffcc; letter-spacing: -0.01em; white-space: nowrap; text-decoration: none;
+                   text-shadow: 0 0 18px rgba(0, 255, 204, 0.35); transition: text-shadow .2s ease; }
+        .hk-logo:hover { text-shadow: 0 0 26px rgba(0, 255, 204, 0.6); }
+        .hk-tilde { opacity: .85; }
+        .hk-cursor { display: inline-block; animation: hk-blink 1.05s steps(1) infinite; }
+        @keyframes hk-blink { 50% { opacity: 0; } }
+        @media (max-width: 600px) { .hk-logo { font-size: 1.05rem; } }
+        @media (prefers-reduced-motion: reduce) { .hk-cursor { animation: none; } }
     </style>
+    {% block head %}{% endblock %}
 </head>
 <body class="font-sans antialiased selection:bg-neon selection:text-darkbg min-h-screen flex flex-col">
 
     <nav class="w-full p-6 border-b border-gray-800 glass-card sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center">
-            <a href="/" class="text-xl font-bold font-mono text-neon glow-text">~/henrique.tec.br_</a>
+            <a href="/" class="hk-logo" aria-label="Início"><span class="hk-tilde">~/</span>henrique.tec.br<span class="hk-cursor">_</span></a>
             
             <button id="menu-toggle" class="md:hidden text-gray-400 hover:text-neon focus:outline-none">
                 <i class="fa-solid fa-bars text-xl"></i>
@@ -80,6 +92,7 @@
             <div id="menu-links" class="hidden w-full md:flex md:w-auto md:space-x-6 text-sm font-mono text-gray-400 mt-6 md:mt-0 flex-col md:flex-row space-y-4 md:space-y-0 text-center md:text-left border-t border-gray-800 pt-4 md:border-0 md:pt-0">
                 <a href="/#expertise" class="hover:text-neon transition">./serviços</a>
                 <a href="/#projetos" class="hover:text-neon transition">./projetos</a>
+                {% if wiki_ativa %}<a href="/conhecimento" class="hover:text-neon transition block md:inline">./conhecimento</a>{% endif %}
                 <a href="/contato" class="hover:text-neon transition block md:inline">./orçamento</a>
                 <a href="#contato" class="hover:text-neon transition block md:inline">./redes</a>
                 

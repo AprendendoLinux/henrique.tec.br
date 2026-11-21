@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 import config
 from appsettings import cfg
 import models
+import wiki
 from database import get_db
 from security import csrf_input, csrf_protect, user_fingerprint
 
@@ -45,6 +46,7 @@ def site_context(db: Session) -> dict:
         "whatsapp_url": get_whatsapp_url(db),
         "telegram_url": get_telegram_url(db),
         "version": config.APP_VERSION,
+        "wiki_ativa": wiki.configurada(),
     }
 
 

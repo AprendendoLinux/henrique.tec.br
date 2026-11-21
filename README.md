@@ -20,6 +20,8 @@ Identidade visual "Terminal/Hacker" com Glassmorphism, backend FastAPI, configur
 * **Formulário de Orçamento (`/contato`):** nome, e-mail, telefone, serviço, prazo e mensagem, com proteção contra spam (reCAPTCHA opcional, campo-isca, tempo mínimo de preenchimento e limite de envios por IP).
 * **Chamadas para contato levam ao formulário:** os botões das páginas de serviço abrem `/contato?servico=<slug>` com o serviço já selecionado; o WhatsApp fica apenas no botão flutuante.
 * **Botões flutuantes de WhatsApp e Telegram:** cada um aparece apenas se habilitado no painel. Com apenas um ativo, ele ocupa a posição original; com os dois, o Telegram fica acima do WhatsApp.
+* **Base de Conhecimento (`/conhecimento`):** lista e exibe, dentro do site, as páginas do livro público da wiki BookStack, lidas pela API (cache de 30 s; se a wiki cair, serve o último conteúdo obtido). O HTML é sanitizado, links entre páginas do livro viram links do site e os artigos entram no `sitemap.xml`. Configurada no painel (URL, slug do livro e token da API); o link `./conhecimento` só aparece no menu quando está configurada.
+* **Logo em estilo terminal** `~/henrique.tec.br_` com cursor piscando, igual ao da wiki.
 * **Rodapé dinâmico** com redes sociais configuráveis e botão "Solicitar orçamento".
 * **SEO & Open Graph:** `sitemap.xml` e `robots.txt` dinâmicos e card `social-card.jpg`.
 
@@ -33,7 +35,7 @@ Identidade visual "Terminal/Hacker" com Glassmorphism, backend FastAPI, configur
 * **Autenticação:** sessão em cookie assinado (HttpOnly, SameSite, Secure automático em HTTPS), senhas com `bcrypt` e **2FA (TOTP) obrigatório para todos os usuários**, inclusive o admin. Segredos TOTP armazenados criptografados.
 * **Proteções:** token CSRF em todo `POST`, ações destrutivas apenas via `POST`, limite de tentativas no login e no 2FA, validação de URLs, ícones e cores, e cabeçalhos de segurança.
 * **Perfis:** o usuário principal `admin` é sempre administrador e protegido. Qualquer admin pode **tornar outro usuário admin** (ou remover a permissão), gerenciar usuários e alterar configurações. Usuários comuns gerenciam apenas conteúdo (projetos, contatos, WhatsApp, Telegram) e a própria senha.
-* **Configurações pelo painel (salvas no banco):** SMTP, bot do Telegram, reCAPTCHA, proxies de confiança, cabeçalhos de IP e cookies seguros, com botões de teste de e-mail e Telegram. Senhas e tokens ficam **criptografados** no banco.
+* **Configurações pelo painel (salvas no banco):** SMTP, bot do Telegram, reCAPTCHA, Base de Conhecimento (BookStack), proxies de confiança, cabeçalhos de IP e cookies seguros, com botões de teste de e-mail e Telegram. Senhas e tokens ficam **criptografados** no banco.
 * **Minha Conta:** troca de senha pelo próprio usuário.
 * **Gerenciamento de conteúdo:** CRUD de Projetos e Contatos do rodapé, WhatsApp (número, mensagem e exibição) e Telegram (usuário e exibição).
 

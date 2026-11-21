@@ -33,8 +33,12 @@ DEFAULTS = {
     "smtp_from_name": "Site henrique.tec.br",
     "smtp_verify_tls": "true",
     "contact_to": "",
+    "wiki_url": "https://wiki.henrique.tec.br",
+    "wiki_book_slug": "publico",
+    "wiki_token_id": "",
+    "wiki_token_secret": "",
 }
-SECRETS = {"secret_key", "smtp_password", "telegram_bot_token", "recaptcha_secret"}
+SECRETS = {"secret_key", "smtp_password", "telegram_bot_token", "recaptcha_secret", "wiki_token_secret"}
 
 # Importação única de variáveis de ambiente antigas (somente para chaves ainda ausentes no banco).
 LEGACY_ENV = {
@@ -168,6 +172,14 @@ class Cfg:
     def SMTP_TIMEOUT(self): return 15
     @property
     def CONTACT_TO(self): return store.get("contact_to") or store.get("smtp_from")
+    @property
+    def WIKI_URL(self): return store.get("wiki_url")
+    @property
+    def WIKI_BOOK_SLUG(self): return store.get("wiki_book_slug")
+    @property
+    def WIKI_TOKEN_ID(self): return store.get("wiki_token_id")
+    @property
+    def WIKI_TOKEN_SECRET(self): return store.get("wiki_token_secret")
 
 
 cfg = Cfg()

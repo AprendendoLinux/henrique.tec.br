@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 import models
+import wiki
 from database import get_db
 from deps import get_site_context, templates
 
@@ -31,4 +32,10 @@ def robots(request: Request):
 
 @router.get("/sitemap.xml")
 def sitemap(request: Request):
-    return templates.TemplateResponse(request, "sitemap.xml", {}, media_type="application/xml")
+    artigos = []
+    if wiki.configurada():
+        try:
+            artigos = ["conhecimento"] + [f"conhecimento/{p['slug']}" for p in wiki.livro()["paginas"]]
+        except Exception:
+            artigos = ["conhecimento"]
+    return templates.TemplateResponse(request, "sitemap.xml", {"artigos": artigos}, media_type="application/xml")

@@ -5,6 +5,13 @@
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
     </url>
+{% for slug in artigos %}
+    <url>
+        <loc>{{ request.base_url }}{{ slug }}</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+{% endfor %}
 
     <url>
         <loc>{{ request.base_url }}servicos/linux</loc>

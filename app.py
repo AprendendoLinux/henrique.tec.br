@@ -18,7 +18,7 @@ from database import SessionLocal, engine
 from appsettings import store
 from deps import RedirectToLogin, site_context, templates
 from session import DynamicSessionMiddleware
-from routers import admin, auth, contact, public
+from routers import admin, auth, conhecimento, contact, public
 from security import decrypt_secret, encrypt_secret, get_password_hash, is_encrypted, validar_senha_forte
 
 logging.basicConfig(level=logging.INFO)
@@ -113,6 +113,7 @@ async def security_headers(request: Request, call_next):
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(public.router)
 app.include_router(contact.router)
+app.include_router(conhecimento.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
 
