@@ -16,6 +16,10 @@ router = APIRouter()
 
 SERVICOS = ["Servidores Linux", "Firewall / MikroTik", "Suporte Desktop", "Docker e Containers",
             "Virtualização", "Desenvolvimento", "Outro assunto"]
+# slug da página de serviço -> opção pré-selecionada no formulário (/contato?servico=<slug>)
+SERVICO_POR_SLUG = {"linux": "Servidores Linux", "firewall": "Firewall / MikroTik", "desktop": "Suporte Desktop",
+                    "docker": "Docker e Containers", "virtualizacao": "Virtualização",
+                    "desenvolvimento": "Desenvolvimento"}
 PRAZOS = ["Urgente", "Até 1 mês", "Sem pressa"]
 TEL_RE = re.compile(r"^[0-9+()\-.\s]{8,30}$")
 TEMPO_MINIMO = 3
@@ -32,10 +36,11 @@ def _pagina(request: Request, ctx: dict, form: dict | None = None, erro: str | N
 
 
 @router.get("/contato")
-def contato_page(request: Request, ctx: dict = Depends(get_site_context)):
+def contato_page(request: Request, servico: str = "", ctx: dict = Depends(get_site_context)):
     request.session["form_ts"] = time.time()
     enviado = bool(request.session.pop("contato_enviado", False))
-    return _pagina(request, ctx, enviado=enviado)
+    form = {"servico": SERVICO_POR_SLUG[servico]} if servico in SERVICO_POR_SLUG else None
+    return _pagina(request, ctx, form, enviado=enviado)
 
 
 @router.post("/contato", dependencies=[Depends(csrf_protect)])

@@ -116,3 +116,18 @@ def test_todos_canais_falham(client, monkeypatch):
         raise OSError("smtp fora")
     monkeypatch.setattr(mailer, "enviar_email", quebra)
     assert _enviar(client, monkeypatch).status_code == 502
+
+
+def test_servico_pre_selecionado_por_slug(client):
+    r = client.get("/contato?servico=firewall")
+    assert r.status_code == 200
+    assert '<option value="Firewall / MikroTik" selected>' in r.text
+    # slug desconhecido é ignorado
+    assert " selected>" not in client.get("/contato?servico=xpto").text.split('id="prazo"')[0]
+
+
+def test_ctas_das_paginas_levam_ao_formulario(client):
+    for slug in ["linux", "firewall", "desktop", "docker", "virtualizacao", "desenvolvimento"]:
+        html = client.get(f"/servicos/{slug}").text
+        assert f'href="/contato?servico={slug}"' in html
+    assert 'href="/contato" class="px-8 py-4' in client.get("/").text
