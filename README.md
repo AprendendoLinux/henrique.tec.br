@@ -18,6 +18,7 @@ Identidade visual "Terminal/Hacker" com Glassmorphism, backend FastAPI, configur
 * **Páginas de Serviços:** Linux, Firewall/MikroTik, Desktop, Docker, Virtualização e Desenvolvimento.
 * **Projetos Dinâmicos:** grade alimentada pelo banco de dados.
 * **Formulário de Orçamento (`/contato`):** nome, e-mail, telefone, serviço, prazo e mensagem, com proteção contra spam (reCAPTCHA opcional, campo-isca, tempo mínimo de preenchimento e limite de envios por IP).
+* **Chamadas para contato levam ao formulário:** os botões das páginas de serviço abrem `/contato?servico=<slug>` com o serviço já selecionado; o WhatsApp fica apenas no botão flutuante.
 * **Botões flutuantes de WhatsApp e Telegram:** cada um aparece apenas se habilitado no painel. Com apenas um ativo, ele ocupa a posição original; com os dois, o Telegram fica acima do WhatsApp.
 * **Rodapé dinâmico** com redes sociais configuráveis e botão "Solicitar orçamento".
 * **SEO & Open Graph:** `sitemap.xml` e `robots.txt` dinâmicos e card `social-card.jpg`.
