@@ -31,23 +31,37 @@
         <p class="text-yellow-500">[!] A base de conhecimento está temporariamente indisponível. Tente novamente em instantes.</p>
     </div>
     {% else %}
-    <div class="relative mb-8">
+    <div class="relative mb-4">
         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neon text-sm">$ grep</span>
         <input id="kb-busca" type="search" placeholder="buscar artigo..." autocomplete="off"
                class="w-full bg-[#111] border border-gray-700 text-white pl-20 pr-4 py-3 rounded focus:outline-none focus:border-neon transition">
     </div>
 
-    <p class="text-gray-500 text-xs mb-4"><span id="kb-total">{{ livro.paginas|length }}</span> artigo(s)</p>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <p class="text-gray-500 text-xs"><span id="kb-total">{{ livro.paginas|length }}</span> artigo(s)</p>
+        <div class="flex flex-wrap items-center gap-2 text-xs" role="group" aria-label="Ordenar artigos">
+            <span class="text-gray-500">$ sort</span>
+            {% for chave, rotulo in [("recentes", "mais recentes"), ("antigos", "mais antigos"), ("atualizados", "atualizados"), ("az", "a-z")] %}
+            <button type="button" data-ordem="{{ chave }}" aria-pressed="{{ 'true' if loop.first else 'false' }}"
+                    class="kb-ordem px-3 py-1.5 rounded border transition {{ 'border-neon text-neon bg-neon/10' if loop.first else 'border-gray-700 text-gray-400 hover:border-neon hover:text-neon' }}">{{ rotulo }}</button>
+            {% endfor %}
+        </div>
+    </div>
 
     <div id="kb-lista" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {% for p in livro.paginas|sort(attribute="nome") %}
+        {% for p in livro.paginas %}
         <a href="/conhecimento/{{ p.slug }}" data-busca="{{ (p.nome ~ ' ' ~ (p.capitulo or ''))|lower }}"
+           data-nome="{{ p.nome|lower }}" data-publicado="{{ p.publicado.timestamp()|int if p.publicado else 0 }}"
+           data-atualizado="{{ p.atualizado.timestamp()|int if p.atualizado else 0 }}"
            class="kb-item glass-card rounded-lg p-5 border border-gray-800 hover:border-neon group block">
             {% if p.capitulo %}<span class="text-[10px] uppercase tracking-widest text-yellow-500">{{ p.capitulo }}</span>{% endif %}
             <h2 class="text-white font-bold group-hover:text-neon transition leading-snug">
                 <span class="text-neon">&gt;</span> {{ p.nome }}
             </h2>
-            {% if p.atualizado %}<p class="text-gray-600 text-xs mt-2"><i class="fa-regular fa-clock mr-1"></i>atualizado em {{ p.atualizado.strftime("%d/%m/%Y") }}</p>{% endif %}
+            <p class="text-gray-600 text-xs mt-2 space-x-3">
+                {% if p.publicado %}<span title="Publicado"><i class="fa-regular fa-calendar mr-1"></i>{{ p.publicado.strftime("%d/%m/%Y %H:%M") }}</span>{% endif %}
+                {% if p.atualizado and p.publicado and p.atualizado.date() != p.publicado.date() %}<span title="Atualizado"><i class="fa-solid fa-rotate mr-1"></i>{{ p.atualizado.strftime("%d/%m/%Y") }}</span>{% endif %}
+            </p>
         </a>
         {% else %}
         <p class="text-gray-500 text-sm">Nenhum artigo publicado ainda.</p>
@@ -57,8 +71,34 @@
 
     <script>
     (function () {
-        const campo = document.getElementById('kb-busca'), itens = document.querySelectorAll('.kb-item');
-        const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+        const lista = document.getElementById('kb-lista'), campo = document.getElementById('kb-busca');
+        const itens = Array.from(lista.querySelectorAll('.kb-item')), botoes = document.querySelectorAll('.kb-ordem');
+        const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        const ATIVO = ['border-neon', 'text-neon', 'bg-neon/10'], INATIVO = ['border-gray-700', 'text-gray-400', 'hover:border-neon', 'hover:text-neon'];
+        const comparar = {
+            recentes: (a, b) => b.dataset.publicado - a.dataset.publicado,
+            antigos: (a, b) => a.dataset.publicado - b.dataset.publicado,
+            atualizados: (a, b) => b.dataset.atualizado - a.dataset.atualizado,
+            az: (a, b) => a.dataset.nome.localeCompare(b.dataset.nome, 'pt-BR'),
+        };
+        function ordenar(ordem) {
+            if (!comparar[ordem]) ordem = 'recentes';
+            itens.slice().sort(comparar[ordem]).forEach(el => lista.appendChild(el));
+            botoes.forEach(b => {
+                const on = b.dataset.ordem === ordem;
+                b.setAttribute('aria-pressed', on);
+                b.classList.remove(...(on ? INATIVO : ATIVO)); b.classList.add(...(on ? ATIVO : INATIVO));
+            });
+            const url = new URL(location.href);
+            ordem === 'recentes' ? url.searchParams.delete('ordem') : url.searchParams.set('ordem', ordem);
+            history.replaceState(null, '', url);
+            try { localStorage.setItem('kb-ordem', ordem); } catch (e) {}
+        }
+        botoes.forEach(b => b.addEventListener('click', () => ordenar(b.dataset.ordem)));
+        let inicial = new URLSearchParams(location.search).get('ordem');
+        if (!inicial) { try { inicial = localStorage.getItem('kb-ordem'); } catch (e) {} }
+        if (inicial && inicial !== 'recentes') ordenar(inicial);
+
         campo.addEventListener('input', () => {
             const termos = norm(campo.value).split(/\s+/).filter(Boolean);
             let n = 0;

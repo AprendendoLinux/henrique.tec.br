@@ -58,7 +58,8 @@
             {% if pagina.capitulo %}<span class="text-[10px] font-mono uppercase tracking-widest text-yellow-500">{{ pagina.capitulo }}</span>{% endif %}
             <h1 class="text-2xl md:text-4xl font-bold text-white mb-3 glow-text font-mono leading-tight">{{ pagina.nome }}</h1>
             <p class="text-gray-500 text-xs font-mono mb-8 pb-6 border-b border-gray-800">
-                {% if pagina.atualizado %}<i class="fa-regular fa-clock mr-1"></i>atualizado em {{ pagina.atualizado.strftime("%d/%m/%Y") }}{% endif %}
+                {% if pagina.publicado %}<span class="mr-4"><i class="fa-regular fa-calendar mr-1"></i>publicado em {{ pagina.publicado.strftime("%d/%m/%Y às %H:%M") }}</span>{% endif %}
+                {% if pagina.atualizado %}<span><i class="fa-solid fa-rotate mr-1"></i>atualizado em {{ pagina.atualizado.strftime("%d/%m/%Y às %H:%M") }}</span>{% endif %}
             </p>
             <div class="kb-conteudo">{{ pagina.html|safe }}</div>
         </div>

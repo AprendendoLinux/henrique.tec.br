@@ -34,6 +34,7 @@ DEFAULTS = {
     "smtp_verify_tls": "true",
     "contact_to": "",
     "wiki_url": "https://wiki.henrique.tec.br",
+    "wiki_api_url": "http://bookstack",
     "wiki_book_slug": "publico",
     "wiki_token_id": "",
     "wiki_token_secret": "",
@@ -174,6 +175,8 @@ class Cfg:
     def CONTACT_TO(self): return store.get("contact_to") or store.get("smtp_from")
     @property
     def WIKI_URL(self): return store.get("wiki_url")
+    @property
+    def WIKI_API_URL(self): return store.get("wiki_api_url")
     @property
     def WIKI_BOOK_SLUG(self): return store.get("wiki_book_slug")
     @property

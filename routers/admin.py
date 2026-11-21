@@ -63,7 +63,7 @@ CABECALHOS_IP = ["cf-connecting-ip", "true-client-ip", "x-real-ip", "x-forwarded
 def config_view() -> dict:
     nomes = ("cookie_secure", "trusted_proxies", "client_ip_headers", "recaptcha_enabled", "recaptcha_site_key",
              "telegram_chat_id", "smtp_host", "smtp_port", "smtp_security", "smtp_user", "smtp_from",
-             "smtp_from_name", "smtp_verify_tls", "contact_to", "wiki_url", "wiki_book_slug", "wiki_token_id")
+             "smtp_from_name", "smtp_verify_tls", "contact_to", "wiki_url", "wiki_api_url", "wiki_book_slug", "wiki_token_id")
     view = {n: store.get(n) for n in nomes}
     for n in ("cookie_secure", "recaptcha_enabled", "smtp_verify_tls"):
         view[n] = store.flag(n)
@@ -155,19 +155,21 @@ URL_HTTP_RE = re.compile(r"^https?://[A-Za-z0-9.-]+(:\d{1,5})?(/[A-Za-z0-9._~/-]
 
 @router.post("/config/wiki", dependencies=admin_only)
 def config_wiki(
-    request: Request, wiki_url: str = Form("", max_length=200), wiki_book_slug: str = Form("", max_length=190),
+    request: Request, wiki_url: str = Form("", max_length=200), wiki_api_url: str = Form("", max_length=200),
+    wiki_book_slug: str = Form("", max_length=190),
     wiki_token_id: str = Form("", max_length=64), wiki_token_secret: str = Form("", max_length=64),
     db: Session = Depends(get_db),
 ):
     url, slug = wiki_url.strip().rstrip("/"), wiki_book_slug.strip()
     token_id, segredo = wiki_token_id.strip(), wiki_token_secret.strip()
-    if url and not URL_HTTP_RE.match(url):
+    api_url = wiki_api_url.strip().rstrip("/")
+    if url and not URL_HTTP_RE.match(url) or api_url and not URL_HTTP_RE.match(api_url):
         raise HTTPException(status_code=400, detail="URL da wiki inválida.")
     if slug and not wiki.SLUG_RE.match(slug):
         raise HTTPException(status_code=400, detail="Slug do livro inválido.")
     if token_id and not WIKI_TOKEN_RE.match(token_id) or segredo and not WIKI_TOKEN_RE.match(segredo):
         raise HTTPException(status_code=400, detail="Token da API inválido.")
-    mapa = {"wiki_url": url, "wiki_book_slug": slug, "wiki_token_id": token_id}
+    mapa = {"wiki_url": url, "wiki_api_url": api_url, "wiki_book_slug": slug, "wiki_token_id": token_id}
     if segredo:
         mapa["wiki_token_secret"] = segredo
     if not token_id:

@@ -7,10 +7,10 @@ from appsettings import store
 from tests.conftest import login_admin, post
 
 LIVRO = {"id": 7, "name": "Público", "description": "Meus tutoriais", "contents": [
-    {"type": "page", "id": 1, "slug": "chroot", "name": "Fazer chroot", "updated_at": "2026-10-01T10:00:00.000000Z"},
+    {"type": "page", "id": 1, "slug": "chroot", "name": "Fazer chroot", "created_at": "2026-01-10T15:30:00.000000Z", "updated_at": "2026-10-01T10:00:00.000000Z"},
     {"type": "chapter", "name": "Redes", "pages": [
-        {"id": 2, "slug": "wireguard", "name": "Túnel WireGuard", "updated_at": "2026-11-01T10:00:00.000000Z"},
-        {"id": 4, "slug": "wireguard-cWb", "name": "Túnel WireGuard (cópia)", "updated_at": "2026-11-02T10:00:00Z"}]},
+        {"id": 2, "slug": "wireguard", "name": "Túnel WireGuard", "created_at": "2026-09-01T12:00:00Z", "updated_at": "2026-11-01T10:00:00.000000Z"},
+        {"id": 4, "slug": "wireguard-cWb", "name": "Túnel WireGuard (cópia)", "created_at": "2026-05-01T12:00:00Z", "updated_at": "2026-11-02T10:00:00Z"}]},
     {"type": "page", "id": 3, "slug": "rascunho", "name": "Rascunho", "draft": True},
 ]}
 PAGINAS = {
@@ -68,6 +68,33 @@ def test_indice_lista_paginas_publicadas(client, wiki_on):
     assert "Rascunho" not in r.text and "Meus tutoriais" in r.text
 
 
+def test_ordem_padrao_por_publicacao_e_botoes_de_ordenacao(client, wiki_on):
+    html = client.get("/conhecimento").text
+    pos = [html.index(f'href="/conhecimento/{s}"') for s in ("wireguard", "wireguard-cWb", "chroot")]
+    assert pos == sorted(pos)  # mais recente primeiro
+    for ordem in ("recentes", "antigos", "atualizados", "az"):
+        assert f'data-ordem="{ordem}"' in html
+    assert "10/01/2026 12:30" in html  # 15:30 UTC exibido no horário de Brasília
+
+
+def test_api_usa_url_interna_quando_configurada(monkeypatch):
+    import urllib.request
+    monkeypatch.setitem(store._v, "wiki_url", "https://wiki.henrique.tec.br")
+    monkeypatch.setitem(store._v, "wiki_api_url", "http://bookstack")
+    urls = []
+
+    def falso(req, timeout):
+        urls.append(req.full_url)
+        raise urllib.error.URLError("x")
+    monkeypatch.setattr(urllib.request, "urlopen", falso)
+    with pytest.raises(wiki.WikiIndisponivel):
+        wiki._api("books")
+    monkeypatch.setitem(store._v, "wiki_api_url", "")
+    with pytest.raises(wiki.WikiIndisponivel):
+        wiki._api("books")
+    assert urls == ["http://bookstack/api/books", "https://wiki.henrique.tec.br/api/books"]
+
+
 def test_pagina_sanitizada_e_links_reescritos(client, wiki_on):
     r = client.get("/conhecimento/chroot")
     assert r.status_code == 200
@@ -104,13 +131,14 @@ def test_sitemap_inclui_artigos(client, wiki_on):
 
 
 def test_admin_salva_config_wiki_com_segredo_criptografado(client, monkeypatch):
-    for k in ("wiki_url", "wiki_book_slug", "wiki_token_id", "wiki_token_secret"):
+    for k in ("wiki_url", "wiki_api_url", "wiki_book_slug", "wiki_token_id", "wiki_token_secret"):
         monkeypatch.setitem(store._v, k, store.get(k))
     login_admin(client)
     dash = "/admin/dashboard"
-    r = post(client, "/admin/config/wiki", {"wiki_url": "https://wiki.exemplo.com/", "wiki_book_slug": "publico",
+    r = post(client, "/admin/config/wiki", {"wiki_url": "https://wiki.exemplo.com/", "wiki_api_url": "http://bookstack/", "wiki_book_slug": "publico",
                                            "wiki_token_id": "TokenId123", "wiki_token_secret": "Segredo12345"}, page=dash)
     assert r.status_code == 302
+    assert store.get("wiki_api_url") == "http://bookstack"
     assert store.get("wiki_url") == "https://wiki.exemplo.com" and store.get("wiki_book_slug") == "publico"
     db = database.SessionLocal()
     try:
@@ -121,5 +149,5 @@ def test_admin_salva_config_wiki_com_segredo_criptografado(client, monkeypatch):
     assert post(client, "/admin/config/wiki", {"wiki_url": "javascript:alert(1)", "wiki_book_slug": "publico",
                                               "wiki_token_id": "", "wiki_token_secret": ""}, page=dash).status_code == 400
     # limpa para não afetar outros testes
-    post(client, "/admin/config/wiki", {"wiki_url": "https://wiki.henrique.tec.br", "wiki_book_slug": "publico",
+    post(client, "/admin/config/wiki", {"wiki_url": "https://wiki.henrique.tec.br", "wiki_api_url": "http://bookstack", "wiki_book_slug": "publico",
                                        "wiki_token_id": "", "wiki_token_secret": ""}, page=dash)

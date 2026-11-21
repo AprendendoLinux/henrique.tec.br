@@ -11,7 +11,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import nh3
 
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 CACHE_TTL = 30  # segundos
 TIMEOUT = 6
+BRT = timezone(timedelta(hours=-3), "BRT")  # Brasil sem horário de verão desde 2019
 SLUG_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]{0,190}$")
 
 
@@ -42,7 +43,8 @@ def configurada() -> bool:
 
 
 def _api(caminho: str, params: dict | None = None) -> dict:
-    url = cfg.WIKI_URL.rstrip("/") + "/api/" + caminho
+    # Chamada pela rede interna (ex.: http://bookstack na rede echelon) quando configurada: evita DNS, TLS e proxy.
+    url = (cfg.WIKI_API_URL or cfg.WIKI_URL).rstrip("/") + "/api/" + caminho
     if params:
         url += "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={
@@ -81,13 +83,14 @@ def _cacheado(chave: str, produzir):
 
 def _data(iso: str | None) -> datetime | None:
     try:
-        return datetime.fromisoformat((iso or "").replace("Z", "+00:00"))
+        return datetime.fromisoformat((iso or "").replace("Z", "+00:00")).astimezone(BRT)
     except ValueError:
         return None
 
 
 def livro() -> dict:
-    """Retorna {nome, descricao, paginas:[{slug,nome,resumo,atualizado,capitulo}]} do livro configurado."""
+    """Retorna {nome, descricao, paginas:[{slug,nome,capitulo,publicado,atualizado}]} do livro configurado,
+    com as páginas da publicação mais recente para a mais antiga."""
     def produzir():
         achados = _api("books", {"filter[slug]": cfg.WIKI_BOOK_SLUG, "count": 1}).get("data") or []
         if not achados:
@@ -99,7 +102,7 @@ def livro() -> dict:
             if p.get("draft"):
                 return
             paginas.append({"id": p["id"], "slug": p["slug"], "nome": p["name"], "capitulo": capitulo,
-                            "atualizado": _data(p.get("updated_at"))})
+                            "publicado": _data(p.get("created_at")), "atualizado": _data(p.get("updated_at"))})
 
         for item in dados.get("contents") or []:
             if item.get("type") == "chapter":
@@ -107,6 +110,8 @@ def livro() -> dict:
                     add(p, item.get("name"))
             elif item.get("type") == "page":
                 add(item)
+        minimo = datetime.min.replace(tzinfo=BRT)
+        paginas.sort(key=lambda p: p["publicado"] or minimo, reverse=True)
         return {"id": dados["id"], "nome": dados.get("name") or "Base de Conhecimento",
                 "descricao": dados.get("description") or "", "paginas": paginas}
     return _cacheado("livro", produzir)
@@ -166,7 +171,7 @@ def pagina(slug: str) -> dict:
         dados = _api(f"pages/{meta['id']}")
         if dados.get("book_id") != info["id"] or dados.get("draft"):
             raise LookupError(slug)
-        return {**meta, "nome": dados.get("name") or meta["nome"], "atualizado": _data(dados.get("updated_at")),
+        return {**meta, "nome": dados.get("name") or meta["nome"], "atualizado": _data(dados.get("updated_at")) or meta["atualizado"],
                 "html": _sanitizar(dados.get("html") or "", por_slug),
                 "url_wiki": f"{cfg.WIKI_URL.rstrip('/')}/books/{cfg.WIKI_BOOK_SLUG}/page/{slug}"}
     return _cacheado(f"pagina:{meta['id']}", produzir)
