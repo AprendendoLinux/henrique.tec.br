@@ -14,7 +14,7 @@ SERVICOS = {"linux", "firewall", "desktop", "docker", "virtualizacao", "desenvol
 @router.get("/")
 def home(request: Request, db: Session = Depends(get_db), ctx: dict = Depends(get_site_context)):
     return templates.TemplateResponse(
-        request, "index.html", {**ctx, "projetos": db.query(models.Projeto).all()}
+        request, "index.html", {**ctx, "projetos": db.query(models.Projeto).order_by(models.Projeto.id.desc()).all()}
     )
 
 

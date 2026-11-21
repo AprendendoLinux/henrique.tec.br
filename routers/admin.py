@@ -40,7 +40,7 @@ def _get_or_404(db: Session, model, obj_id: int):
 def dashboard(request: Request, user=Depends(admin_guard), db: Session = Depends(get_db)):
     is_admin = bool(user.is_admin)
     return templates.TemplateResponse(request, "admin_dashboard.html", {
-        "projetos": db.query(models.Projeto).all(),
+        "projetos": db.query(models.Projeto).order_by(models.Projeto.id.desc()).all(),
         "contatos": db.query(models.Contato).limit(MAX_CONTATOS).all(),
         "usuarios": db.query(models.Usuario).all() if is_admin else [],
         "flash": request.session.pop("flash", None),
