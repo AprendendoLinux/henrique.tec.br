@@ -105,9 +105,9 @@ def test_botao_unico_fica_na_posicao_original(client):
     post(client, "/admin/whatsapp/edit", dados, page=DASH)  # whatsapp desligado
     post(client, "/admin/telegram/edit", {"usuario": "caradolinux", "ativo": "on"}, page="/admin/dashboard")
     html = client.get("/").text
-    assert "bottom-6 right-6 z-50 bg-[#229ED9]" in html
+    assert "bottom-4 md:bottom-6 right-3 md:right-6 z-50 flutuante bg-[#229ED9]" in html
     post(client, "/admin/whatsapp/edit", {**dados, "ativo": "on"}, page=DASH)
-    assert "bottom-24 right-6 z-50 bg-[#229ED9]" in client.get("/").text
+    assert "bottom-[4.25rem] md:bottom-24 right-3 md:right-6 z-50 flutuante bg-[#229ED9]" in client.get("/").text
     post(client, "/admin/telegram/edit", {"usuario": "caradolinux"}, page=DASH)
 
 

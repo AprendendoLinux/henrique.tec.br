@@ -130,4 +130,4 @@ def test_ctas_das_paginas_levam_ao_formulario(client):
     for slug in ["linux", "firewall", "desktop", "docker", "virtualizacao", "desenvolvimento"]:
         html = client.get(f"/servicos/{slug}").text
         assert f'href="/contato?servico={slug}"' in html
-    assert 'href="/contato" class="px-8 py-4' in client.get("/").text
+    assert 'href="/contato" class="hero-cta' in client.get("/").text
