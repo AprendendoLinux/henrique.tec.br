@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 import os
 import secrets
 import time
@@ -110,6 +111,7 @@ async def security_headers(request: Request, call_next):
     return response
 
 
+mimetypes.add_type("image/webp", ".webp")  # imagens slim não trazem esse tipo
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(public.router)
 app.include_router(contact.router)

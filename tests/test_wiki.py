@@ -152,3 +152,9 @@ def test_admin_salva_config_wiki_com_segredo_criptografado(client, monkeypatch):
     # limpa para não afetar outros testes
     post(client, "/admin/config/wiki", {"wiki_url": "https://wiki.henrique.tec.br", "wiki_api_url": "http://bookstack", "wiki_book_slug": "publico",
                                        "wiki_token_id": "", "wiki_token_secret": ""}, page=dash)
+
+
+def test_imagem_principal_servida_com_tipo_correto(client):
+    r = client.get("/static/hero-datacenter.webp")
+    assert r.status_code == 200 and r.headers["content-type"] == "image/webp"
+    assert 'srcset="/static/hero-datacenter.webp"' in client.get("/").text
