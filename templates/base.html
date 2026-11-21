@@ -5,16 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Henrique Fagundes | Soluções em Informática{% endblock %}</title>
 
+    {%- set card_url = base_publica(request) ~ "static/social-card.jpg?v=2" %}
+    <meta name="description" content="Infraestrutura, Segurança, Redes e Desenvolvimento: servidores Linux, MikroTik, Docker, virtualização e sistemas web sob medida.">
+    <meta property="og:site_name" content="henrique.tec.br">
+    <meta property="og:locale" content="pt_BR">
     <meta property="og:title" content="Henrique Fagundes | Soluções em Tecnologia">
     <meta property="og:description" content="Infraestrutura, Segurança, Redes e Desenvolvimento.">
-    <meta property="og:image" content="{{ request.base_url }}static/social-card.jpg">
-    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ card_url }}">
+    <meta property="og:image:secure_url" content="{{ card_url }}">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="~/henrique.tec.br — Henrique Fagundes, Infraestrutura, Segurança, Redes e Desenvolvimento">
+    <meta property="og:url" content="{{ base_publica(request) ~ request.url.path.lstrip('/') }}">
     <meta property="og:type" content="website">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Henrique Fagundes | Soluções em Tecnologia">
     <meta name="twitter:description" content="Infraestrutura, Segurança, Redes e Desenvolvimento.">
-    <meta name="twitter:image" content="{{ request.base_url }}static/social-card.jpg">
+    <meta name="twitter:image" content="{{ card_url }}">
+    <meta name="twitter:image:alt" content="~/henrique.tec.br — Henrique Fagundes, Infraestrutura, Segurança, Redes e Desenvolvimento">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">

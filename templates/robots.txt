@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: {{ request.base_url }}sitemap.xml
+Sitemap: {{ base_publica(request) }}sitemap.xml

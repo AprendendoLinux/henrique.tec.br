@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<!-- Fonte do card de compartilhamento (static/social-card.jpg). Gerar com: design/gerar_social_card.sh -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1200px; height: 630px; overflow: hidden; background: #070707; }
+    .card { position: relative; width: 1200px; height: 630px; overflow: hidden; font-family: Inter, sans-serif; color: #e5e7eb;
+            background:
+                radial-gradient(ellipse 45% 70% at 82% 60%, rgba(0,255,204,.10), transparent 70%),
+                radial-gradient(circle at 1px 1px, #1f2937 1px, transparent 1.5px) 0 0 / 32px 32px,
+                #070707; }
+    .borda { position: absolute; inset: 18px; border: 1px solid #1f2937; border-radius: 22px; }
+    .esq { position: absolute; left: 70px; top: 62px; width: 690px; }
+    .logo { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 34px; color: #00ffcc;
+            text-shadow: 0 0 22px rgba(0,255,204,.45); letter-spacing: -.01em; }
+    .logo .t { opacity: .85; }
+    .nome { margin-top: 34px; font-weight: 800; font-size: 66px; line-height: 1; color: #fff; letter-spacing: -.02em; }
+    .cargo { margin-top: 14px; font-family: "JetBrains Mono", monospace; font-size: 20px; color: #9ca3af; }
+    .cargo b { color: #00ffcc; font-weight: 500; }
+    .titulo { margin-top: 30px; font-weight: 700; font-size: 36px; line-height: 1.2; color: #f3f4f6; }
+    .grad { background: linear-gradient(90deg, #00ffcc, #3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .chips { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip { font-family: "JetBrains Mono", monospace; font-size: 17px; color: #d1d5db; padding: 7px 14px;
+            border: 1px solid #374151; border-radius: 8px; background: rgba(17,24,39,.7); }
+    .chip i { color: #00ffcc; font-style: normal; margin-right: 6px; }
+    .rodape { position: absolute; left: 70px; bottom: 50px; font-family: "JetBrains Mono", monospace; font-size: 20px; color: #6b7280; }
+    .rodape b { color: #00ffcc; font-weight: 500; }
+    .figura { position: absolute; right: 30px; bottom: 19px; width: 400px; height: 580px;
+              -webkit-mask-image: radial-gradient(ellipse 75% 80% at 50% 70%, #000 62%, transparent 100%);
+              mask-image: radial-gradient(ellipse 75% 80% at 50% 70%, #000 62%, transparent 100%); }
+    .figura svg { width: 100%; height: 100%; }
+    .hero-bg .led, .hero-bg .fluxo, .hero-bg .tela-logo, .hero-bg .cursor, .hero-bg .respira { animation: none !important; }
+</style>
+</head>
+<body>
+<div class="card">
+    <div class="borda"></div>
+    <div class="esq">
+        <div class="logo"><span class="t">~/</span>henrique.tec.br<span>_</span></div>
+        <div class="nome">Henrique Fagundes</div>
+        <div class="cargo"><b>&gt;_</b> Analista de Infraestrutura &amp; Desenvolvedor</div>
+        <div class="titulo">Infraestrutura, Segurança, Redes<br>e <span class="grad">Desenvolvimento</span></div>
+        <div class="chips">
+            <span class="chip"><i>›</i>Servidores Linux</span>
+            <span class="chip"><i>›</i>MikroTik</span>
+            <span class="chip"><i>›</i>Docker</span>
+            <span class="chip"><i>›</i>Virtualização</span>
+            <span class="chip"><i>›</i>Sistemas Web</span>
+        </div>
+    </div>
+    <div class="rodape">orçamentos em <b>henrique.tec.br/contato</b></div>
+    <div class="figura">{{ figura }}</div>
+</div>
+</body>
+</html>

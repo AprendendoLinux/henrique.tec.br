@@ -20,6 +20,18 @@ templates = Jinja2Templates(directory="templates")
 templates.env.globals["csrf_input"] = csrf_input
 
 
+def base_publica(request: Request) -> str:
+    """URL base pública (com barra final). Atrás do proxy reverso, usa https quando o proxy confiável informa."""
+    from session import _https
+    base = str(request.base_url)
+    if _https(request.scope) and base.startswith("http://"):
+        base = "https://" + base[len("http://"):]
+    return base
+
+
+templates.env.globals["base_publica"] = base_publica
+
+
 class RedirectToLogin(Exception):
     pass
 

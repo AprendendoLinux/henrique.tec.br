@@ -1,52 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>{{ request.base_url }}</loc>
+        <loc>{{ base_publica(request) }}</loc>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
     </url>
 {% for slug in artigos %}
     <url>
-        <loc>{{ request.base_url }}{{ slug }}</loc>
+        <loc>{{ base_publica(request) }}{{ slug }}</loc>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>
 {% endfor %}
 
     <url>
-        <loc>{{ request.base_url }}servicos/linux</loc>
+        <loc>{{ base_publica(request) }}servicos/linux</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>{{ request.base_url }}servicos/firewall</loc>
+        <loc>{{ base_publica(request) }}servicos/firewall</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>{{ request.base_url }}servicos/docker</loc>
+        <loc>{{ base_publica(request) }}servicos/docker</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>{{ request.base_url }}servicos/virtualizacao</loc>
+        <loc>{{ base_publica(request) }}servicos/virtualizacao</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
 
     <url>
-        <loc>{{ request.base_url }}servicos/desenvolvimento</loc>
+        <loc>{{ base_publica(request) }}servicos/desenvolvimento</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>{{ request.base_url }}servicos/desktop</loc>
+        <loc>{{ base_publica(request) }}servicos/desktop</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>{{ request.base_url }}contato</loc>
+        <loc>{{ base_publica(request) }}contato</loc>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
