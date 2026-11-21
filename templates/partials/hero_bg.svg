@@ -1,0 +1,112 @@
+<svg class="hero-bg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs>
+        <pattern id="hb-grade" width="32" height="32" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="1" fill="#1f2937"/>
+        </pattern>
+        <radialGradient id="hb-brilho" cx="50%" cy="50%" r="60%">
+            <stop offset="0" stop-color="#00ffcc" stop-opacity=".10"/>
+            <stop offset=".55" stop-color="#3b82f6" stop-opacity=".04"/>
+            <stop offset="1" stop-color="#000" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="hb-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+    </defs>
+    <style>
+        .hero-bg .lk { fill: none; stroke: #00ffcc; stroke-opacity: .22; stroke-width: 1.2; }
+        .hero-bg .lk.az { stroke: #3b82f6; }
+        .hero-bg .lk.longe { stroke-opacity: .10; }
+        .hero-bg .fx { fill: none; stroke: #00ffcc; stroke-width: 2.2; stroke-linecap: round;
+                       stroke-dasharray: 6 120; animation: hb-fluxo 4.5s linear infinite; filter: url(#hb-glow); }
+        .hero-bg .fx.az { stroke: #3b82f6; }
+        .hero-bg .fx.d1 { animation-delay: -1.2s; } .hero-bg .fx.d2 { animation-delay: -2.4s; } .hero-bg .fx.d3 { animation-delay: -3.3s; }
+        .hero-bg .fx.lento { animation-duration: 7s; }
+        .hero-bg .no rect { fill: #0b0b0b; stroke: #00ffcc; stroke-opacity: .45; }
+        .hero-bg .no.az rect { stroke: #3b82f6; }
+        .hero-bg .no.am rect { stroke: #eab308; }
+        .hero-bg .no text, .hero-bg .term text { font-family: "Fira Code", "JetBrains Mono", monospace; }
+        .hero-bg .no text { font-size: 12.5px; fill: #d1d5db; }
+        .hero-bg .no .sub { font-size: 10px; fill: #6b7280; }
+        .hero-bg .led { fill: #00ffcc; animation: hb-led 2.2s ease-in-out infinite; }
+        .hero-bg .led.az { fill: #3b82f6; } .hero-bg .led.am { fill: #eab308; }
+        .hero-bg .term text { font-size: 11px; fill: #9ca3af; }
+        .hero-bg .term .p { fill: #00ffcc; } .hero-bg .term .ok { fill: #22c55e; } .hero-bg .term .y { fill: #eab308; }
+        .hero-bg .cursor { fill: #00ffcc; animation: hb-blink 1.05s steps(1) infinite; }
+        @keyframes hb-fluxo { from { stroke-dashoffset: 126; } to { stroke-dashoffset: 0; } }
+        @keyframes hb-led { 50% { opacity: .25; } }
+        @keyframes hb-blink { 50% { opacity: 0; } }
+        /* Telas estreitas cortam as laterais: mantém só a grade e o tráfego */
+        @media (max-width: 1099px) { .hero-bg .no, .hero-bg .term { display: none; } }
+        @media (prefers-reduced-motion: reduce) {
+            .hero-bg .fx, .hero-bg .led, .hero-bg .cursor { animation: none; }
+        }
+    </style>
+
+    <rect width="1200" height="600" fill="#070707"/>
+    <rect width="1200" height="600" fill="url(#hb-grade)"/>
+    <rect width="1200" height="600" fill="url(#hb-brilho)"/>
+
+    <!-- Links (topologia) -->
+    <g>
+        <path class="lk " d="M100 70 L115 128"/>
+        <path class="lk az" d="M115 170 L100 228"/>
+        <path class="lk " d="M100 270 L115 328"/>
+        <path class="lk az" d="M115 370 L100 428"/>
+        <path class="lk " d="M100 470 L115 528"/>
+        <path class="lk " d="M1100 304 L1085 352"/>
+        <path class="lk az" d="M1085 394 L1100 442"/>
+        <path class="lk " d="M1100 484 L1085 532"/>
+        <path class="lk longe" d="M170 249 C 420 150, 760 330, 1030 283"/>
+        <path class="lk longe az" d="M185 349 C 450 470, 760 300, 1015 373"/>
+        <path class="lk longe" d="M170 449 C 450 560, 800 420, 1030 463"/>
+        <path class="lk " d="M1100 228 L1100 262"/>
+    </g>
+    <!-- Tráfego animado sobre os links -->
+    <g>
+        <path class="fx " d="M100 70 L115 128"/>
+        <path class="fx az d1" d="M115 170 L100 228"/>
+        <path class="fx d2" d="M100 270 L115 328"/>
+        <path class="fx az d3" d="M115 370 L100 428"/>
+        <path class="fx " d="M100 470 L115 528"/>
+        <path class="fx d1" d="M1100 304 L1085 352"/>
+        <path class="fx az d2" d="M1085 394 L1100 442"/>
+        <path class="fx d3" d="M1100 484 L1085 532"/>
+        <path class="fx lento " d="M170 249 C 420 150, 760 330, 1030 283"/>
+        <path class="fx az lento d1" d="M185 349 C 450 470, 760 300, 1015 373"/>
+        <path class="fx lento d2" d="M170 449 C 450 560, 800 420, 1030 463"/>
+        <path class="fx d3" d="M1100 228 L1100 262"/>
+    </g>
+
+    <!-- Nós da esquerda: borda e rede -->
+    <g class="no az" transform="translate(30 28)"><rect width="140" height="42" rx="6"/><circle class="led az" cx="15" cy="21" r="4"/><text x="28" y="19">internet</text><text class="sub" x="28" y="33">bgp · ipv4/ipv6</text></g>
+    <g class="no am" transform="translate(45 128)"><rect width="140" height="42" rx="6"/><circle class="led am" cx="15" cy="21" r="4"/><text x="28" y="19">fw-edge</text><text class="sub" x="28" y="33">mikrotik · nat</text></g>
+    <g class="no" transform="translate(30 228)"><rect width="140" height="42" rx="6"/><circle class="led" cx="15" cy="21" r="4"/><text x="28" y="19">core-sw</text><text class="sub" x="28" y="33">vlan 10 · 20 · 99</text></g>
+    <g class="no az" transform="translate(45 328)"><rect width="140" height="42" rx="6"/><circle class="led az" cx="15" cy="21" r="4"/><text x="28" y="19">wg0</text><text class="sub" x="28" y="33">túnel wireguard</text></g>
+    <g class="no" transform="translate(30 428)"><rect width="140" height="42" rx="6"/><circle class="led" cx="15" cy="21" r="4"/><text x="28" y="19">filial-rj</text><text class="sub" x="28" y="33">site-to-site</text></g>
+    <g class="no am" transform="translate(45 528)"><rect width="140" height="42" rx="6"/><circle class="led am" cx="15" cy="21" r="4"/><text x="28" y="19">pfsense</text><text class="sub" x="28" y="33">ids · vpn</text></g>
+
+    <!-- Nós da direita: servidores e serviços -->
+    <g class="no" transform="translate(1030 262)"><rect width="140" height="42" rx="6"/><circle class="led" cx="15" cy="21" r="4"/><text x="28" y="19">srv-01</text><text class="sub" x="28" y="33">debian · nginx</text></g>
+    <g class="no az" transform="translate(1015 352)"><rect width="140" height="42" rx="6"/><circle class="led az" cx="15" cy="21" r="4"/><text x="28" y="19">docker</text><text class="sub" x="28" y="33">12 containers</text></g>
+    <g class="no" transform="translate(1030 442)"><rect width="140" height="42" rx="6"/><circle class="led" cx="15" cy="21" r="4"/><text x="28" y="19">vm-host</text><text class="sub" x="28" y="33">kvm · qemu</text></g>
+    <g class="no am" transform="translate(1015 532)"><rect width="140" height="42" rx="6"/><circle class="led am" cx="15" cy="21" r="4"/><text x="28" y="19">db-server</text><text class="sub" x="28" y="33">mysql · backup</text></g>
+
+    <!-- Janela de terminal -->
+    <g class="term" transform="translate(1000 24)">
+        <rect width="178" height="204" rx="8" fill="#0b0b0b" stroke="#262626"/>
+        <path d="M8 0 H170 A8 8 0 0 1 178 8 V24 H0 V8 A8 8 0 0 1 8 0 Z" fill="#111"/>
+        <circle cx="14" cy="12" r="4" fill="#ef4444" opacity=".8"/>
+        <circle cx="27" cy="12" r="4" fill="#eab308" opacity=".8"/>
+        <circle cx="40" cy="12" r="4" fill="#22c55e" opacity=".8"/>
+        <text x="12" y="46"><tspan class="p">$</tspan> uptime -p</text>
+        <text x="12" y="62" class="ok">up 182 days</text>
+        <text x="12" y="84"><tspan class="p">$</tspan> docker ps -q | wc -l</text>
+        <text x="12" y="100">12</text>
+        <text x="12" y="122"><tspan class="p">$</tspan> wg show interfaces</text>
+        <text x="12" y="138" class="y">wg0</text>
+        <text x="12" y="160"><tspan class="p">$</tspan> nginx -t</text>
+        <text x="12" y="176" class="ok">syntax is ok</text>
+        <text x="12" y="194"><tspan class="p">$</tspan> <tspan class="cursor">█</tspan></text>
+    </g>
+</svg>
