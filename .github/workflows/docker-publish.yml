@@ -118,10 +118,6 @@ jobs:
         run: |
           echo "🚀 Nova Tag Detectada: Disparando webhook de Produção..."
           curl -k -X POST "${{ secrets.PORTAINER_WEBHOOK_PROD }}"
-          
-      - name: Atualizar Portainer (Dev)
-        # Só roda se o push for na branch DEV
-        if: github.ref == 'refs/heads/dev'
-        run: |
-          echo "🧪 Branch Dev: Disparando webhook de Desenvolvimento..."
-          curl -k -X POST "${{ secrets.PORTAINER_WEBHOOK_DEV }}"
+
+      # Desenvolvimento: deploy local no host (docker compose), sem Portainer.
+      # A imagem dev-latest continua publicada para uso local, se necessário.
