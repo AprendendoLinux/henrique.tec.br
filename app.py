@@ -19,6 +19,7 @@ from database import SessionLocal, engine
 from appsettings import store
 from deps import RedirectToLogin, site_context, templates
 from session import DynamicSessionMiddleware
+import wiki
 from routers import admin, auth, conhecimento, contact, public
 from security import decrypt_secret, encrypt_secret, get_password_hash, is_encrypted, validar_senha_forte
 
@@ -91,6 +92,8 @@ async def lifespan(app: FastAPI):
     wait_for_db()
     run_migrations()
     seed()
+    if wiki.configurada():
+        wiki.aquecer_indice()  # índice da busca da Base de Conhecimento pronto antes do primeiro visitante
     yield
 
 

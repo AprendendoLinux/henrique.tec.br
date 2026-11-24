@@ -185,8 +185,9 @@ def pagina(slug: str) -> dict:
 # ---------------------------------------------------------------- busca no conteúdo
 # Índice em memória: id da página -> (updated_at, texto puro). Uma página só é baixada de novo quando
 # a data de atualização (que vem da listagem do livro, renovada a cada CACHE_TTL) muda.
-_indice: dict[int, tuple[str, str]] = {}
+_indice: dict[int, tuple[str, str, str]] = {}  # id -> (updated_at, texto, texto normalizado)
 _indice_lock = threading.Lock()
+_atualizacao_lock = threading.Lock()  # uma indexação por vez: chamadas simultâneas esperam e reaproveitam
 TRECHO = 80  # caracteres de contexto em cada lado do termo encontrado
 
 
@@ -207,6 +208,11 @@ def _texto_puro(html: str) -> str:
 
 
 def _atualizar_indice(paginas: list[dict]) -> None:
+    with _atualizacao_lock:
+        _atualizar_indice_sem_lock(paginas)
+
+
+def _atualizar_indice_sem_lock(paginas: list[dict]) -> None:
     def chave(p):
         return p["atualizado"].isoformat() if p["atualizado"] else ""
 
@@ -221,11 +227,11 @@ def _atualizar_indice(paginas: list[dict]) -> None:
             return p, None
 
     if pendentes:
-        with ThreadPoolExecutor(max_workers=6) as pool:
+        with ThreadPoolExecutor(max_workers=8) as pool:
             for p, texto in pool.map(baixar, pendentes):
                 if texto is not None:
                     with _indice_lock:
-                        _indice[p["id"]] = (chave(p), texto)
+                        _indice[p["id"]] = (chave(p), texto, _normalizar(texto)[0])
     ids = {p["id"] for p in paginas}
     with _indice_lock:
         for antigo in set(_indice) - ids:  # páginas removidas do livro
@@ -282,13 +288,13 @@ def buscar(consulta: str) -> list[dict]:
     paginas = livro()["paginas"]
     _atualizar_indice(paginas)
     with _indice_lock:
-        textos = {pid: txt for pid, (_, txt) in _indice.items()}
+        textos = {pid: (txt, norm) for pid, (_, txt, norm) in _indice.items()}
     resultados = []
     for p in paginas:
-        conteudo = textos.get(p["id"], "")
-        alvo = _normalizar(" ".join([p["nome"], p["capitulo"] or "", conteudo]))[0]
-        if all(t in alvo for t in termos):
-            no_titulo = all(t in _normalizar(p["nome"])[0] for t in termos)
+        conteudo, conteudo_norm = textos.get(p["id"], ("", ""))
+        titulo_norm = _normalizar(f'{p["nome"]} {p["capitulo"] or ""}')[0]
+        if all(t in titulo_norm or t in conteudo_norm for t in termos):
+            no_titulo = all(t in titulo_norm for t in termos)
             resultados.append({"slug": p["slug"], "trecho": "" if no_titulo else _trecho(conteudo, termos)})
     return resultados
 

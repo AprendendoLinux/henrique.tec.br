@@ -203,3 +203,11 @@ def test_busca_com_wiki_fora_do_ar_responde_503(client, wiki_on):
     wiki_on.fora = True
     r = client.get("/conhecimento/busca", params={"q": "mnt"})
     assert r.status_code == 503 and r.json()["resultados"] == []
+
+
+def test_buscas_simultaneas_indexam_cada_pagina_uma_vez_so(client, wiki_on):
+    import threading
+    threads = [threading.Thread(target=wiki.buscar, args=("mnt",)) for _ in range(5)]
+    [t.start() for t in threads]; [t.join() for t in threads]
+    baixadas = [c for c in wiki_on.chamadas if c.startswith("pages/")]
+    assert sorted(baixadas) == ["pages/1", "pages/2", "pages/4"]
