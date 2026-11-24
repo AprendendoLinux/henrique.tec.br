@@ -95,7 +95,11 @@ async def lifespan(app: FastAPI):
     seed()
     if wiki.configurada():
         wiki.aquecer_indice()  # índice da busca da Base de Conhecimento pronto antes do primeiro visitante
+    if engine.dialect.name != "sqlite":
+        wiki.iniciar_atualizacao_periodica()  # novos artigos entram na busca e no IndexNow sem depender de visitas
     monitor.iniciar()  # gravação de acessos/eventos e geolocalização em segundo plano
+    import indexnow
+    indexnow.garantir_chave()
     yield
 
 
@@ -103,6 +107,22 @@ app = FastAPI(title="Henrique.tec.br", description="Infraestrutura e Sistemas", 
               docs_url=None, redoc_url=None, openapi_url=None)
 
 app.add_middleware(DynamicSessionMiddleware, max_age=config.SESSION_MAX_AGE)
+
+
+class HeadComoGet:
+    """Responde HEAD como GET (sem corpo): robôs e monitores usam HEAD; o FastAPI responderia 405.
+    O servidor (uvicorn) vê o método original HEAD e não envia o corpo."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["method"] == "HEAD":
+            scope = dict(scope, method="GET")
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(HeadComoGet)
 
 
 @app.middleware("http")

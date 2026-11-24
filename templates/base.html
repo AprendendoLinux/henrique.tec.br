@@ -4,27 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Henrique Fagundes | Soluções em Informática{% endblock %}</title>
+    {#- Descrição da página (meta description, Open Graph e Twitter); cada página pode sobrescrever o bloco. #}
+    {%- if false %}{% block descricao %}Infraestrutura, Segurança, Redes e Desenvolvimento: servidores Linux, MikroTik, Docker, virtualização, firewall e sistemas web sob medida para empresas.{% endblock %}{% endif %}
 
     {%- set card_url = base_publica(request) ~ "static/social-card.jpg?v=2" %}
-    <meta name="description" content="Infraestrutura, Segurança, Redes e Desenvolvimento: servidores Linux, MikroTik, Docker, virtualização e sistemas web sob medida.">
+    {%- set url_canonica = base_publica(request) ~ request.url.path.lstrip('/') %}
+    {%- set titulo_pagina = self.title()|trim %}
+    {%- set descricao_pagina = self.descricao()|trim|striptags|truncate(160, true, '…', 0) %}
+    <meta name="description" content="{{ descricao_pagina }}">
+    <link rel="canonical" href="{{ url_canonica }}">
+    {% block robots %}<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">{% endblock %}
+    {%- if seo_verificacao().google %}
+    <meta name="google-site-verification" content="{{ seo_verificacao().google }}">{% endif %}
+    {%- if seo_verificacao().bing %}
+    <meta name="msvalidate.01" content="{{ seo_verificacao().bing }}">{% endif %}
     <meta property="og:site_name" content="henrique.tec.br">
     <meta property="og:locale" content="pt_BR">
-    <meta property="og:title" content="Henrique Fagundes | Soluções em Tecnologia">
-    <meta property="og:description" content="Infraestrutura, Segurança, Redes e Desenvolvimento.">
+    <meta property="og:title" content="{{ titulo_pagina }}">
+    <meta property="og:description" content="{{ descricao_pagina }}">
     <meta property="og:image" content="{{ card_url }}">
     <meta property="og:image:secure_url" content="{{ card_url }}">
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="~/henrique.tec.br — Henrique Fagundes, Infraestrutura, Segurança, Redes e Desenvolvimento">
-    <meta property="og:url" content="{{ base_publica(request) ~ request.url.path.lstrip('/') }}">
-    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url_canonica }}">
+    <meta property="og:type" content="{% block og_tipo %}website{% endblock %}">
+    {% block og_extra %}{% endblock %}
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Henrique Fagundes | Soluções em Tecnologia">
-    <meta name="twitter:description" content="Infraestrutura, Segurança, Redes e Desenvolvimento.">
+    <meta name="twitter:title" content="{{ titulo_pagina }}">
+    <meta name="twitter:description" content="{{ descricao_pagina }}">
     <meta name="twitter:image" content="{{ card_url }}">
     <meta name="twitter:image:alt" content="~/henrique.tec.br — Henrique Fagundes, Infraestrutura, Segurança, Redes e Desenvolvimento">
+
+    {#- Dados estruturados (Schema.org): o site, o autor e, por página, artigos e navegação #}
+    <script type="application/ld+json">{{ {
+        "@context": "https://schema.org",
+        "@graph": [
+            {"@type": "WebSite", "@id": base_publica(request) ~ "#site", "url": base_publica(request),
+             "name": "henrique.tec.br", "inLanguage": "pt-BR",
+             "publisher": {"@id": base_publica(request) ~ "#henrique"},
+             "potentialAction": {"@type": "SearchAction",
+                                 "target": base_publica(request) ~ "conhecimento?q={search_term_string}",
+                                 "query-input": "required name=search_term_string"}},
+            {"@type": ["Person", "ProfessionalService"], "@id": base_publica(request) ~ "#henrique",
+             "name": "Henrique Fagundes", "url": base_publica(request),
+             "image": card_url, "jobTitle": "Analista de Infraestrutura e Desenvolvedor",
+             "description": "Infraestrutura, Segurança, Redes e Desenvolvimento: servidores Linux, MikroTik, Docker, virtualização e sistemas web sob medida.",
+             "areaServed": "BR", "knowsAbout": ["Linux", "MikroTik", "Firewall", "Docker", "Virtualização", "Redes", "Desenvolvimento Web"],
+             "sameAs": links_perfil(contatos)}
+        ]
+    }|tojson }}</script>
+    {% block jsonld %}{% endblock %}
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">

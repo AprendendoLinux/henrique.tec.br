@@ -43,6 +43,20 @@ def _brt(dt, fmt: str = "%d/%m/%Y %H:%M") -> str:
 templates.env.filters["brt"] = _brt
 
 
+def _links_perfil(contatos) -> list[str]:
+    """URLs públicas (https) dos perfis/redes do rodapé, para o sameAs do Schema.org."""
+    return [c.url for c in (contatos or []) if (c.url or "").startswith("https://")]
+
+
+def _seo_verificacao() -> dict:
+    """Códigos de verificação do Google Search Console e do Bing Webmaster (configurados no painel)."""
+    return {"google": cfg.GOOGLE_SITE_VERIFICATION, "bing": cfg.BING_SITE_VERIFICATION}
+
+
+templates.env.globals["links_perfil"] = _links_perfil
+templates.env.globals["seo_verificacao"] = _seo_verificacao
+
+
 def _bandeira(pais: str | None):
     """Bandeira do país (imagem pequena; emojis de bandeira não aparecem no Windows)."""
     from markupsafe import Markup

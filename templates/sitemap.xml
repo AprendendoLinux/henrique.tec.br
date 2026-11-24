@@ -1,53 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{%- set base = base_publica(request) %}
+{%- for caminho, lastmod, freq, prioridade in entradas %}
     <url>
-        <loc>{{ base_publica(request) }}</loc>
-        <changefreq>weekly</changefreq>
-        <priority>1.0</priority>
+        <loc>{{ base }}{{ caminho }}</loc>
+        {%- if lastmod %}
+        <lastmod>{{ lastmod.isoformat(timespec="seconds") }}</lastmod>
+        {%- endif %}
+        <changefreq>{{ freq }}</changefreq>
+        <priority>{{ prioridade }}</priority>
     </url>
-{% for slug in artigos %}
-    <url>
-        <loc>{{ base_publica(request) }}{{ slug }}</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-    </url>
-{% endfor %}
-
-    <url>
-        <loc>{{ base_publica(request) }}servicos/linux</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>{{ base_publica(request) }}servicos/firewall</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    
-    <url>
-        <loc>{{ base_publica(request) }}servicos/docker</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>{{ base_publica(request) }}servicos/virtualizacao</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-
-    <url>
-        <loc>{{ base_publica(request) }}servicos/desenvolvimento</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>{{ base_publica(request) }}servicos/desktop</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>{{ base_publica(request) }}contato</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
-    </url>
+{%- endfor %}
 </urlset>

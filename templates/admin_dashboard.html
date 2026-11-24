@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
 {% block title %}Painel de Controle | Henrique Fagundes{% endblock %}
 
 {% block content %}
@@ -516,6 +518,26 @@
             <form action="/admin/config/test-wiki" method="POST" class="mt-3 text-right">
 {{ csrf_input(request) }}
                 <button type="submit" class="px-4 py-2 border border-neon text-neon font-mono text-xs rounded hover:bg-neon hover:text-darkbg transition">Testar conexão (após salvar)</button>
+            </form>
+        </div>
+
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-8 border-l-2 border-l-accent">
+            <h2 class="text-xl font-bold text-white mb-2 border-l-2 border-accent pl-3">SEO e Indexação</h2>
+            <p class="text-gray-500 text-xs font-mono mb-6">Sitemap: <a href="/sitemap.xml" target="_blank" class="text-neon underline">/sitemap.xml</a> · robots: <a href="/robots.txt" target="_blank" class="text-neon underline">/robots.txt</a>. Cole abaixo o código (ou a meta tag inteira) de verificação do Google Search Console e do Bing Webmaster Tools.</p>
+            <form action="/admin/config/seo" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
+                <div class="md:col-span-2"><label class="block text-gray-400 text-xs font-mono mb-2">URL PÚBLICA DO SITE:</label><input type="url" name="site_url" maxlength="200" value="{{ c.site_url }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">GOOGLE SEARCH CONSOLE (google-site-verification):</label><input type="text" name="google_site_verification" maxlength="300" value="{{ c.google_site_verification }}" placeholder="meta tag ou código" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">BING WEBMASTER (msvalidate.01):</label><input type="text" name="bing_site_verification" maxlength="300" value="{{ c.bing_site_verification }}" placeholder="meta tag ou código" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div class="md:col-span-2"><label class="flex items-center cursor-pointer text-gray-300 text-sm font-mono"><input type="checkbox" name="indexnow_ativo" {% if c.indexnow_ativo %}checked{% endif %} class="w-4 h-4 accent-neon mr-2">IndexNow: avisar Bing, Yandex e outros buscadores na hora em que um artigo é publicado, editado ou removido</label>
+                    <p class="text-gray-600 text-[11px] font-mono mt-2">Chave: {% if c.indexnow_key %}<a href="/{{ c.indexnow_key }}.txt" target="_blank" class="text-neon underline">/{{ c.indexnow_key }}.txt</a>{% else %}gerada na próxima inicialização{% endif %} · Último envio: {{ c.indexnow_ultimo or "nenhum ainda" }}</p></div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="px-6 py-2 bg-accent text-white font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">&gt;_ SALVAR SEO</button>
+                </div>
+            </form>
+            <form action="/admin/config/indexnow-reenviar" method="POST" class="mt-3 text-right">
+{{ csrf_input(request) }}
+                <button type="submit" class="px-4 py-2 border border-accent text-accent font-mono text-xs rounded hover:bg-accent hover:text-white transition">Reenviar todas as URLs ao IndexNow</button>
             </form>
         </div>
 

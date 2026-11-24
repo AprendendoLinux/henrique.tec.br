@@ -63,9 +63,11 @@ CABECALHOS_IP = ["cf-connecting-ip", "true-client-ip", "x-real-ip", "x-forwarded
 def config_view() -> dict:
     nomes = ("cookie_secure", "trusted_proxies", "client_ip_headers", "recaptcha_enabled", "recaptcha_site_key",
              "telegram_chat_id", "smtp_host", "smtp_port", "smtp_security", "smtp_user", "smtp_from",
-             "smtp_from_name", "smtp_verify_tls", "contact_to", "wiki_url", "wiki_api_url", "wiki_book_slug", "wiki_token_id")
+             "smtp_from_name", "smtp_verify_tls", "contact_to", "wiki_url", "wiki_api_url", "wiki_book_slug", "wiki_token_id",
+             "site_url", "google_site_verification", "bing_site_verification", "indexnow_ativo", "indexnow_key",
+             "indexnow_ultimo")
     view = {n: store.get(n) for n in nomes}
-    for n in ("cookie_secure", "recaptcha_enabled", "smtp_verify_tls"):
+    for n in ("cookie_secure", "recaptcha_enabled", "smtp_verify_tls", "indexnow_ativo"):
         view[n] = store.flag(n)
     for n in SECRETS - {"secret_key"}:
         view[n + "_set"] = bool(store.get(n))
@@ -187,6 +189,48 @@ def test_wiki(request: Request):
         return _flash(request, True, wiki.testar())
     except Exception as exc:
         return _flash(request, False, f"Falha ao acessar a wiki: {type(exc).__name__}: {str(exc)[:160]}")
+
+
+VERIFICACAO_RE = re.compile(r"^[A-Za-z0-9_-]{8,100}$")
+
+
+def _codigo_verificacao(valor: str) -> str:
+    """Aceita o código puro ou a meta tag inteira colada do Search Console / Bing Webmaster."""
+    valor = valor.strip()
+    m = re.search(r'content="([^"]+)"', valor)
+    valor = m.group(1) if m else valor
+    if valor and not VERIFICACAO_RE.match(valor):
+        raise HTTPException(status_code=400, detail="Código de verificação inválido.")
+    return valor
+
+
+@router.post("/config/seo", dependencies=admin_only)
+def config_seo(
+    request: Request, site_url: str = Form("", max_length=200), google_site_verification: str = Form("", max_length=300),
+    bing_site_verification: str = Form("", max_length=300), indexnow_ativo: str | None = Form(None),
+    db: Session = Depends(get_db),
+):
+    url = site_url.strip().rstrip("/") or "https://henrique.tec.br"
+    if not URL_HTTP_RE.match(url):
+        raise HTTPException(status_code=400, detail="URL do site inválida.")
+    store.save(db, {"site_url": url, "google_site_verification": _codigo_verificacao(google_site_verification),
+                    "bing_site_verification": _codigo_verificacao(bing_site_verification),
+                    "indexnow_ativo": "true" if indexnow_ativo == "on" else "false"})
+    return _flash(request, True, "Configurações de SEO salvas.")
+
+
+@router.post("/config/indexnow-reenviar", dependencies=admin_only)
+def indexnow_reenviar(request: Request):
+    import indexnow
+    if not indexnow.em_producao():
+        return _flash(request, False, "IndexNow desativado neste ambiente (desenvolvimento).")
+    if not cfg.INDEXNOW_ATIVO:
+        return _flash(request, False, "Ative o IndexNow antes de reenviar.")
+    try:
+        resumo = indexnow.sincronizar(wiki.livro()["paginas"], forcar=True)
+    except Exception as exc:  # noqa: BLE001
+        return _flash(request, False, f"Falha: {type(exc).__name__}")
+    return _flash(request, bool(resumo and "ok" in resumo), f"IndexNow: {resumo or 'nada a enviar'}")
 
 
 @router.post("/config/rede", dependencies=admin_only)

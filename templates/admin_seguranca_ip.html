@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
 {% block title %}{{ ip }} | Acessos e Segurança{% endblock %}
 
 {% block head %}
-<meta name="robots" content="noindex, nofollow">
 <style>
     .sg-card { background: rgba(255,255,255,.02); border: 1px solid #1f2937; border-radius: .75rem; }
     .sg-tab th { text-align: left; font-weight: 600; color: #9ca3af; padding: .5rem .6rem; border-bottom: 1px solid #1f2937; white-space: nowrap; }

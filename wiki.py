@@ -161,6 +161,17 @@ def _sanitizar(html: str, paginas_por_slug: dict) -> str:
     return limpo
 
 
+def _resumo(texto: str, titulo: str = "", limite: int = 158) -> str:
+    """Descrição para buscadores: início do texto (sem repetir o título), cortado no fim de uma palavra."""
+    texto = texto.strip()
+    if titulo and _normalizar(texto[:len(titulo)])[0] == _normalizar(titulo)[0]:
+        texto = texto[len(titulo):].lstrip(" :-–—")
+    if len(texto) <= limite:
+        return texto
+    corte = texto[:limite].rsplit(" ", 1)[0].rstrip(",.;:-–—")
+    return corte + "…"
+
+
 def pagina(slug: str) -> dict:
     """Retorna a página do livro público (já sanitizada). LookupError se não pertencer ao livro."""
     if not SLUG_RE.match(slug):
@@ -175,7 +186,11 @@ def pagina(slug: str) -> dict:
         dados = _api(f"pages/{meta['id']}")
         if dados.get("book_id") != info["id"] or dados.get("draft"):
             raise LookupError(slug)
+        # o resumo ignora o cabeçalho inicial do artigo (costuma repetir o título)
+        texto = _texto_puro(re.sub(r"^\s*(<h[1-6][^>]*>.*?</h[1-6]>|<p[^>]*>\s*<(strong|b)>[^<]{1,150}</(strong|b)>\s*</p>)",
+                                   "", dados.get("html") or "", count=1, flags=re.S))
         return {**meta, "nome": dados.get("name") or meta["nome"], "atualizado": _data(dados.get("updated_at")) or meta["atualizado"],
+                "resumo": _resumo(texto, dados.get("name") or meta["nome"]), "palavras": len(texto.split()),
                 "html": _sanitizar(dados.get("html") or "", por_slug),
                 "url_wiki": f"{cfg.WIKI_URL.rstrip('/')}/books/{cfg.WIKI_BOOK_SLUG}/page/{slug}"}
     return _cacheado(f"pagina:{meta['id']}", produzir)
@@ -238,13 +253,27 @@ def _atualizar_indice_sem_lock(paginas: list[dict]) -> None:
 
 
 def aquecer_indice() -> None:
-    """Indexa em segundo plano (chamado ao abrir /conhecimento), para a primeira busca já ser rápida."""
+    """Indexa em segundo plano (chamado ao abrir /conhecimento), para a primeira busca já ser rápida.
+    Aproveita para avisar os buscadores (IndexNow) sobre artigos novos, atualizados ou removidos."""
     def tarefa():
         try:
-            _atualizar_indice(livro()["paginas"])
+            paginas = livro()["paginas"]
+            _atualizar_indice(paginas)
+            import indexnow  # import local: evita dependência circular
+            indexnow.sincronizar(paginas)
         except Exception as exc:  # noqa: BLE001 - nunca derruba a página
             logger.warning("Busca: falha ao aquecer o índice (%s)", exc)
     threading.Thread(target=tarefa, daemon=True).start()
+
+
+def iniciar_atualizacao_periodica(intervalo: int = 600) -> None:
+    """Revisa o livro a cada `intervalo` segundos: mantém o índice da busca em dia e dispara o IndexNow."""
+    def laco():
+        while True:
+            time.sleep(intervalo)
+            if configurada():
+                aquecer_indice()
+    threading.Thread(target=laco, name="wiki-periodico", daemon=True).start()
 
 
 def _trecho(texto: str, termos: list[str]) -> str:

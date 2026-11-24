@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block descricao %}Base de Conhecimento: tutoriais e procedimentos técnicos de Linux, redes, MikroTik, e-mail, Docker, virtualização e Active Directory, passo a passo.{% endblock %}
+
 {% block title %}Base de Conhecimento | Henrique Fagundes{% endblock %}
 
 {% block content %}
@@ -195,6 +197,8 @@
             try { localStorage.setItem('kb-ordem', ordem); } catch (e) {}
         }));
         campo.addEventListener('input', () => { pagina = 1; buscarNoConteudo(); render(); });
+        const buscaInicial = params.get('q');  // /conhecimento?q=termo (links e caixa de busca do Google)
+        if (buscaInicial) { campo.value = buscaInicial.slice(0, 100); buscarNoConteudo(); }
         render();
     })();
     </script>
