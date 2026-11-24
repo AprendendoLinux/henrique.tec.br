@@ -33,7 +33,7 @@
     {% else %}
     <div class="relative mb-4">
         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neon text-sm">$ grep</span>
-        <input id="kb-busca" type="search" placeholder="buscar artigo..." autocomplete="off"
+        <input id="kb-busca" type="search" placeholder="buscar no título ou no conteúdo..." autocomplete="off"
                class="w-full bg-[#111] border border-gray-700 text-white pl-20 pr-4 py-3 rounded focus:outline-none focus:border-neon transition">
     </div>
 
@@ -58,6 +58,7 @@
             <h2 class="text-white font-bold group-hover:text-neon transition leading-snug">
                 <span class="text-neon">&gt;</span> {{ p.nome }}
             </h2>
+            <p class="kb-trecho hidden text-gray-400 text-xs leading-relaxed mt-2 [&_mark]:bg-neon/20 [&_mark]:text-neon [&_mark]:rounded [&_mark]:px-0.5"></p>
             <p class="text-gray-600 text-xs mt-2 space-x-3">
                 {% if p.publicado %}<span title="Publicado"><i class="fa-regular fa-calendar mr-1"></i>{{ p.publicado.strftime("%d/%m/%Y %H:%M") }}</span>{% endif %}
                 {% if p.atualizado and p.publicado and p.atualizado.date() != p.publicado.date() %}<span title="Atualizado"><i class="fa-solid fa-rotate mr-1"></i>{{ p.atualizado.strftime("%d/%m/%Y") }}</span>{% endif %}
@@ -68,6 +69,7 @@
         {% endfor %}
     </div>
     <p id="kb-vazio" class="hidden text-gray-500 text-sm mt-4">Nenhum artigo encontrado.</p>
+    <p id="kb-status" class="hidden text-gray-600 text-xs mt-2" aria-live="polite"></p>
 
     <nav id="kb-paginacao" class="hidden mt-8 flex flex-wrap items-center justify-center gap-2 text-xs" aria-label="Paginação dos artigos"></nav>
 
@@ -112,10 +114,42 @@
             return saida;
         }
 
+        // Busca: o filtro pelo título é instantâneo; em seguida o servidor responde com os artigos que
+        // contêm as palavras no conteúdo (com um trecho destacado), e a lista é atualizada.
+        let conteudo = null;  // null = sem resposta do servidor para a consulta atual; senão Map(slug -> trecho)
+        let consultaAtual = '', temporizador = null, controle = null;
+        const slugDe = el => el.getAttribute('href').split('/').pop();
+        const status = document.getElementById('kb-status');
+
+        function buscarNoConteudo() {
+            const q = campo.value.trim();
+            consultaAtual = q; conteudo = null;
+            if (controle) controle.abort();
+            clearTimeout(temporizador);
+            if (norm(q).length < 2) { status.classList.add('hidden'); return; }
+            status.textContent = 'buscando também no conteúdo dos artigos…'; status.classList.remove('hidden');
+            temporizador = setTimeout(() => {
+                controle = new AbortController();
+                fetch('/conhecimento/busca?q=' + encodeURIComponent(q), {signal: controle.signal})
+                    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                    .then(d => {
+                        if (q !== consultaAtual) return;
+                        conteudo = new Map(d.resultados.map(x => [x.slug, x.trecho]));
+                        status.classList.add('hidden'); pagina = 1; render();
+                    })
+                    .catch(e => { if (e && e.name === 'AbortError') return; status.textContent = 'busca no conteúdo indisponível; mostrando resultados pelo título.'; });
+            }, 250);
+        }
+
         function render(novaEntrada) {
             const termos = norm(campo.value).split(/\s+/).filter(Boolean);
-            const visiveis = itens.slice().sort(comparar[ordem])
-                .filter(el => termos.every(t => norm(el.dataset.busca).includes(t)));
+            const casaTitulo = el => termos.every(t => norm(el.dataset.busca).includes(t));
+            const casa = el => !termos.length || casaTitulo(el) || (conteudo !== null && conteudo.has(slugDe(el)));
+            itens.forEach(el => {
+                const trecho = el.querySelector('.kb-trecho'), html = conteudo && termos.length ? conteudo.get(slugDe(el)) : '';
+                trecho.innerHTML = html || ''; trecho.classList.toggle('hidden', !html);
+            });
+            const visiveis = itens.slice().sort(comparar[ordem]).filter(casa);
             const totalPaginas = Math.max(1, Math.ceil(visiveis.length / POR_PAGINA));
             pagina = Math.min(Math.max(1, pagina), totalPaginas);
             const inicio = (pagina - 1) * POR_PAGINA, daPagina = new Set(visiveis.slice(inicio, inicio + POR_PAGINA));
@@ -159,7 +193,7 @@
             ordem = b.dataset.ordem; pagina = 1; render();
             try { localStorage.setItem('kb-ordem', ordem); } catch (e) {}
         }));
-        campo.addEventListener('input', () => { pagina = 1; render(); });
+        campo.addEventListener('input', () => { pagina = 1; buscarNoConteudo(); render(); });
         render();
     })();
     </script>

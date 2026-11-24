@@ -45,7 +45,9 @@ def wiki_on(monkeypatch):
     api.chamadas = chamadas
     monkeypatch.setattr(wiki, "_api", api)
     wiki.limpar_cache()
+    original = {k: dict(v) for k, v in PAGINAS.items()}
     yield api
+    PAGINAS.clear(); PAGINAS.update(original)
     wiki.limpar_cache()
 
 
@@ -160,3 +162,44 @@ def test_imagem_principal_e_ilustracao_propria(client):
     assert 'class="hero-bg"' in html and 'class="pessoa"' in html and "unsplash" not in html
     assert 'class="hero-bg hero-mobile"' in html  # versão do celular, abaixo do botão
     assert 'id="hb-moletom"' in html and 'id="hbm-moletom"' in html  # ids únicos por instância
+
+
+def test_busca_encontra_palavra_no_conteudo_com_trecho(client, wiki_on):
+    r = client.get("/conhecimento/busca", params={"q": "MNT"})  # só existe no conteúdo ("chroot /mnt")
+    assert r.status_code == 200
+    res = r.json()["resultados"]
+    assert [x["slug"] for x in res] == ["chroot"]
+    assert "<mark>mnt</mark>" in res[0]["trecho"]
+
+
+def test_busca_ignora_acentos_exige_todas_as_palavras_e_escapa_html(client, wiki_on):
+    PAGINAS[2]["html"] = "<p>Configuração do túnel &lt;b&gt;seguro&lt;/b&gt; com chave pública</p>"
+    wiki.limpar_cache()
+    res = client.get("/conhecimento/busca", params={"q": "configuracao publica"}).json()["resultados"]
+    assert [x["slug"] for x in res] == ["wireguard"]
+    assert "<mark>Configuração</mark>" in res[0]["trecho"] and "<mark>pública</mark>" in res[0]["trecho"]
+    assert "&lt;b&gt;" in res[0]["trecho"] and "<b>" not in res[0]["trecho"]
+    assert client.get("/conhecimento/busca", params={"q": "configuracao inexistente"}).json()["resultados"] == []
+    # script removido na sanitização não entra no índice
+    assert client.get("/conhecimento/busca", params={"q": "alert"}).json()["resultados"] == []
+
+
+def test_busca_pelo_titulo_nao_mostra_trecho_e_consulta_curta_vazia(client, wiki_on):
+    res = client.get("/conhecimento/busca", params={"q": "wireguard"}).json()["resultados"]
+    assert {x["slug"] for x in res} == {"wireguard", "wireguard-cWb"} and all(x["trecho"] == "" for x in res)
+    assert client.get("/conhecimento/busca", params={"q": "a"}).json()["resultados"] == []
+
+
+def test_indice_so_baixa_de_novo_paginas_atualizadas(client, wiki_on):
+    client.get("/conhecimento/busca", params={"q": "mnt"})
+    paginas_baixadas = [c for c in wiki_on.chamadas if c.startswith("pages/")]
+    assert sorted(paginas_baixadas) == ["pages/1", "pages/2", "pages/4"]
+    wiki._cache.clear()  # nova listagem do livro, sem mudanças de data
+    client.get("/conhecimento/busca", params={"q": "wg"})
+    assert len([c for c in wiki_on.chamadas if c.startswith("pages/")]) == 3
+
+
+def test_busca_com_wiki_fora_do_ar_responde_503(client, wiki_on):
+    wiki_on.fora = True
+    r = client.get("/conhecimento/busca", params={"q": "mnt"})
+    assert r.status_code == 503 and r.json()["resultados"] == []
