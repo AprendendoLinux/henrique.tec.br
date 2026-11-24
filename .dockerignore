@@ -11,6 +11,5 @@ docker-compose-henrique.yml
 Dockerfile
 README.md
 LICENSE
-deploy.sh
 .github
 .dockerignore
