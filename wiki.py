@@ -3,11 +3,14 @@
 As respostas ficam em cache por poucos segundos para não sobrecarregar a wiki; se ela ficar fora do ar,
 o último conteúdo obtido continua sendo servido (cache "stale") até a wiki voltar.
 """
+import html as html_lib
 import json
 import logging
 import re
 import threading
 import time
+import unicodedata
+from concurrent.futures import ThreadPoolExecutor
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -36,6 +39,8 @@ _lock = threading.Lock()
 def limpar_cache() -> None:
     with _lock:
         _cache.clear()
+    with _indice_lock:
+        _indice.clear()
 
 
 def configurada() -> bool:
@@ -134,7 +139,8 @@ TAGS = {"p", "br", "hr", "h1", "h2", "h3", "h4", "h5", "h6", "strong", "b", "em"
 
 def _sanitizar(html: str, paginas_por_slug: dict) -> str:
     base = cfg.WIKI_URL.rstrip("/")
-    prefixo_livro = f"{base}/books/{cfg.WIKI_BOOK_SLUG}/page/"
+    # Links para páginas do livro, com o nome atual ou antigo do livro (ex.: depois de renomeá-lo na wiki)
+    link_pagina = re.compile(re.escape(base) + r"/books/[A-Za-z0-9-]+/page/([A-Za-z0-9-]+)(#[^\s\"']*)?$")
 
     def atributo(tag, nome, valor):
         if tag == "input":  # só checkboxes de listas de tarefas, sempre desabilitados
@@ -142,11 +148,9 @@ def _sanitizar(html: str, paginas_por_slug: dict) -> str:
         if nome in ("href", "src"):
             if valor.startswith("/") and not valor.startswith("//"):
                 valor = base + valor
-            if tag == "a" and valor.startswith(prefixo_livro):
-                slug = valor[len(prefixo_livro):].split("#")[0].split("?")[0].strip("/")
-                if slug in paginas_por_slug:
-                    resto = valor[len(prefixo_livro) + len(slug):]
-                    return f"/conhecimento/{slug}{resto if resto.startswith('#') else ''}"
+            m = link_pagina.match(valor) if tag == "a" else None
+            if m and m.group(1) in paginas_por_slug:
+                return f"/conhecimento/{m.group(1)}{m.group(2) or ''}"
         return valor
 
     limpo = nh3.clean(html, tags=TAGS, attributes=ATRIBUTOS, url_schemes={"http", "https", "mailto"},
@@ -175,6 +179,123 @@ def pagina(slug: str) -> dict:
                 "html": _sanitizar(dados.get("html") or "", por_slug),
                 "url_wiki": f"{cfg.WIKI_URL.rstrip('/')}/books/{cfg.WIKI_BOOK_SLUG}/page/{slug}"}
     return _cacheado(f"pagina:{meta['id']}", produzir)
+
+
+# ---------------------------------------------------------------- busca no conteúdo
+# Índice em memória: id da página -> (updated_at, texto puro). Uma página só é baixada de novo quando
+# a data de atualização (que vem da listagem do livro, renovada a cada CACHE_TTL) muda.
+_indice: dict[int, tuple[str, str, str]] = {}  # id -> (updated_at, texto, texto normalizado)
+_indice_lock = threading.Lock()
+_atualizacao_lock = threading.Lock()  # uma indexação por vez: chamadas simultâneas esperam e reaproveitam
+TRECHO = 80  # caracteres de contexto em cada lado do termo encontrado
+
+
+def _normalizar(texto: str) -> tuple[str, list[int]]:
+    """Minúsculas e sem acentos, devolvendo também o mapa posição normalizada -> posição original."""
+    saida, mapa = [], []
+    for i, ch in enumerate(texto):
+        for n in unicodedata.normalize("NFD", ch.lower()):
+            if not unicodedata.combining(n):
+                saida.append(n)
+                mapa.append(i)
+    return "".join(saida), mapa
+
+
+def _texto_puro(html: str) -> str:
+    sem_tags = nh3.clean(re.sub(r"<(br|/p|/h\d|/li|/pre|/tr|/div)[^>]*>", " \\g<0>", html), tags=set())
+    return re.sub(r"\s+", " ", html_lib.unescape(sem_tags)).strip()
+
+
+def _atualizar_indice(paginas: list[dict]) -> None:
+    with _atualizacao_lock:
+        _atualizar_indice_sem_lock(paginas)
+
+
+def _atualizar_indice_sem_lock(paginas: list[dict]) -> None:
+    def chave(p):
+        return p["atualizado"].isoformat() if p["atualizado"] else ""
+
+    with _indice_lock:
+        pendentes = [p for p in paginas if _indice.get(p["id"], ("",))[0] != chave(p) or p["id"] not in _indice]
+
+    def baixar(p):
+        try:
+            return p, _texto_puro(_api(f"pages/{p['id']}").get("html") or "")
+        except (WikiIndisponivel, LookupError) as exc:
+            logger.warning("Busca: não foi possível indexar a página %s (%s)", p["id"], exc)
+            return p, None
+
+    if pendentes:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            for p, texto in pool.map(baixar, pendentes):
+                if texto is not None:
+                    with _indice_lock:
+                        _indice[p["id"]] = (chave(p), texto, _normalizar(texto)[0])
+    ids = {p["id"] for p in paginas}
+    with _indice_lock:
+        for antigo in set(_indice) - ids:  # páginas removidas do livro
+            del _indice[antigo]
+
+
+def aquecer_indice() -> None:
+    """Indexa em segundo plano (chamado ao abrir /conhecimento), para a primeira busca já ser rápida."""
+    def tarefa():
+        try:
+            _atualizar_indice(livro()["paginas"])
+        except Exception as exc:  # noqa: BLE001 - nunca derruba a página
+            logger.warning("Busca: falha ao aquecer o índice (%s)", exc)
+    threading.Thread(target=tarefa, daemon=True).start()
+
+
+def _trecho(texto: str, termos: list[str]) -> str:
+    norm, mapa = _normalizar(texto)
+    pos = min((norm.find(t) for t in termos if norm.find(t) >= 0), default=-1)
+    if pos < 0:
+        return ""
+    ini_o = mapa[max(0, pos - TRECHO)]
+    fim_n = min(len(norm), pos + TRECHO)
+    fim_o = mapa[fim_n - 1] + 1 if fim_n else 0
+    # ajusta para não cortar palavras
+    while ini_o > 0 and not texto[ini_o - 1].isspace():
+        ini_o -= 1
+    while fim_o < len(texto) and not texto[fim_o].isspace():
+        fim_o += 1
+    janela = texto[ini_o:fim_o]
+    jn, jmapa = _normalizar(janela)
+    marcas = []
+    for t in termos:
+        for m in re.finditer(re.escape(t), jn):
+            marcas.append((jmapa[m.start()], jmapa[m.end() - 1] + 1))
+    marcas.sort()
+    partes, cursor = [], 0
+    for a, b in marcas:
+        if a < cursor:
+            continue
+        partes.append(html_lib.escape(janela[cursor:a]))
+        partes.append("<mark>" + html_lib.escape(janela[a:b]) + "</mark>")
+        cursor = b
+    partes.append(html_lib.escape(janela[cursor:]))
+    return ("… " if ini_o > 0 else "") + "".join(partes) + (" …" if fim_o < len(texto) else "")
+
+
+def buscar(consulta: str) -> list[dict]:
+    """Artigos do livro em que TODAS as palavras aparecem no título, capítulo ou conteúdo (sem diferenciar
+    acentos e maiúsculas). Retorna [{slug, trecho}] na ordem do livro; trecho vem em HTML seguro com <mark>."""
+    termos = [t for t in _normalizar(consulta)[0].split() if t][:8]
+    if not termos:
+        return []
+    paginas = livro()["paginas"]
+    _atualizar_indice(paginas)
+    with _indice_lock:
+        textos = {pid: (txt, norm) for pid, (_, txt, norm) in _indice.items()}
+    resultados = []
+    for p in paginas:
+        conteudo, conteudo_norm = textos.get(p["id"], ("", ""))
+        titulo_norm = _normalizar(f'{p["nome"]} {p["capitulo"] or ""}')[0]
+        if all(t in titulo_norm or t in conteudo_norm for t in termos):
+            no_titulo = all(t in titulo_norm for t in termos)
+            resultados.append({"slug": p["slug"], "trecho": "" if no_titulo else _trecho(conteudo, termos)})
+    return resultados
 
 
 def testar() -> str:
