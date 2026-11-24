@@ -111,17 +111,6 @@ jobs:
           build-args: |
             APP_VERSION=${{ steps.prep.outputs.VERSION }}
 
-      # --- WEBHOOKS DO PORTAINER ---
-      - name: Atualizar Portainer (Produção)
-        # Roda se for uma TAG de versão (pois é ela que atualiza o 'latest')
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          echo "🚀 Nova Tag Detectada: Disparando webhook de Produção..."
-          curl -k -X POST "${{ secrets.PORTAINER_WEBHOOK_PROD }}"
-          
-      - name: Atualizar Portainer (Dev)
-        # Só roda se o push for na branch DEV
-        if: github.ref == 'refs/heads/dev'
-        run: |
-          echo "🧪 Branch Dev: Disparando webhook de Desenvolvimento..."
-          curl -k -X POST "${{ secrets.PORTAINER_WEBHOOK_DEV }}"
+      # Deploy: o CI só publica a imagem. A produção é implantada pelo Portainer
+      # (stack henrique-tec-br) após a release; o desenvolvimento roda localmente
+      # no host com docker compose.

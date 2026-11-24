@@ -42,7 +42,7 @@ Identidade visual "Terminal/Hacker" com Glassmorphism, backend FastAPI, configur
 ### ⚙️ DevOps & Infraestrutura
 * **Docker Compose** com MySQL 8 (healthcheck), sem exposição da porta do banco, e aplicação rodando sem root.
 * **Migrations (Alembic)** executadas automaticamente no startup; bancos já existentes são preservados.
-* **CI/CD:** GitHub Actions executa os testes e publica a imagem no GHCR (`latest` somente em tags `v*.*.*`), com deploy por webhook do Portainer.
+* **CI/CD:** GitHub Actions executa os testes e publica a imagem no GHCR (`dev-latest` na branch `dev`; `latest` e `vX.Y.Z` somente em tags `v*.*.*`). O deploy de produção é feito pelo Portainer após a release.
 * **Versionamento dinâmico:** `APP_VERSION` injetada no build e exibida no rodapé.
 
 ---
@@ -130,4 +130,9 @@ pytest -q
 
 ## 🔄 Deploy
 
-O script `deploy.sh` faz o merge `dev` → `main`, calcula a próxima tag `vX.Y.Z` e a envia ao GitHub. O Actions roda os testes, publica a imagem no GHCR (`latest` + tag) e dispara o webhook do Portainer.
+* **Desenvolvimento:** roda localmente no host com `docker compose`, na rede `echelon`, usando o banco `henrique_dev` do `db-server` (réplica dos dados de produção).
+* **Produção** (fluxo de publicação):
+  1. Pull Request `dev` → `main` e merge.
+  2. Tag `vX.Y.Z` na `main`: o GitHub Actions roda os testes e publica a imagem no GHCR (`latest` + `vX.Y.Z`).
+  3. Release no GitHub com as notas da versão.
+  4. Deploy pelo Portainer na stack `henrique-tec-br`, baixando a imagem nova (sem webhooks).
