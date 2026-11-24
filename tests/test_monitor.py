@@ -165,3 +165,23 @@ def test_limpeza_remove_registros_antigos():
         assert db.query(models.EventoSeguranca).filter_by(ip="10.0.0.1").count() == 0
     finally:
         db.close()
+
+
+def test_geo_da_cloudflare_e_complemento_no_mesmo_lote_nao_perdem_dados(client):
+    _gravar()
+    ip = "203.0.113.77"
+    monitor._enfileirar("acesso", {"ts": datetime.utcnow(), "ip": ip, "metodo": "GET", "caminho": "/lote", "status": 200,
+                                   "ms": 1, "user_agent": None, "referer": None, "robo": None, "suspeito": False})
+    monitor._enfileirar("geo", {"ip": ip, "pais": "BR", "cidade": "Recife", "lat": -8.05, "lon": -34.9,
+                                "fonte": "cloudflare", "atualizado": datetime.utcnow()})
+    monitor._enfileirar("geo", {"ip": ip, "org": "Provedor X", "rdns": "host.example", "pais_nome": "Brazil"})
+    monitor._enfileirar("geo", {"ip": "203.0.113.78", "org": "Só complemento"})  # sem 'atualizado'
+    _gravar()
+    db = _db()
+    try:
+        g = db.get(models.IpGeo, ip)
+        assert (g.cidade, g.lat, g.org, g.rdns, g.fonte) == ("Recife", -8.05, "Provedor X", "host.example", "cloudflare")
+        assert db.get(models.IpGeo, "203.0.113.78").atualizado is not None
+        assert db.query(models.Acesso).filter_by(caminho="/lote").count() == 1
+    finally:
+        db.close()

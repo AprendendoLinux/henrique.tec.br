@@ -133,9 +133,37 @@ BOOLEANS = {"cookie_secure", "recaptcha_enabled", "smtp_verify_tls", "indexnow_a
 store = Store()
 
 
+def rede_interna(rede) -> bool:
+    """Proxy de confiança só pode ser rede interna (loopback, privada, ULA, link-local)."""
+    return rede.is_private or rede.is_loopback or rede.is_link_local
+
+
+@lru_cache(maxsize=16)
+def redes_ignoradas(csv: str) -> tuple[str, ...]:
+    """Entradas públicas na lista de proxies de confiança (ignoradas por segurança)."""
+    saida = []
+    for p in csv.split(","):
+        try:
+            if p.strip() and not rede_interna(ipaddress.ip_network(p.strip(), strict=False)):
+                saida.append(p.strip())
+        except ValueError:
+            saida.append(p.strip())
+    return tuple(saida)
+
+
 @lru_cache(maxsize=16)
 def _redes(csv: str):
-    return tuple(ipaddress.ip_network(p.strip(), strict=False) for p in csv.split(",") if p.strip())
+    # Faixas públicas são ignoradas: confiar nelas faria o app aceitar IP forjado em cabeçalho
+    # (ex.: "192.168.171.0/2" = 192.0.0.0/2, um quarto da internet).
+    redes = []
+    for p in csv.split(","):
+        try:
+            rede = ipaddress.ip_network(p.strip(), strict=False)
+        except ValueError:
+            continue
+        if p.strip() and rede_interna(rede):
+            redes.append(rede)
+    return tuple(redes)
 
 
 class Cfg:
