@@ -9,6 +9,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 import config
+import monitor
 from appsettings import cfg
 import models
 from database import get_db
@@ -57,8 +58,11 @@ def _pre_auth_user(request: Request, db: Session):
 
 
 def _complete_login(request: Request, user, trust_device: bool = False) -> RedirectResponse:
+    monitor.registrar_evento(client_ip(request), "login_ok", user.username, "/admin/login",
+                             "dispositivo confiável" if trust_device else None)
     request.session.clear()
     request.session["uid"] = user.id
+    request.session["usuario"] = user.username
     request.session["pv"] = user_fingerprint(user)
     response = _redirect("/admin/dashboard")
     if trust_device:
@@ -101,6 +105,8 @@ def login_post(
 ):
     ip_key, user_key = f"login:ip:{client_ip(request)}", f"login:user:{username.lower()}"
     if login_limiter.blocked(ip_key, LIMITE_IP, JANELA) or login_limiter.blocked(user_key, LIMITE_USUARIO, JANELA):
+        monitor.registrar_evento(client_ip(request), "login_bloqueado", username, "/admin/login",
+                                 "Limite de tentativas atingido")
         return _login_page(request, ctx, 429, "Muitas tentativas. Aguarde alguns minutos.")
 
     erro = verify_recaptcha(recaptcha)
@@ -110,6 +116,8 @@ def login_post(
     if erro or not senha_ok:
         login_limiter.hit(ip_key, JANELA)
         login_limiter.hit(user_key, JANELA)
+        motivo = "reCAPTCHA" if erro else ("senha incorreta" if user else "usuário inexistente")
+        monitor.registrar_evento(client_ip(request), "login_falha", username, "/admin/login", motivo)
         return _login_page(request, ctx, 401, erro or "Credenciais inválidas.")
 
     login_limiter.reset(user_key)
@@ -151,6 +159,8 @@ def twofa_setup_post(
     if not secret:
         return _redirect("/admin/2fa-setup")
     if _check_2fa_limit(request, user):
+        monitor.registrar_evento(client_ip(request), "2fa_bloqueado", user.username, request.url.path,
+                                 "Limite de tentativas do 2FA atingido")
         request.session.clear()
         return _redirect("/admin")
 
@@ -161,6 +171,7 @@ def twofa_setup_post(
         return _complete_login(request, user, trust_device == "on")
 
     login_limiter.hit(f"2fa:{user.id}", JANELA)
+    monitor.registrar_evento(client_ip(request), "2fa_falha", user.username, request.url.path, "Código inválido")
     return _setup_page(request, user, secret, erro=True, status_code=401)
 
 
@@ -185,6 +196,8 @@ def twofa_verify_post(
     if not user or not user.is_2fa_enabled:
         return _redirect("/admin")
     if _check_2fa_limit(request, user):
+        monitor.registrar_evento(client_ip(request), "2fa_bloqueado", user.username, request.url.path,
+                                 "Limite de tentativas do 2FA atingido")
         request.session.clear()
         return _redirect("/admin")
 
@@ -194,6 +207,7 @@ def twofa_verify_post(
         return _complete_login(request, user, trust_device == "on")
 
     login_limiter.hit(f"2fa:{user.id}", JANELA)
+    monitor.registrar_evento(client_ip(request), "2fa_falha", user.username, request.url.path, "Código inválido")
     return templates.TemplateResponse(
         request, "admin_2fa_verify.html", {"erro": True, "version": config.APP_VERSION}, status_code=401
     )
@@ -201,5 +215,6 @@ def twofa_verify_post(
 
 @router.post("/logout", dependencies=[Depends(csrf_protect)])
 def logout(request: Request):
+    monitor.registrar_evento(client_ip(request), "logout", request.session.get("usuario"), "/admin/logout")
     request.session.clear()
     return _redirect("/admin")

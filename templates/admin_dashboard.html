@@ -30,6 +30,7 @@
         <button onclick="openTab('telegram')" id="btn-telegram" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Telegram</button>
         <button onclick="openTab('config')" id="btn-config" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Configurações</button>
         <button onclick="openTab('conta')" id="btn-conta" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Minha Conta</button>
+        {% if is_admin %}<a href="/admin/seguranca" class="px-6 py-3 text-red-400 border-b-2 border-transparent hover:text-red-300 transition whitespace-nowrap"><i class="fa-solid fa-shield-halved mr-1"></i>Acessos &amp; Segurança</a>{% endif %}
     </div>
 
     <div id="tab-projetos" class="tab-content hidden">

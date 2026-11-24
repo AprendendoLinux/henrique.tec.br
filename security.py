@@ -140,6 +140,9 @@ async def csrf_protect(request: Request) -> None:
     form = await request.form()
     sent = form.get("csrf_token") or request.headers.get("x-csrf-token") or ""
     if not expected or not hmac.compare_digest(str(sent), expected):
+        import monitor  # import local: monitor não depende de security
+        monitor.registrar_evento(client_ip(request), "csrf_invalido", None, request.url.path,
+                                 "sem sessão" if not expected else "token divergente")
         raise HTTPException(status_code=403, detail="Token CSRF inválido ou ausente.")
 
 
