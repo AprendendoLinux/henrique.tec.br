@@ -15,7 +15,7 @@ LIVRO = {"id": 7, "name": "Público", "description": "Meus tutoriais", "contents
 ]}
 PAGINAS = {
     1: {"id": 1, "book_id": 7, "name": "Fazer chroot", "updated_at": "2026-10-01T10:00:00Z",
-        "html": '<h2 id="a">Passo</h2><script>alert(1)</script><p onclick="x()">ok <a href="https://wiki.henrique.tec.br/books/publico/page/wireguard#s">wg</a> '
+        "html": '<h2 id="a">Passo</h2><script>alert(1)</script><p onclick="x()">ok <a href="https://wiki.henrique.tec.br/books/publico/page/wireguard#s">wg</a> <a href="https://wiki.henrique.tec.br/books/nome-antigo/page/wireguard-cWb">antigo</a> <a href="https://wiki.henrique.tec.br/books/outro/page/nao-e-do-livro">fora</a> '
                 '<a href="https://debian.org">debian</a> <img src="/uploads/images/x.png"></p>'
                 '<pre><code class="language-bash">chroot /mnt</code></pre><iframe src="https://evil"></iframe>'},
     4: {"id": 4, "book_id": 7, "name": "Túnel WireGuard (cópia)", "html": "<p>copia</p>"},
@@ -104,6 +104,8 @@ def test_pagina_sanitizada_e_links_reescritos(client, wiki_on):
     html = r.text.split('class="kb-conteudo">')[1].split("</article>")[0]
     assert "<script>alert" not in html and "onclick" not in html and "<iframe" not in html
     assert 'href="/conhecimento/wireguard#s"' in html
+    assert 'href="/conhecimento/wireguard-cWb"' in html  # link com o nome antigo do livro
+    assert 'href="https://wiki.henrique.tec.br/books/outro/page/nao-e-do-livro"' in html  # página fora do livro
     assert 'target="_blank"' in html and 'href="https://debian.org"' in html
     assert 'src="https://wiki.henrique.tec.br/uploads/images/x.png"' in html
     assert 'class="language-bash"' in html

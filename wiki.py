@@ -139,7 +139,8 @@ TAGS = {"p", "br", "hr", "h1", "h2", "h3", "h4", "h5", "h6", "strong", "b", "em"
 
 def _sanitizar(html: str, paginas_por_slug: dict) -> str:
     base = cfg.WIKI_URL.rstrip("/")
-    prefixo_livro = f"{base}/books/{cfg.WIKI_BOOK_SLUG}/page/"
+    # Links para páginas do livro, com o nome atual ou antigo do livro (ex.: depois de renomeá-lo na wiki)
+    link_pagina = re.compile(re.escape(base) + r"/books/[A-Za-z0-9-]+/page/([A-Za-z0-9-]+)(#[^\s\"']*)?$")
 
     def atributo(tag, nome, valor):
         if tag == "input":  # só checkboxes de listas de tarefas, sempre desabilitados
@@ -147,11 +148,9 @@ def _sanitizar(html: str, paginas_por_slug: dict) -> str:
         if nome in ("href", "src"):
             if valor.startswith("/") and not valor.startswith("//"):
                 valor = base + valor
-            if tag == "a" and valor.startswith(prefixo_livro):
-                slug = valor[len(prefixo_livro):].split("#")[0].split("?")[0].strip("/")
-                if slug in paginas_por_slug:
-                    resto = valor[len(prefixo_livro) + len(slug):]
-                    return f"/conhecimento/{slug}{resto if resto.startswith('#') else ''}"
+            m = link_pagina.match(valor) if tag == "a" else None
+            if m and m.group(1) in paginas_por_slug:
+                return f"/conhecimento/{m.group(1)}{m.group(2) or ''}"
         return valor
 
     limpo = nh3.clean(html, tags=TAGS, attributes=ATRIBUTOS, url_schemes={"http", "https", "mailto"},
