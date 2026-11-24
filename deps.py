@@ -1,7 +1,10 @@
 import json
 import logging
+import threading
+import time
 import urllib.parse
 import urllib.request
+from types import SimpleNamespace
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.templating import Jinja2Templates
@@ -11,7 +14,7 @@ import config
 from appsettings import cfg
 import models
 import wiki
-from database import get_db
+from database import SessionLocal, get_db
 from security import csrf_input, csrf_protect, user_fingerprint
 
 logger = logging.getLogger(__name__)
@@ -90,18 +93,46 @@ def get_telegram_url(db: Session) -> str | None:
     return None
 
 
-def site_context(db: Session) -> dict:
-    return {
-        "contatos": db.query(models.Contato).limit(10).all(),
-        "whatsapp_url": get_whatsapp_url(db),
-        "telegram_url": get_telegram_url(db),
-        "version": config.APP_VERSION,
-        "wiki_ativa": wiki.configurada(),
-    }
+# Contexto comum das páginas públicas (rodapé, botões flutuantes) em cache: as páginas públicas não seguram
+# conexão do banco durante a requisição. Numa rajada de robôs, cada página segurando uma conexão esgotava o pool
+# e travava o site. Alterações no painel limpam o cache (ver limpar_contexto no middleware do app).
+CONTEXTO_TTL = 60
+_contexto: tuple[float, dict] | None = None
+_contexto_lock = threading.Lock()
 
 
-def get_site_context(db: Session = Depends(get_db)) -> dict:
-    return site_context(db)
+def _instantaneo(obj) -> SimpleNamespace:
+    """Cópia das colunas do registro, independente da sessão do banco."""
+    return SimpleNamespace(**{c.key: getattr(obj, c.key) for c in obj.__table__.columns})
+
+
+def limpar_contexto() -> None:
+    global _contexto
+    _contexto = None
+
+
+def site_context(db: Session | None = None) -> dict:
+    global _contexto
+    item = _contexto
+    if item is None or time.monotonic() - item[0] >= CONTEXTO_TTL:
+        with _contexto_lock:  # uma consulta por vez; quem chega junto reaproveita o resultado
+            item = _contexto
+            if item is None or time.monotonic() - item[0] >= CONTEXTO_TTL:
+                proprio = db is None
+                db = db or SessionLocal()
+                try:
+                    dados = {"contatos": [_instantaneo(c) for c in db.query(models.Contato).limit(10).all()],
+                             "whatsapp_url": get_whatsapp_url(db), "telegram_url": get_telegram_url(db)}
+                finally:
+                    if proprio:
+                        db.close()
+                item = _contexto = (time.monotonic(), dados)
+    return {**item[1], "contatos": list(item[1]["contatos"]), "version": config.APP_VERSION,
+            "wiki_ativa": wiki.configurada()}
+
+
+def get_site_context() -> dict:
+    return site_context()
 
 
 def current_user_or_none(request: Request, db: Session = Depends(get_db)):
@@ -137,8 +168,8 @@ async def admin_guard(request: Request, user=Depends(require_user)):
     return user
 
 
-def verify_recaptcha(token: str | None) -> str | None:
-    if not cfg.ENABLE_RECAPTCHA:
+def verify_recaptcha(token: str | None, login: bool = False) -> str | None:
+    if not (cfg.RECAPTCHA_LOGIN if login else cfg.ENABLE_RECAPTCHA):
         return None
     if not token:
         return "Por favor, marque a caixa 'Não sou um robô'."
@@ -156,5 +187,6 @@ def verify_recaptcha(token: str | None) -> str | None:
     return None
 
 
-def recaptcha_context() -> dict:
-    return {"enable_recaptcha": cfg.ENABLE_RECAPTCHA, "recaptcha_site_key": cfg.RECAPTCHA_SITE_KEY}
+def recaptcha_context(login: bool = False) -> dict:
+    return {"enable_recaptcha": cfg.RECAPTCHA_LOGIN if login else cfg.ENABLE_RECAPTCHA,
+            "recaptcha_site_key": cfg.RECAPTCHA_SITE_KEY}

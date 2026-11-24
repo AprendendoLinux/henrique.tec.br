@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import RedirectResponse
 
@@ -17,7 +18,7 @@ import config
 import models
 from database import SessionLocal, engine
 from appsettings import store
-from deps import RedirectToLogin, site_context, templates
+from deps import RedirectToLogin, limpar_contexto, site_context, templates
 from session import DynamicSessionMiddleware
 import monitor
 import wiki
@@ -135,6 +136,8 @@ async def security_headers(request: Request, call_next):
     try:
         response = await call_next(request)
         status = response.status_code
+        if request.method == "POST" and request.url.path.startswith("/admin"):
+            limpar_contexto()  # contatos/WhatsApp/Telegram alterados no painel aparecem na hora
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
@@ -169,13 +172,16 @@ async def redirect_to_login(request: Request, exc: RedirectToLogin):
     return RedirectResponse(url="/admin", status_code=302)
 
 
+def _pagina_404(request: Request):
+    return templates.TemplateResponse(request, "404.html", site_context(), status_code=404)
+
+
 @app.exception_handler(StarletteHTTPException)
 async def http_error(request: Request, exc: StarletteHTTPException):
     if exc.status_code == 404:
-        db = SessionLocal()
-        try:
-            return templates.TemplateResponse(request, "404.html", site_context(db), status_code=404)
-        finally:
-            db.close()
+        # Fora do event loop: com o pool de conexões cheio (ex.: rajada de robôs de varredura), esperar uma
+        # conexão aqui travava o loop inteiro, e as requisições que deveriam devolver as conexões também
+        # (deadlock de 30 s por 404 na fila, o site parava por minutos).
+        return await run_in_threadpool(_pagina_404, request)
     from fastapi.exception_handlers import http_exception_handler
     return await http_exception_handler(request, exc)

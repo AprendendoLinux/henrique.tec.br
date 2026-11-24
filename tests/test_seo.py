@@ -138,3 +138,45 @@ def test_icones_do_site(client):
     manifesto = client.get("/static/icones/site.webmanifest")
     assert manifesto.headers["content-type"].startswith("application/manifest+json")
     assert {i["sizes"] for i in manifesto.json()["icons"]} == {"192x192", "512x512", "any"}
+
+
+def test_pagina_404_nao_usa_o_banco_dentro_do_event_loop(client, monkeypatch):
+    import asyncio
+
+    import app as aplicacao
+    chamadas = []
+    original = aplicacao.site_context
+
+    def espiao(db=None):
+        try:
+            asyncio.get_running_loop()
+            chamadas.append("event loop")  # bloquearia o servidor inteiro com o pool cheio
+        except RuntimeError:
+            chamadas.append("thread")
+        return original(db)
+
+    monkeypatch.setattr(aplicacao, "site_context", espiao)
+    assert client.get("/wp-includes/wlwmanifest.xml").status_code == 404
+    assert chamadas == ["thread"]
+
+
+def test_contexto_publico_em_cache_e_atualizado_ao_salvar_no_painel(client):
+    import database
+    import models
+    client.get("/")  # contexto em cache
+    db = database.SessionLocal()
+    try:
+        db.add(models.Contato(nome="Sem painel", url="https://exemplo.invalid/direto", icone="fa-solid fa-link"))
+        db.commit()
+        assert "exemplo.invalid/direto" not in client.get("/").text  # servido do cache, sem consultar o banco
+        login_admin(client)
+        post(client, "/admin/contatos/add", {"nome": "Pelo painel", "url": "https://exemplo.invalid/painel", "icone": "fa-solid fa-globe"}, page=DASH)
+        html = client.get("/").text
+        assert "exemplo.invalid/painel" in html and "exemplo.invalid/direto" in html  # salvar no painel limpa o cache
+    finally:
+        for c in db.query(models.Contato).filter(models.Contato.url.like("https://exemplo.invalid/%")).all():
+            db.delete(c)
+        db.commit()
+        db.close()
+        import deps
+        deps.limpar_contexto()

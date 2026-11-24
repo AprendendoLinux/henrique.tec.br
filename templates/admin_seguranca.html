@@ -107,7 +107,7 @@
         </div>
         <div class="sg-card p-4 lg:col-span-2 overflow-hidden">
             <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-list text-neon mr-2"></i>Eventos recentes</h2>
-            <div class="overflow-x-auto max-h-[430px] overflow-y-auto">
+            <div class="overflow-x-auto max-h-[430px] overflow-y-auto pr-1">
                 <table class="sg-tab w-full text-xs">
                     <thead><tr><th>quando</th><th>tipo</th><th>IP</th><th>local</th><th>usuário / caminho</th></tr></thead>
                     <tbody>
@@ -117,7 +117,7 @@
                         <td><span class="sg-badge sg-{{ eventos_info.get(e.tipo, ('', 'info'))[1] }}">{{ e.tipo }}</span></td>
                         <td><a class="sg-ip" href="/admin/seguranca/ip/{{ e.ip }}">{{ e.ip }}</a></td>
                         <td class="whitespace-nowrap">{% if g %}{{ g.pais|bandeira }} {{ g.cidade or g.pais or '' }}{% else %}<span class="text-gray-600">…</span>{% endif %}</td>
-                        <td class="text-gray-400 break-all">{% if e.usuario %}<span class="text-yellow-400">{{ e.usuario }}</span> {% endif %}{{ e.caminho or '' }}{% if e.detalhe %} <span class="text-gray-600">· {{ e.detalhe }}</span>{% endif %}</td>
+                        <td class="text-gray-400 [overflow-wrap:anywhere]">{% if e.usuario %}<span class="text-yellow-400">{{ e.usuario }}</span> {% endif %}{{ e.caminho or '' }}{% if e.detalhe %}<div class="text-gray-600 text-[10px]">{{ e.detalhe }}</div>{% endif %}</td>
                     </tr>
                     {% else %}<tr><td colspan="5" class="text-gray-600">Nenhum evento no período.</td></tr>{% endfor %}
                     </tbody>
@@ -144,17 +144,16 @@
         </div>
         <div class="sg-card p-4 overflow-hidden">
             <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-network-wired text-neon mr-2"></i>IPs com mais acessos</h2>
-            <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
+            <div class="max-h-[420px] overflow-y-auto overflow-x-hidden pr-1">
                 <table class="sg-tab w-full text-xs">
-                    <thead><tr><th>IP</th><th>local</th><th>tipo</th><th class="text-right">acessos</th><th>último</th></tr></thead>
+                    <thead><tr><th>IP</th><th>local</th><th class="text-right">acessos</th></tr></thead>
                     <tbody>
                     {% for t in top %}{% set g = geos.get(t.ip) %}{% set ataques = ev_por_ip.get(t.ip, 0) + (t.suspeitos or 0) %}
-                    <tr><td><a class="sg-ip" href="/admin/seguranca/ip/{{ t.ip }}">{{ t.ip }}</a></td>
-                        <td class="whitespace-nowrap">{% if g %}{{ g.pais|bandeira }} {{ g.cidade or g.pais or '' }}{% else %}<span class="text-gray-600">…</span>{% endif %}</td>
-                        <td>{% if ataques %}<span class="sg-badge sg-ataque">suspeito</span>{% elif t.robo %}<span class="sg-badge sg-info">{{ t.robo }}</span>{% else %}<span class="sg-badge sg-ok">visitante</span>{% endif %}</td>
-                        <td class="text-right">{{ t.hits }}</td>
-                        <td class="text-gray-500 whitespace-nowrap">{{ t.ultimo|brt("%d/%m %H:%M") }}</td></tr>
-                    {% else %}<tr><td colspan="5" class="text-gray-600">Sem acessos no período.</td></tr>{% endfor %}
+                    <tr><td class="break-all"><a class="sg-ip" href="/admin/seguranca/ip/{{ t.ip }}">{{ t.ip }}</a></td>
+                        <td>{% if g %}{{ g.pais|bandeira }} {{ g.cidade or g.pais or '' }}{% else %}<span class="text-gray-600">…</span>{% endif %}
+                            <div class="mt-0.5">{% if ataques %}<span class="sg-badge sg-ataque">suspeito</span>{% elif t.robo %}<span class="sg-badge sg-info">{{ t.robo }}</span>{% else %}<span class="sg-badge sg-ok">visitante</span>{% endif %}</div></td>
+                        <td class="text-right whitespace-nowrap">{{ t.hits }}<div class="text-gray-600 text-[10px]">{{ t.ultimo|brt("%d/%m %H:%M") }}</div></td></tr>
+                    {% else %}<tr><td colspan="3" class="text-gray-600">Sem acessos no período.</td></tr>{% endfor %}
                     </tbody>
                 </table>
             </div>
