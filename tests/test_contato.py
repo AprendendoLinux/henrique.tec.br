@@ -131,3 +131,10 @@ def test_ctas_das_paginas_levam_ao_formulario(client):
         html = client.get(f"/servicos/{slug}").text
         assert f'href="/contato?servico={slug}"' in html
     assert 'href="/contato" class="hero-cta' in client.get("/").text
+
+
+def test_arquivo_de_verificacao_do_google(client):
+    r = client.get("/googleac13a4d3307dba20.html")
+    assert r.status_code == 200 and r.text == "google-site-verification: googleac13a4d3307dba20.html"
+    assert client.get("/google0000000000000000.html").status_code == 404
+    assert client.get("/google..%2Fapp.html").status_code == 404

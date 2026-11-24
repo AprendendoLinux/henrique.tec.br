@@ -26,6 +26,20 @@ def servico(request: Request, slug: str, ctx: dict = Depends(get_site_context)):
     return templates.TemplateResponse(request, f"{slug}.html", ctx)
 
 
+@router.get("/google{codigo}.html", include_in_schema=False)
+def verificacao_google(codigo: str):
+    """Arquivo de verificação do Google Search Console (static/verificacao/google<código>.html)."""
+    import re
+    from pathlib import Path
+    from fastapi.responses import FileResponse
+    if not re.fullmatch(r"[0-9a-f]{16}", codigo):
+        raise HTTPException(status_code=404)
+    arquivo = Path("static/verificacao") / f"google{codigo}.html"
+    if not arquivo.is_file():
+        raise HTTPException(status_code=404)
+    return FileResponse(arquivo, media_type="text/html; charset=utf-8")
+
+
 @router.get("/robots.txt")
 def robots(request: Request):
     return templates.TemplateResponse(request, "robots.txt", {}, media_type="text/plain")
