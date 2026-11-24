@@ -8,7 +8,8 @@ from deps import get_site_context, templates
 
 router = APIRouter()
 
-SERVICOS = {"linux", "firewall", "desktop", "docker", "virtualizacao", "desenvolvimento"}
+SERVICOS_ORDEM = ["linux", "firewall", "docker", "virtualizacao", "desenvolvimento", "desktop"]
+SERVICOS = set(SERVICOS_ORDEM)
 
 
 @router.get("/")
@@ -44,12 +45,29 @@ def robots(request: Request):
     return templates.TemplateResponse(request, "robots.txt", {}, media_type="text/plain")
 
 
+@router.get("/{chave}.txt", include_in_schema=False)
+def indexnow_chave(chave: str):
+    """Arquivo de verificação do IndexNow (/<chave>.txt)."""
+    from fastapi.responses import PlainTextResponse
+    from appsettings import cfg
+    if not cfg.INDEXNOW_KEY or chave != cfg.INDEXNOW_KEY:
+        raise HTTPException(status_code=404)
+    return PlainTextResponse(cfg.INDEXNOW_KEY)
+
+
 @router.get("/sitemap.xml")
 def sitemap(request: Request):
-    artigos = []
+    """Mapa do site para os buscadores: páginas fixas + todos os artigos da Base de Conhecimento (com lastmod)."""
+    entradas = [("", None, "weekly", "1.0")]
     if wiki.configurada():
         try:
-            artigos = ["conhecimento"] + [f"conhecimento/{p['slug']}" for p in wiki.livro()["paginas"]]
+            paginas = wiki.livro()["paginas"]
+            datas = [p["atualizado"] or p["publicado"] for p in paginas if p["atualizado"] or p["publicado"]]
+            entradas.append(("conhecimento", max(datas) if datas else None, "daily", "0.9"))
+            entradas += [(f"conhecimento/{p['slug']}", p["atualizado"] or p["publicado"], "monthly", "0.7")
+                         for p in paginas]
         except Exception:
-            artigos = ["conhecimento"]
-    return templates.TemplateResponse(request, "sitemap.xml", {"artigos": artigos}, media_type="application/xml")
+            entradas.append(("conhecimento", None, "daily", "0.9"))
+    entradas += [(f"servicos/{s}", None, "monthly", "0.8") for s in SERVICOS_ORDEM]
+    entradas.append(("contato", None, "yearly", "0.6"))
+    return templates.TemplateResponse(request, "sitemap.xml", {"entradas": entradas}, media_type="application/xml")

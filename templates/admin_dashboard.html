@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
 {% block title %}Painel de Controle | Henrique Fagundes{% endblock %}
 
 {% block content %}
@@ -30,6 +32,7 @@
         <button onclick="openTab('telegram')" id="btn-telegram" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Telegram</button>
         <button onclick="openTab('config')" id="btn-config" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Configurações</button>
         <button onclick="openTab('conta')" id="btn-conta" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Minha Conta</button>
+        {% if is_admin %}<a href="/admin/seguranca" class="px-6 py-3 text-red-400 border-b-2 border-transparent hover:text-red-300 transition whitespace-nowrap"><i class="fa-solid fa-shield-halved mr-1"></i>Acessos &amp; Segurança</a>{% endif %}
     </div>
 
     <div id="tab-projetos" class="tab-content hidden">
@@ -515,6 +518,40 @@
             <form action="/admin/config/test-wiki" method="POST" class="mt-3 text-right">
 {{ csrf_input(request) }}
                 <button type="submit" class="px-4 py-2 border border-neon text-neon font-mono text-xs rounded hover:bg-neon hover:text-darkbg transition">Testar conexão (após salvar)</button>
+            </form>
+        </div>
+
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-8 border-l-2 border-l-accent">
+            <h2 class="text-xl font-bold text-white mb-2 border-l-2 border-accent pl-3">SEO e Indexação</h2>
+            <p class="text-gray-500 text-xs font-mono mb-6">Sitemap: <a href="/sitemap.xml" target="_blank" class="text-neon underline">/sitemap.xml</a> · robots: <a href="/robots.txt" target="_blank" class="text-neon underline">/robots.txt</a>. Cole abaixo o código (ou a meta tag inteira) de verificação do Google Search Console e do Bing Webmaster Tools.</p>
+            <form action="/admin/config/seo" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+{{ csrf_input(request) }}
+                <div class="md:col-span-2"><label class="block text-gray-400 text-xs font-mono mb-2">URL PÚBLICA DO SITE:</label><input type="url" name="site_url" maxlength="200" value="{{ c.site_url }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">GOOGLE SEARCH CONSOLE (google-site-verification):</label><input type="text" name="google_site_verification" maxlength="300" value="{{ c.google_site_verification }}" placeholder="meta tag ou código" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">BING WEBMASTER (msvalidate.01):</label><input type="text" name="bing_site_verification" maxlength="300" value="{{ c.bing_site_verification }}" placeholder="meta tag ou código" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
+                <div class="md:col-span-2"><label class="flex items-center cursor-pointer text-gray-300 text-sm font-mono"><input type="checkbox" name="indexnow_ativo" {% if c.indexnow_ativo %}checked{% endif %} class="w-4 h-4 accent-neon mr-2">IndexNow: avisar Bing, Yandex e outros buscadores na hora em que um artigo é publicado, editado ou removido</label>
+                    <p class="text-gray-600 text-[11px] font-mono mt-2">Chave: {% if c.indexnow_key %}<a href="/{{ c.indexnow_key }}.txt" target="_blank" class="text-neon underline">/{{ c.indexnow_key }}.txt</a>{% else %}gerada na próxima inicialização{% endif %} · Último envio: {{ c.indexnow_ultimo or "nenhum ainda" }}</p></div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="px-6 py-2 bg-accent text-white font-bold font-mono rounded hover:bg-white hover:text-darkbg transition">&gt;_ SALVAR SEO</button>
+                </div>
+            </form>
+            <form action="/admin/config/indexnow-reenviar" method="POST" class="mt-3 text-right">
+{{ csrf_input(request) }}
+                <button type="submit" class="px-4 py-2 border border-accent text-accent font-mono text-xs rounded hover:bg-accent hover:text-white transition">Reenviar todas as URLs ao IndexNow</button>
+            </form>
+        </div>
+
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-8 border-l-2 border-l-orange-500">
+            <h2 class="text-xl font-bold text-white mb-2 border-l-2 border-orange-500 pl-3">Cloudflare (somente leitura)</h2>
+            <p class="text-gray-500 text-xs font-mono mb-6">Mostra em <a href="/admin/seguranca" class="text-neon underline">Acessos &amp; Segurança</a> os bloqueios feitos pela Cloudflare (WAF, bots, desafios) e o resumo diário da zona. Token com permissões <b>Zona:Ler</b> e <b>Análise:Ler</b>, restrito à zona do site.</p>
+            <form action="/admin/config/cloudflare" method="POST" class="grid grid-cols-1 gap-4">
+{{ csrf_input(request) }}
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">TOKEN DE API:</label><input type="password" name="cf_token" maxlength="100" autocomplete="new-password" placeholder="{% if c.cf_token_set %}Já definido — deixe em branco para manter{% else %}Não definido{% endif %}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+                    <p class="text-gray-600 text-[11px] font-mono mt-1">Zona: {{ c.cf_zone_id[:8] ~ '…' if c.cf_zone_id else 'descoberta no primeiro teste' }} · Última sincronização: {{ c.cf_ultima_sync or 'nenhuma ainda' }} (a cada 5 min)</p></div>
+                <div class="flex flex-wrap justify-end gap-3">
+                    {% if c.cf_token_set %}<button type="submit" name="remover" value="1" class="px-4 py-2 border border-red-500 text-red-400 font-mono text-xs rounded hover:bg-red-500 hover:text-white transition">Remover integração</button>{% endif %}
+                    <button type="submit" class="px-6 py-2 bg-orange-500 text-darkbg font-bold font-mono rounded hover:bg-white transition">&gt;_ SALVAR E TESTAR</button>
+                </div>
             </form>
         </div>
 

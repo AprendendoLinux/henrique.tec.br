@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block title %}{{ ip }} | Acessos e Segurança{% endblock %}
+
+{% block head %}
+<style>
+    .sg-card { background: rgba(255,255,255,.02); border: 1px solid #1f2937; border-radius: .75rem; }
+    .sg-tab th { text-align: left; font-weight: 600; color: #9ca3af; padding: .5rem .6rem; border-bottom: 1px solid #1f2937; white-space: nowrap; }
+    .sg-tab td { padding: .45rem .6rem; border-bottom: 1px solid #111827; vertical-align: top; }
+    .sg-badge { display: inline-block; padding: .05rem .45rem; border-radius: .3rem; font-size: 10px; border: 1px solid; white-space: nowrap; }
+    .sg-ataque { color: #f87171; border-color: #7f1d1d; background: rgba(127,29,29,.25); }
+    .sg-alerta { color: #fbbf24; border-color: #78350f; background: rgba(120,53,15,.25); }
+    .sg-info { color: #60a5fa; border-color: #1e3a8a; background: rgba(30,58,138,.25); }
+    .sg-flag { width: 16px; height: 12px; display: inline-block; vertical-align: -1px; border-radius: 2px; }
+    .sg-ok { color: #34d399; border-color: #065f46; background: rgba(6,95,70,.25); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 w-full flex-grow font-mono text-sm">
+    <a href="/admin/seguranca" class="text-gray-500 hover:text-neon text-xs"><i class="fa-solid fa-arrow-left mr-1"></i> ./acessos_e_seguranca</a>
+    <h1 class="text-2xl md:text-3xl font-bold text-white glow-text mt-2 mb-6 break-all">{{ ip }}</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="sg-card p-4">
+            <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-location-dot text-neon mr-2"></i>Origem</h2>
+            <table class="sg-tab w-full text-xs">
+                <tr><td class="text-gray-500">local</td><td>{% if geo %}{{ geo.pais|bandeira }} {{ [geo.cidade, geo.regiao, geo.pais_nome or geo.pais]|select|join(", ") }}{% else %}<span class="text-gray-600">aguardando geolocalização</span>{% endif %}</td></tr>
+                <tr><td class="text-gray-500">provedor</td><td>{{ geo.org if geo and geo.org else '-' }}</td></tr>
+                <tr><td class="text-gray-500">DNS reverso</td><td class="break-all">{% if geo and geo.rdns %}{{ geo.rdns.lstrip('~') }} {% if geo.rdns.startswith('~') %}<span class="sg-badge sg-alerta">não confirmado</span>{% else %}<span class="sg-badge sg-ok">confirmado</span>{% endif %}{% else %}-{% endif %}</td></tr>
+                <tr><td class="text-gray-500">coordenadas</td><td>{% if geo and geo.lat is not none %}{{ '%.3f'|format(geo.lat) }}, {{ '%.3f'|format(geo.lon) }} · <a class="text-neon" target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat={{ geo.lat }}&mlon={{ geo.lon }}#map=9/{{ geo.lat }}/{{ geo.lon }}">ver no mapa</a>{% else %}-{% endif %}</td></tr>
+                <tr><td class="text-gray-500">fonte</td><td class="text-gray-500">{{ geo.fonte if geo else '-' }}</td></tr>
+                {% if robo %}<tr><td class="text-gray-500">robô</td><td>{{ robo }} {% if confirmado is sameas true %}<span class="sg-badge sg-ok">verificado</span>{% elif confirmado is sameas false %}<span class="sg-badge sg-ataque">não verificado (possível falso)</span>{% endif %}</td></tr>{% endif %}
+            </table>
+            <p class="text-gray-600 text-[11px] mt-3">Consultas externas: <a class="text-neon" target="_blank" rel="noopener" href="https://www.abuseipdb.com/check/{{ ip }}">AbuseIPDB</a> · <a class="text-neon" target="_blank" rel="noopener" href="https://ipinfo.io/{{ ip }}">ipinfo.io</a> · <a class="text-neon" target="_blank" rel="noopener" href="https://www.shodan.io/host/{{ ip }}">Shodan</a></p>
+        </div>
+        <div class="sg-card p-4">
+            <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-chart-simple text-neon mr-2"></i>Resumo (90 dias)</h2>
+            <table class="sg-tab w-full text-xs">
+                <tr><td class="text-gray-500">acessos</td><td>{{ resumo.hits }}</td></tr>
+                <tr><td class="text-gray-500">páginas distintas</td><td>{{ resumo.paginas }}</td></tr>
+                <tr><td class="text-gray-500">requisições suspeitas</td><td class="{{ 'text-red-400 font-bold' if resumo.suspeitos }}">{{ resumo.suspeitos }}</td></tr>
+                <tr><td class="text-gray-500">eventos de segurança</td><td class="{{ 'text-red-400 font-bold' if eventos }}">{{ eventos|length }}</td></tr>
+                <tr><td class="text-gray-500">primeiro acesso</td><td>{{ resumo.primeiro|brt }}</td></tr>
+                <tr><td class="text-gray-500">último acesso</td><td>{{ resumo.ultimo|brt }}</td></tr>
+            </table>
+            <h3 class="text-gray-400 text-xs mt-4 mb-1">navegadores / agentes</h3>
+            {% for ua, n in agentes %}<p class="text-[11px] text-gray-500 break-all">{{ n }}× {{ ua or '(vazio)' }}</p>{% endfor %}
+        </div>
+    </div>
+
+    {% if eventos %}
+    <div class="sg-card p-4 mb-6 overflow-hidden">
+        <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-shield-halved text-red-400 mr-2"></i>Eventos de segurança</h2>
+        <div class="overflow-x-auto max-h-[360px] overflow-y-auto"><table class="sg-tab w-full text-xs">
+            <thead><tr><th>quando</th><th>tipo</th><th>usuário</th><th>caminho</th><th>detalhe</th></tr></thead>
+            <tbody>{% for e in eventos %}<tr>
+                <td class="text-gray-500 whitespace-nowrap">{{ e.ts|brt("%d/%m %H:%M:%S") }}</td>
+                <td><span class="sg-badge sg-{{ eventos_info.get(e.tipo, ('', 'info'))[1] }}">{{ e.tipo }}</span></td>
+                <td class="text-yellow-400">{{ e.usuario or '' }}</td><td class="break-all text-gray-300">{{ e.caminho or '' }}</td><td class="text-gray-500">{{ e.detalhe or '' }}</td>
+            </tr>{% endfor %}</tbody>
+        </table></div>
+    </div>
+    {% endif %}
+
+    <div class="sg-card p-4 overflow-hidden">
+        <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-list text-neon mr-2"></i>Últimas requisições</h2>
+        <div class="overflow-x-auto max-h-[520px] overflow-y-auto"><table class="sg-tab w-full text-xs">
+            <thead><tr><th>quando</th><th>método</th><th>caminho</th><th>status</th><th class="text-right">ms</th></tr></thead>
+            <tbody>{% for a in acessos %}<tr>
+                <td class="text-gray-500 whitespace-nowrap">{{ a.ts|brt("%d/%m %H:%M:%S") }}</td>
+                <td class="text-gray-400">{{ a.metodo }}</td>
+                <td class="break-all {{ 'text-red-400' if a.suspeito else 'text-gray-300' }}">{{ a.caminho }}</td>
+                <td class="{{ 'text-green-400' if a.status < 300 else ('text-yellow-400' if a.status < 500 else 'text-red-400') }}">{{ a.status }}</td>
+                <td class="text-right text-gray-500">{{ a.ms }}</td>
+            </tr>{% else %}<tr><td colspan="5" class="text-gray-600">Sem requisições registradas.</td></tr>{% endfor %}</tbody>
+        </table></div>
+    </div>
+</div>
+{% endblock %}

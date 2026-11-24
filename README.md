@@ -23,13 +23,21 @@ Identidade visual "Terminal/Hacker" com Glassmorphism, backend FastAPI, configur
 * **Base de Conhecimento (`/conhecimento`):** lista e exibe, dentro do site, as páginas do livro público da wiki BookStack, ordenadas por data de publicação (mais recentes primeiro), com botões para ordenar por mais antigos, atualizados ou A-Z e paginação de 12 em 12. A busca procura no título **e no conteúdo** dos artigos (sem diferenciar acentos/maiúsculas, exigindo todas as palavras) e mostra o trecho encontrado com destaque; o texto fica indexado em memória e só é baixado de novo quando o artigo é atualizado na wiki, lidas pela API pela rede interna (`http://bookstack` na rede echelon, configurável) com cache de 30 s; se a wiki cair, serve o último conteúdo obtido). O HTML é sanitizado, links entre páginas do livro viram links do site e os artigos entram no `sitemap.xml`. Configurada no painel (URL, slug do livro e token da API); o link `./conhecimento` só aparece no menu quando está configurada.
 * **Logo em estilo terminal** `~/henrique.tec.br_` com cursor piscando, igual ao da wiki.
 * **Rodapé dinâmico** com redes sociais configuráveis e botão "Solicitar orçamento".
-* **SEO & Open Graph:** `sitemap.xml` e `robots.txt` dinâmicos e card `social-card.jpg`.
+* **SEO e indexação:** título, descrição e URL canônica por página; dados estruturados Schema.org (WebSite com busca, Person/ProfessionalService, TechArticle e BreadcrumbList nos artigos); Open Graph/Twitter por página; `sitemap.xml` com `lastmod` de todos os artigos; `robots.txt`; `noindex` no admin e na 404; respostas a `HEAD`; códigos de verificação do Google Search Console e Bing Webmaster configuráveis no painel.
+* **IndexNow:** avisa Bing, Yandex e demais buscadores do protocolo assim que um artigo é publicado, editado ou removido (chave publicada em `/<chave>.txt`; só a produção envia).
 
 ### 📩 Recebimento de Orçamentos
 * **E-mail (SMTP):** o pedido chega com `Reply-To` apontando para o e-mail informado pelo visitante.
 * **Telegram:** o mesmo pedido é enviado pelo bot. O pedido é aceito se ao menos um canal entregar.
 * **Detalhes do IP do visitante** (IPv4 e IPv6) no corpo da mensagem: DNS reverso (com confirmação), provedor, ASN, geolocalização aproximada, fuso, registro RDAP/WHOIS (rede, CIDR, titular e contatos de abuso) e indicadores de reputação. O IP público é obtido de `CF-Connecting-IP`, `X-Real-IP` ou `X-Forwarded-For`, **somente** quando a conexão vem de um proxy de confiança.
 * SMTP com as opções: `587 STARTTLS + login`, `465 SSL/TLS + login` ou `25 relay sem autenticação`.
+
+### 🛡️ Acessos e Segurança (`/admin/seguranca`, somente administradores)
+* Registro de cada requisição com o **IP real** (via Cloudflare + Nginx Proxy Manager, só de proxies confiáveis), página, status, tempo de resposta, navegador e robô identificado.
+* **Eventos de segurança:** varreduras de vulnerabilidades (`/wp-login.php`, `/.env`, `/.git`...), login e 2FA inválidos ou bloqueados, CSRF inválido, acesso negado, spam e bloqueio do formulário, login/logout.
+* **Mapa** (Leaflet + OpenStreetMap) com a origem dos acessos, gráfico por hora/dia, IPs mais suspeitos e mais ativos, robôs de busca com **verificação por DNS reverso** (detecta Googlebot falso), páginas mais vistas, 404, países e sites de origem; página de detalhe por IP.
+* Geolocalização com cache: cabeçalhos de localização da Cloudflare quando disponíveis, senão ipwho.is (uma consulta por IP). Registros mantidos por 90 dias; gravação assíncrona, sem atrasar o site.
+* **Cloudflare (opcional, somente leitura):** com um token *Zona:Ler + Análise:Ler*, os bloqueios feitos na borda (WAF gerenciado, verificação de navegador, desafios) entram como eventos `cloudflare_bloqueio` a cada 5 minutos, e o painel mostra o resumo diário da zona (requisições, ameaças, visitantes). Token criptografado nas configurações.
 
 ### 🔒 Back-end e Painel Admin (`/admin`)
 * **Autenticação:** sessão em cookie assinado (HttpOnly, SameSite, Secure automático em HTTPS), senhas com `bcrypt` e **2FA (TOTP) obrigatório para todos os usuários**, inclusive o admin. Segredos TOTP armazenados criptografados.

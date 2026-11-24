@@ -7,6 +7,7 @@ from fastapi.responses import RedirectResponse
 
 import ipinfo
 import mailer
+import monitor
 import notify
 from deps import get_site_context, recaptcha_context, templates, verify_recaptcha
 from security import EMAIL_RE, cadeia_proxies, client_ip, contact_limiter, csrf_protect
@@ -61,11 +62,13 @@ def contato_post(
     ip = client_ip(request)
 
     if website:
+        monitor.registrar_evento(ip, "spam_formulario", None, "/contato", "Campo-isca preenchido")
         request.session["contato_enviado"] = True
         return RedirectResponse("/contato", status_code=303)
 
     if (contact_limiter.blocked(f"ip:{ip}", LIMITE_IP, JANELA)
             or contact_limiter.blocked("global", LIMITE_GLOBAL, 3600)):
+        monitor.registrar_evento(ip, "formulario_bloqueado", None, "/contato", "Limite de envios atingido")
         return _pagina(request, ctx, form, "Muitos envios em pouco tempo. Tente novamente mais tarde.", status_code=429)
 
     if time.time() - request.session.get("form_ts", 0) < TEMPO_MINIMO:

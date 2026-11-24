@@ -38,8 +38,19 @@ DEFAULTS = {
     "wiki_book_slug": "publico",
     "wiki_token_id": "",
     "wiki_token_secret": "",
+    "site_url": "https://henrique.tec.br",
+    "google_site_verification": "",
+    "bing_site_verification": "",
+    "indexnow_ativo": "true",
+    "indexnow_key": "",
+    "indexnow_estado": "",
+    "indexnow_ultimo": "",
+    "cf_token": "",
+    "cf_zone_id": "",
+    "cf_ultimo_evento": "",
+    "cf_ultima_sync": "",
 }
-SECRETS = {"secret_key", "smtp_password", "telegram_bot_token", "recaptcha_secret", "wiki_token_secret"}
+SECRETS = {"secret_key", "smtp_password", "telegram_bot_token", "recaptcha_secret", "wiki_token_secret", "cf_token"}
 
 # Importação única de variáveis de ambiente antigas (somente para chaves ainda ausentes no banco).
 LEGACY_ENV = {
@@ -118,7 +129,7 @@ class Store:
         return _truthy(self.get(chave))
 
 
-BOOLEANS = {"cookie_secure", "recaptcha_enabled", "smtp_verify_tls"}
+BOOLEANS = {"cookie_secure", "recaptcha_enabled", "smtp_verify_tls", "indexnow_ativo"}
 store = Store()
 
 
@@ -175,6 +186,20 @@ class Cfg:
     def CONTACT_TO(self): return store.get("contact_to") or store.get("smtp_from")
     @property
     def WIKI_URL(self): return store.get("wiki_url")
+    @property
+    def CF_TOKEN(self): return store.get("cf_token")
+    @property
+    def CF_ZONE_ID(self): return store.get("cf_zone_id")
+    @property
+    def SITE_URL(self): return (store.get("site_url") or "https://henrique.tec.br").rstrip("/")
+    @property
+    def GOOGLE_SITE_VERIFICATION(self): return store.get("google_site_verification")
+    @property
+    def BING_SITE_VERIFICATION(self): return store.get("bing_site_verification")
+    @property
+    def INDEXNOW_ATIVO(self): return store.flag("indexnow_ativo")
+    @property
+    def INDEXNOW_KEY(self): return store.get("indexnow_key")
     @property
     def WIKI_API_URL(self): return store.get("wiki_api_url")
     @property

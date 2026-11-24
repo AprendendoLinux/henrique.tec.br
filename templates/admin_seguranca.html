@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block title %}Acessos e Segurança | Painel{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+    .sg-card { background: rgba(255,255,255,.02); border: 1px solid #1f2937; border-radius: .75rem; }
+    .sg-tab th { text-align: left; font-weight: 600; color: #9ca3af; padding: .5rem .6rem; border-bottom: 1px solid #1f2937; white-space: nowrap; }
+    .sg-tab td { padding: .45rem .6rem; border-bottom: 1px solid #111827; vertical-align: top; }
+    .sg-tab tr:hover td { background: rgba(0,255,204,.03); }
+    #sg-mapa { height: 440px; border-radius: .75rem; background: #0b0b0b; }
+    .leaflet-container { font-family: "Fira Code", monospace; background: #0b0b0b; }
+    /* mapa do OpenStreetMap escurecido para o tema do painel */
+    .sg-tiles { filter: invert(100%) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.4); }
+    .sg-flag { width: 16px; height: 12px; display: inline-block; vertical-align: -1px; border-radius: 2px; }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #0b0b0b; color: #e5e7eb; border: 1px solid #1f2937; }
+    .leaflet-popup-content a { color: #00ffcc; }
+    .sg-ip { color: #00ffcc; text-decoration: none; } .sg-ip:hover { text-decoration: underline; }
+    .sg-badge { display: inline-block; padding: .05rem .45rem; border-radius: .3rem; font-size: 10px; border: 1px solid; white-space: nowrap; }
+    .sg-ataque { color: #f87171; border-color: #7f1d1d; background: rgba(127,29,29,.25); }
+    .sg-alerta { color: #fbbf24; border-color: #78350f; background: rgba(120,53,15,.25); }
+    .sg-info { color: #60a5fa; border-color: #1e3a8a; background: rgba(30,58,138,.25); }
+    .sg-ok { color: #34d399; border-color: #065f46; background: rgba(6,95,70,.25); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full flex-grow font-mono text-sm">
+
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 border-b border-gray-800 pb-5">
+        <div>
+            <a href="/admin/dashboard" class="text-gray-500 hover:text-neon text-xs"><i class="fa-solid fa-arrow-left mr-1"></i> ./painel</a>
+            <h1 class="text-2xl md:text-3xl font-bold text-white glow-text mt-2">Acessos &amp; Segurança_</h1>
+            <p class="text-gray-500 text-xs mt-1">Desde {{ desde|brt }} (horário de Brasília). Registros guardados por 90 dias.</p>
+        </div>
+        <div class="flex gap-2" role="group" aria-label="Período">
+            {% for p in periodos %}
+            <a href="?periodo={{ p }}" class="px-3 py-1.5 rounded border text-xs {{ 'border-neon text-neon bg-neon/10' if p == periodo else 'border-gray-700 text-gray-400 hover:border-neon hover:text-neon' }}">{{ p }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% set r = resumo %}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {% for rotulo, valor, cor, dica in [
+            ("acessos", r.acessos, "text-white", "Todas as requisições (exceto arquivos estáticos)"),
+            ("visitantes únicos", r.visitantes, "text-neon", "IPs distintos que não são robôs"),
+            ("robôs de busca", r.buscadores, "text-accent", "Googlebot, Bingbot, Applebot..."),
+            ("IPs no total", r.ips, "text-gray-300", "Inclui robôs e ferramentas"),
+            ("ataques / tentativas", r.ataques, "text-red-400", "Varreduras, logins inválidos, 2FA, CSRF"),
+            ("IPs atacantes", r.ips_atacantes, "text-red-400", "IPs distintos com eventos de ataque"),
+            ("logins inválidos", r.logins_falhos, "text-yellow-400", "Senha ou código 2FA incorretos"),
+            ("páginas 404", r.nao_encontrado, "text-gray-300", "Endereços inexistentes solicitados"),
+        ] %}
+        <div class="sg-card p-4" title="{{ dica }}">
+            <p class="text-2xl font-bold {{ cor }}">{{ "{:,}".format(valor).replace(",", ".") }}</p>
+            <p class="text-gray-500 text-[11px] uppercase tracking-wider mt-1">{{ rotulo }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if cf %}
+    <div class="sg-card p-4 mb-6 overflow-hidden">
+        <h2 class="text-white font-bold mb-1"><i class="fa-brands fa-cloudflare text-orange-400 mr-2"></i>Cloudflare — últimos 7 dias</h2>
+        <p class="text-gray-500 text-[11px] mb-3">Totais da zona inteira (inclui os subdomínios). "Ameaças" = requisições barradas ou desafiadas na borda. Os bloqueios do site aparecem nos eventos como <span class="sg-badge sg-ataque">cloudflare_bloqueio</span>.</p>
+        <div class="overflow-x-auto"><table class="sg-tab w-full text-xs">
+            <thead><tr><th>dia</th><th class="text-right">requisições</th><th class="text-right">páginas vistas</th><th class="text-right">visitantes únicos</th><th class="text-right">ameaças</th><th class="text-right">em cache</th></tr></thead>
+            <tbody>{% for d in cf|reverse %}<tr><td class="text-gray-400">{{ d.data[8:10] }}/{{ d.data[5:7] }}</td><td class="text-right">{{ d.requisicoes }}</td><td class="text-right">{{ d.paginas }}</td><td class="text-right text-neon">{{ d.visitantes }}</td><td class="text-right {{ 'text-red-400 font-bold' if d.ameacas }}">{{ d.ameacas }}</td><td class="text-right text-gray-500">{{ (100 * d.cache / d.requisicoes)|round|int if d.requisicoes else 0 }}%</td></tr>{% endfor %}</tbody>
+        </table></div>
+    </div>
+    {% elif cf_erro %}
+    <div class="sg-card p-3 mb-6 text-xs text-yellow-400"><i class="fa-brands fa-cloudflare mr-1"></i>Cloudflare indisponível: {{ cf_erro }}</div>
+    {% endif %}
+
+    <div class="sg-card p-3 md:p-4 mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h2 class="text-white font-bold"><i class="fa-solid fa-earth-americas text-neon mr-2"></i>Origem dos acessos</h2>
+            <div class="flex flex-wrap gap-3 text-[11px] text-gray-400">
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#00ffcc] mr-1"></span>visitante</span>
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#3b82f6] mr-1"></span>robô</span>
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#ef4444] mr-1"></span>ataque / suspeito</span>
+                {% if r.sem_geo %}<span class="text-gray-600">({{ r.sem_geo }} IP(s) aguardando geolocalização)</span>{% endif %}
+            </div>
+        </div>
+        <div id="sg-mapa"></div>
+    </div>
+
+    <div class="sg-card p-4 mb-6">
+        <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-chart-column text-neon mr-2"></i>Acessos por {{ 'hora' if periodo == '24h' else 'dia' }} <span class="text-gray-600 text-xs font-normal">(UTC)</span></h2>
+        <div class="h-56"><canvas id="sg-grafico"></canvas></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="sg-card p-4">
+            <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-shield-halved text-red-400 mr-2"></i>Eventos de segurança</h2>
+            <table class="sg-tab w-full text-xs">
+                {% for tipo, info in eventos_info.items() %}
+                <tr><td><span class="sg-badge sg-{{ info[1] }}">{{ tipo }}</span><div class="text-gray-500 text-[10px] mt-0.5">{{ info[0] }}</div></td>
+                    <td class="text-right font-bold {{ 'text-red-400' if info[1] == 'ataque' and eventos_por_tipo.get(tipo) else 'text-gray-300' }}">{{ eventos_por_tipo.get(tipo, 0) }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="sg-card p-4 lg:col-span-2 overflow-hidden">
+            <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-list text-neon mr-2"></i>Eventos recentes</h2>
+            <div class="overflow-x-auto max-h-[430px] overflow-y-auto">
+                <table class="sg-tab w-full text-xs">
+                    <thead><tr><th>quando</th><th>tipo</th><th>IP</th><th>local</th><th>usuário / caminho</th></tr></thead>
+                    <tbody>
+                    {% for e in eventos %}{% set g = geos.get(e.ip) %}
+                    <tr>
+                        <td class="text-gray-500 whitespace-nowrap">{{ e.ts|brt("%d/%m %H:%M:%S") }}</td>
+                        <td><span class="sg-badge sg-{{ eventos_info.get(e.tipo, ('', 'info'))[1] }}">{{ e.tipo }}</span></td>
+                        <td><a class="sg-ip" href="/admin/seguranca/ip/{{ e.ip }}">{{ e.ip }}</a></td>
+                        <td class="whitespace-nowrap">{% if g %}{{ g.pais|bandeira }} {{ g.cidade or g.pais or '' }}{% else %}<span class="text-gray-600">…</span>{% endif %}</td>
+                        <td class="text-gray-400 break-all">{% if e.usuario %}<span class="text-yellow-400">{{ e.usuario }}</span> {% endif %}{{ e.caminho or '' }}{% if e.detalhe %} <span class="text-gray-600">· {{ e.detalhe }}</span>{% endif %}</td>
+                    </tr>
+                    {% else %}<tr><td colspan="5" class="text-gray-600">Nenhum evento no período.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="sg-card p-4 overflow-hidden">
+            <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-skull-crossbones text-red-400 mr-2"></i>IPs mais suspeitos</h2>
+            <div class="overflow-x-auto">
+                <table class="sg-tab w-full text-xs">
+                    <thead><tr><th>IP</th><th>local / provedor</th><th class="text-right">ataques</th></tr></thead>
+                    <tbody>
+                    {% for ip, n in ips_suspeitos %}{% set g = geos.get(ip) %}
+                    <tr><td><a class="sg-ip" href="/admin/seguranca/ip/{{ ip }}">{{ ip }}</a></td>
+                        <td>{% if g %}{{ g.pais|bandeira }} {{ g.cidade or g.pais_nome or g.pais or '' }}<div class="text-gray-600 text-[10px]">{{ g.org or '' }}</div>{% else %}<span class="text-gray-600">…</span>{% endif %}</td>
+                        <td class="text-right text-red-400 font-bold">{{ n }}</td></tr>
+                    {% else %}<tr><td colspan="3" class="text-gray-600">Nenhum ataque registrado no período.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="sg-card p-4 overflow-hidden">
+            <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-network-wired text-neon mr-2"></i>IPs com mais acessos</h2>
+            <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
+                <table class="sg-tab w-full text-xs">
+                    <thead><tr><th>IP</th><th>local</th><th>tipo</th><th class="text-right">acessos</th><th>último</th></tr></thead>
+                    <tbody>
+                    {% for t in top %}{% set g = geos.get(t.ip) %}{% set ataques = ev_por_ip.get(t.ip, 0) + (t.suspeitos or 0) %}
+                    <tr><td><a class="sg-ip" href="/admin/seguranca/ip/{{ t.ip }}">{{ t.ip }}</a></td>
+                        <td class="whitespace-nowrap">{% if g %}{{ g.pais|bandeira }} {{ g.cidade or g.pais or '' }}{% else %}<span class="text-gray-600">…</span>{% endif %}</td>
+                        <td>{% if ataques %}<span class="sg-badge sg-ataque">suspeito</span>{% elif t.robo %}<span class="sg-badge sg-info">{{ t.robo }}</span>{% else %}<span class="sg-badge sg-ok">visitante</span>{% endif %}</td>
+                        <td class="text-right">{{ t.hits }}</td>
+                        <td class="text-gray-500 whitespace-nowrap">{{ t.ultimo|brt("%d/%m %H:%M") }}</td></tr>
+                    {% else %}<tr><td colspan="5" class="text-gray-600">Sem acessos no período.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="sg-card p-4 mb-6 overflow-hidden">
+        <h2 class="text-white font-bold mb-1"><i class="fa-solid fa-robot text-accent mr-2"></i>Robôs e indexação</h2>
+        <p class="text-gray-500 text-[11px] mb-3">"Verificado" = DNS reverso confirmado no domínio oficial do buscador (ex.: googlebot.com). Robôs que se dizem Googlebot sem verificação são falsos.</p>
+        <div class="overflow-x-auto">
+            <table class="sg-tab w-full text-xs">
+                <thead><tr><th>robô</th><th>categoria</th><th class="text-right">acessos</th><th class="text-right">IPs</th><th>verificação</th><th>último acesso</th></tr></thead>
+                <tbody>
+                {% for b in robos %}
+                <tr><td class="text-white">{{ b.robo }}</td><td class="text-gray-400">{{ b.categoria }}</td>
+                    <td class="text-right">{{ b.hits }}</td><td class="text-right">{{ b.ips }}</td>
+                    <td>{% if b.verificados %}<span class="sg-badge sg-ok">{{ b.verificados }} verificado(s)</span> {% endif %}{% if b.falsos %}<span class="sg-badge sg-ataque">{{ b.falsos }} falso(s)</span>{% endif %}{% if not b.verificados and not b.falsos %}<span class="text-gray-600">-</span>{% endif %}</td>
+                    <td class="text-gray-500 whitespace-nowrap">{{ b.ultimo|brt("%d/%m %H:%M") }}</td></tr>
+                {% else %}<tr><td colspan="6" class="text-gray-600">Nenhum robô no período.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="sg-card p-4 overflow-hidden">
+            <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-file-lines text-neon mr-2"></i>Páginas mais vistas <span class="text-gray-600 text-xs font-normal">(pessoas)</span></h2>
+            <div class="overflow-x-auto"><table class="sg-tab w-full text-xs">
+                <thead><tr><th>página</th><th class="text-right">acessos</th><th class="text-right">IPs</th></tr></thead>
+                <tbody>{% for p in paginas %}<tr><td class="break-all"><a href="{{ p.caminho }}" target="_blank" class="text-gray-300 hover:text-neon">{{ p.caminho }}</a></td><td class="text-right">{{ p.hits }}</td><td class="text-right">{{ p.ips }}</td></tr>
+                {% else %}<tr><td colspan="3" class="text-gray-600">Sem dados.</td></tr>{% endfor %}</tbody>
+            </table></div>
+        </div>
+        <div class="sg-card p-4 overflow-hidden">
+            <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-ban text-yellow-400 mr-2"></i>Endereços inexistentes (404)</h2>
+            <div class="overflow-x-auto"><table class="sg-tab w-full text-xs">
+                <thead><tr><th>caminho</th><th class="text-right">acessos</th><th class="text-right">IPs</th></tr></thead>
+                <tbody>{% for p in nao_encontradas %}<tr><td class="break-all text-gray-300">{{ p.caminho }}</td><td class="text-right">{{ p.hits }}</td><td class="text-right">{{ p.ips }}</td></tr>
+                {% else %}<tr><td colspan="3" class="text-gray-600">Sem dados.</td></tr>{% endfor %}</tbody>
+            </table></div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="sg-card p-4 overflow-hidden">
+            <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-flag text-neon mr-2"></i>Países</h2>
+            <div class="overflow-x-auto"><table class="sg-tab w-full text-xs">
+                <thead><tr><th>país</th><th class="text-right">IPs</th><th class="text-right">acessos</th></tr></thead>
+                <tbody>{% for pais, nome, ips, hits in paises %}<tr><td>{{ pais|bandeira }} {{ nome or pais or 'desconhecido' }}</td><td class="text-right">{{ ips }}</td><td class="text-right">{{ hits }}</td></tr>
+                {% else %}<tr><td colspan="3" class="text-gray-600">Sem dados de geolocalização ainda.</td></tr>{% endfor %}</tbody>
+            </table></div>
+        </div>
+        <div class="sg-card p-4 overflow-hidden">
+            <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-link text-neon mr-2"></i>Sites de origem</h2>
+            <div class="overflow-x-auto"><table class="sg-tab w-full text-xs">
+                <thead><tr><th>origem</th><th class="text-right">acessos</th></tr></thead>
+                <tbody>{% for ref, hits in referers %}<tr><td class="break-all text-gray-300">{{ ref }}</td><td class="text-right">{{ hits }}</td></tr>
+                {% else %}<tr><td colspan="2" class="text-gray-600">Sem acessos vindos de outros sites.</td></tr>{% endfor %}</tbody>
+            </table></div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const serie = {{ serie|tojson }};
+    new Chart(document.getElementById('sg-grafico'), {
+        type: 'bar',
+        data: { labels: serie.rotulos.map(r => r.length > 10 ? r.slice(11) : r.slice(5)), datasets: [
+            { label: 'pessoas', data: serie.humanos, backgroundColor: '#00ffcc', stack: 'a' },
+            { label: 'robôs', data: serie.robos, backgroundColor: '#3b82f6', stack: 'a' },
+            { label: 'suspeitos', data: serie.suspeitos, backgroundColor: '#ef4444', stack: 'b' },
+        ]},
+        options: { responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { labels: { color: '#9ca3af', font: { family: 'Fira Code', size: 11 } } } },
+            scales: { x: { stacked: true, ticks: { color: '#6b7280', maxRotation: 0, autoSkip: true }, grid: { color: '#111827' } },
+                      y: { stacked: true, beginAtZero: true, ticks: { color: '#6b7280', precision: 0 }, grid: { color: '#111827' } } } }
+    });
+
+    const mapa = L.map('sg-mapa', { worldCopyJump: true, scrollWheelZoom: false }).setView([-14, -50], 3);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18, className: 'sg-tiles',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(mapa);
+    const cores = { visitante: '#00ffcc', robo: '#3b82f6', ataque: '#ef4444' };
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    fetch('/admin/seguranca/mapa.json?periodo={{ periodo }}').then(r => r.json()).then(({ pontos }) => {
+        const limites = [];
+        pontos.sort((a, b) => (a.tipo === 'ataque') - (b.tipo === 'ataque'));  // ataques por cima
+        pontos.forEach(p => {
+            const raio = Math.min(22, 4 + Math.sqrt(p.hits) * 1.6);
+            L.circleMarker([p.lat, p.lon], { radius: raio, color: cores[p.tipo], fillColor: cores[p.tipo], fillOpacity: .35, weight: 1.2 })
+                .bindPopup(`<a href="/admin/seguranca/ip/${esc(p.ip)}"><b>${esc(p.ip)}</b></a><br>${esc(p.local)}<br>`
+                    + `<span style="color:#9ca3af">${esc(p.org || '')}</span><br>${p.hits} acesso(s)`
+                    + (p.robo ? `<br>robô: ${esc(p.robo)}` : '') + (p.ataques ? `<br><span style="color:#f87171">${p.ataques} evento(s) de ataque</span>` : ''))
+                .addTo(mapa);
+            limites.push([p.lat, p.lon]);
+        });
+        if (limites.length > 1) mapa.fitBounds(limites, { padding: [30, 30], maxZoom: 5 });
+    });
+})();
+</script>
+{% endblock %}

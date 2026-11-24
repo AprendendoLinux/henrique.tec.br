@@ -2,6 +2,33 @@
 
 {% block title %}{{ pagina.nome }} | Base de Conhecimento{% endblock %}
 
+{% block descricao %}{{ pagina.resumo or pagina.nome }}{% endblock %}
+{% block og_tipo %}article{% endblock %}
+{% block og_extra %}{% if pagina.publicado %}<meta property="article:published_time" content="{{ pagina.publicado.isoformat() }}">{% endif %}
+    {% if pagina.atualizado %}<meta property="article:modified_time" content="{{ pagina.atualizado.isoformat() }}">{% endif %}
+    <meta property="article:author" content="Henrique Fagundes">
+    {% if pagina.capitulo %}<meta property="article:section" content="{{ pagina.capitulo }}">{% endif %}{% endblock %}
+{% block jsonld %}{%- set base = base_publica(request) -%}
+<script type="application/ld+json">{{ {
+    "@context": "https://schema.org",
+    "@graph": [
+        {"@type": "TechArticle", "@id": base ~ "conhecimento/" ~ pagina.slug ~ "#artigo",
+         "headline": pagina.nome[:110], "description": pagina.resumo or pagina.nome,
+         "url": base ~ "conhecimento/" ~ pagina.slug, "mainEntityOfPage": base ~ "conhecimento/" ~ pagina.slug,
+         "inLanguage": "pt-BR", "image": base ~ "static/social-card.jpg?v=2",
+         "datePublished": pagina.publicado.isoformat() if pagina.publicado else none,
+         "dateModified": (pagina.atualizado or pagina.publicado).isoformat() if (pagina.atualizado or pagina.publicado) else none,
+         "articleSection": pagina.capitulo, "wordCount": pagina.palavras,
+         "author": {"@id": base ~ "#henrique"}, "publisher": {"@id": base ~ "#henrique"},
+         "isPartOf": {"@id": base ~ "#site"}},
+        {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Início", "item": base},
+            {"@type": "ListItem", "position": 2, "name": "Base de Conhecimento", "item": base ~ "conhecimento"},
+            {"@type": "ListItem", "position": 3, "name": pagina.nome, "item": base ~ "conhecimento/" ~ pagina.slug}]}
+    ]
+}|tojson }}</script>
+{% endblock %}
+
 {% block head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

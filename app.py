@@ -19,9 +19,10 @@ from database import SessionLocal, engine
 from appsettings import store
 from deps import RedirectToLogin, site_context, templates
 from session import DynamicSessionMiddleware
+import monitor
 import wiki
-from routers import admin, auth, conhecimento, contact, public
-from security import decrypt_secret, encrypt_secret, get_password_hash, is_encrypted, validar_senha_forte
+from routers import admin, auth, conhecimento, contact, public, seguranca
+from security import client_ip, decrypt_secret, encrypt_secret, get_password_hash, is_encrypted, validar_senha_forte
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -94,6 +95,14 @@ async def lifespan(app: FastAPI):
     seed()
     if wiki.configurada():
         wiki.aquecer_indice()  # índice da busca da Base de Conhecimento pronto antes do primeiro visitante
+    if engine.dialect.name != "sqlite":
+        wiki.iniciar_atualizacao_periodica()  # novos artigos entram na busca e no IndexNow sem depender de visitas
+    monitor.iniciar()  # gravação de acessos/eventos e geolocalização em segundo plano
+    if engine.dialect.name != "sqlite":
+        import cloudflare
+        cloudflare.iniciar()  # bloqueios feitos pela Cloudflare (WAF/bots) entram nos eventos de segurança
+    import indexnow
+    indexnow.garantir_chave()
     yield
 
 
@@ -103,15 +112,44 @@ app = FastAPI(title="Henrique.tec.br", description="Infraestrutura e Sistemas", 
 app.add_middleware(DynamicSessionMiddleware, max_age=config.SESSION_MAX_AGE)
 
 
+class HeadComoGet:
+    """Responde HEAD como GET (sem corpo): robôs e monitores usam HEAD; o FastAPI responderia 405.
+    O servidor (uvicorn) vê o método original HEAD e não envia o corpo."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["method"] == "HEAD":
+            scope = dict(scope, method="GET")
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(HeadComoGet)
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
-    response = await call_next(request)
-    response.headers.setdefault("X-Content-Type-Options", "nosniff")
-    response.headers.setdefault("X-Frame-Options", "DENY")
-    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-    if request.url.path.startswith("/admin"):
-        response.headers["Cache-Control"] = "no-store"
-    return response
+    inicio = time.perf_counter()
+    status = 500
+    try:
+        response = await call_next(request)
+        status = response.status_code
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        if request.url.path.startswith("/admin"):
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["X-Robots-Tag"] = "noindex, nofollow"
+        return response
+    finally:
+        try:
+            monitor.registrar_acesso(
+                client_ip(request), request.method, request.url.path, status,
+                int((time.perf_counter() - inicio) * 1000), request.headers.get("user-agent"),
+                request.headers.get("referer"), monitor.geo_dos_cabecalhos(request.headers))
+        except Exception as exc:  # noqa: BLE001 - monitoramento nunca derruba o site
+            logging.getLogger(__name__).error("Monitor: %s", exc)
 
 
 mimetypes.add_type("image/webp", ".webp")  # imagens slim não trazem esse tipo
@@ -121,6 +159,7 @@ app.include_router(contact.router)
 app.include_router(conhecimento.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
+app.include_router(seguranca.router)
 
 
 @app.exception_handler(RedirectToLogin)

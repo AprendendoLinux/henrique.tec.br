@@ -32,6 +32,44 @@ def base_publica(request: Request) -> str:
 templates.env.globals["base_publica"] = base_publica
 
 
+def _brt(dt, fmt: str = "%d/%m/%Y %H:%M") -> str:
+    """Horário gravado em UTC (sem fuso) exibido no horário de Brasília."""
+    if not dt:
+        return "-"
+    from datetime import timedelta
+    return (dt - timedelta(hours=3)).strftime(fmt)
+
+
+templates.env.filters["brt"] = _brt
+
+
+def _links_perfil(contatos) -> list[str]:
+    """URLs públicas (https) dos perfis/redes do rodapé, para o sameAs do Schema.org."""
+    return [c.url for c in (contatos or []) if (c.url or "").startswith("https://")]
+
+
+def _seo_verificacao() -> dict:
+    """Códigos de verificação do Google Search Console e do Bing Webmaster (configurados no painel)."""
+    return {"google": cfg.GOOGLE_SITE_VERIFICATION, "bing": cfg.BING_SITE_VERIFICATION}
+
+
+templates.env.globals["links_perfil"] = _links_perfil
+templates.env.globals["seo_verificacao"] = _seo_verificacao
+
+
+def _bandeira(pais: str | None):
+    """Bandeira do país (imagem pequena; emojis de bandeira não aparecem no Windows)."""
+    from markupsafe import Markup
+    if not pais or len(pais) != 2 or not pais.isalpha():
+        return Markup('<i class="fa-solid fa-globe text-gray-600"></i>')
+    cod = pais.lower()
+    return Markup(f'<img class="sg-flag" src="https://flagcdn.com/16x12/{cod}.png" alt="{pais.upper()}" '
+                  f'title="{pais.upper()}" loading="lazy">')
+
+
+templates.env.filters["bandeira"] = _bandeira
+
+
 class RedirectToLogin(Exception):
     pass
 
@@ -83,8 +121,12 @@ def require_user(user=Depends(current_user_or_none)):
     return user
 
 
-def require_admin(user=Depends(require_user)):
+def require_admin(request: Request, user=Depends(require_user)):
     if not user.is_admin:
+        import monitor
+        from security import client_ip
+        monitor.registrar_evento(client_ip(request), "acesso_negado", user.username, request.url.path,
+                                 "Ação exclusiva de administrador")
         raise HTTPException(status_code=403, detail="Apenas o administrador pode executar esta ação.")
     return user
 
