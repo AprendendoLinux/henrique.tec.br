@@ -17,4 +17,5 @@ USER app
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--no-proxy-headers"]
+# Escuta em IPv6 e IPv4 na mesma porta (a rede echelon resolve os contêineres primeiro em IPv6)
+CMD ["python", "servidor.py"]
