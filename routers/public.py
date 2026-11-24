@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
 
 import models
 import wiki
-from database import get_db
+from database import SessionLocal
 from deps import get_site_context, templates
 
 router = APIRouter()
@@ -13,10 +12,11 @@ SERVICOS = set(SERVICOS_ORDEM)
 
 
 @router.get("/")
-def home(request: Request, db: Session = Depends(get_db), ctx: dict = Depends(get_site_context)):
-    return templates.TemplateResponse(
-        request, "index.html", {**ctx, "projetos": db.query(models.Projeto).order_by(models.Projeto.id.desc()).all()}
-    )
+def home(request: Request, ctx: dict = Depends(get_site_context)):
+    # sessão curta, aberta e fechada na mesma thread: a página não segura conexão enquanto renderiza
+    with SessionLocal() as db:
+        projetos = db.query(models.Projeto).order_by(models.Projeto.id.desc()).all()
+    return templates.TemplateResponse(request, "index.html", {**ctx, "projetos": projetos})
 
 
 @router.get("/servicos/{slug}")

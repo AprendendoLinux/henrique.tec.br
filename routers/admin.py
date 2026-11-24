@@ -70,6 +70,7 @@ def config_view() -> dict:
     view["proxies_ignorados"] = redes_ignoradas(store.get("trusted_proxies") or "")
     for n in ("cookie_secure", "recaptcha_enabled", "smtp_verify_tls", "indexnow_ativo"):
         view[n] = store.flag(n)
+    view["recaptcha_login"] = cfg.RECAPTCHA_LOGIN
     for n in SECRETS - {"secret_key"}:
         view[n + "_set"] = bool(store.get(n))
     return view
@@ -136,16 +137,18 @@ def config_telegram_bot(
 
 @router.post("/config/recaptcha", dependencies=admin_only)
 def config_recaptcha(
-    request: Request, recaptcha_enabled: str | None = Form(None), recaptcha_site_key: str = Form("", max_length=100),
+    request: Request, recaptcha_enabled: str | None = Form(None), recaptcha_login: str | None = Form(None),
+    recaptcha_site_key: str = Form("", max_length=100),
     recaptcha_secret: str = Form("", max_length=100), db: Session = Depends(get_db),
 ):
     site, segredo = recaptcha_site_key.strip(), recaptcha_secret.strip()
     if site and not RECAPTCHA_KEY_RE.match(site) or segredo and not RECAPTCHA_KEY_RE.match(segredo):
         raise HTTPException(status_code=400, detail="Chave do reCAPTCHA inválida.")
-    ativo = recaptcha_enabled == "on"
-    if ativo and (not site or not (segredo or store.get("recaptcha_secret"))):
+    formulario, login = recaptcha_enabled == "on", recaptcha_login == "on"
+    if (formulario or login) and (not site or not (segredo or store.get("recaptcha_secret"))):
         raise HTTPException(status_code=400, detail="Informe as duas chaves para ativar o reCAPTCHA.")
-    mapa = {"recaptcha_enabled": "true" if ativo else "false", "recaptcha_site_key": site}
+    mapa = {"recaptcha_enabled": "true" if formulario else "false", "recaptcha_login": "true" if login else "false",
+            "recaptcha_site_key": site}
     if segredo:
         mapa["recaptcha_secret"] = segredo
     store.save(db, mapa)

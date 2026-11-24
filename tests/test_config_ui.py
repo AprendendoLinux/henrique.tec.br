@@ -4,6 +4,8 @@ import database
 import models
 from appsettings import SECRETS, store
 from tests.conftest import ADMIN_PW, login_admin, post
+from fastapi.testclient import TestClient
+from app import app
 
 DASH = "/admin/dashboard"
 
@@ -132,3 +134,32 @@ def test_faixa_publica_em_proxies_de_confianca_e_ignorada_e_recusada(client, mon
     r = post(client, "/admin/config/rede", {"trusted_proxies": "10.0.0.0/8,192.168.171.0/2",
                                            "client_ip_headers": "cf-connecting-ip"}, page=DASH)
     assert r.status_code == 400
+
+
+def test_recaptcha_separado_para_login_e_formulario(client, monkeypatch):
+    from appsettings import cfg, store
+    for k in ("recaptcha_enabled", "recaptcha_login", "recaptcha_site_key", "recaptcha_secret"):
+        monkeypatch.setitem(store._v, k, store.get(k))
+    login_admin(client)
+    chave = "6Lc" + "A" * 37
+    r = post(client, "/admin/config/recaptcha", {"recaptcha_enabled": "on", "recaptcha_site_key": chave,
+                                                 "recaptcha_secret": chave}, page="/admin/dashboard")
+    assert r.status_code == 302 and cfg.ENABLE_RECAPTCHA and not cfg.RECAPTCHA_LOGIN
+    with TestClient(app) as anon:
+        assert "g-recaptcha" not in anon.get("/admin").text  # login sem reCAPTCHA
+        assert "g-recaptcha" in anon.get("/contato").text
+    post(client, "/admin/config/recaptcha", {"recaptcha_login": "on", "recaptcha_site_key": chave}, page="/admin/dashboard")
+    assert cfg.RECAPTCHA_LOGIN and not cfg.ENABLE_RECAPTCHA
+    with TestClient(app) as anon:
+        assert "g-recaptcha" in anon.get("/admin").text
+        assert "g-recaptcha" not in anon.get("/contato").text
+        r = post(anon, "/admin/login", {"username": "admin", "password": "x"}, page="/admin")
+        assert r.status_code == 401 and "Não sou um robô" in r.text
+    store._v["recaptcha_login"] = ""  # instalação antiga, sem a opção separada: segue o formulário
+    store._v["recaptcha_enabled"] = "true"
+    assert cfg.RECAPTCHA_LOGIN
+    db = database.SessionLocal()
+    try:  # devolve o banco de testes ao estado sem reCAPTCHA
+        store.save(db, {"recaptcha_enabled": "false", "recaptcha_login": "false", "recaptcha_site_key": "", "recaptcha_secret": ""})
+    finally:
+        db.close()

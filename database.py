@@ -26,7 +26,8 @@ def _build_engine():
         database=os.getenv("DB_NAME", "henriquetec"),
         query={"charset": "utf8mb4"},
     )
-    return create_engine(url, pool_pre_ping=True, pool_recycle=1800)
+    # 10 + 20 conexões no máximo (o MySQL aceita 151); espera curta: melhor um 503 rápido que uma fila de 30 s.
+    return create_engine(url, pool_pre_ping=True, pool_recycle=1800, pool_size=10, max_overflow=20, pool_timeout=10)
 
 
 engine = _build_engine()

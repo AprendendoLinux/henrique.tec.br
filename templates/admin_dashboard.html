@@ -24,15 +24,15 @@
     <div class="mb-6 px-4 py-3 rounded font-mono text-sm border {% if flash.ok %}border-green-500 text-green-400 bg-green-900/20{% else %}border-red-500 text-red-400 bg-red-900/20{% endif %}">{{ flash.msg }}</div>
     {% endif %}
 
-    <div class="flex space-x-2 border-b border-gray-800 mb-8 font-mono text-sm overflow-x-auto">
-        <button onclick="openTab('projetos')" id="btn-projetos" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Projetos Ativos</button>
-        <button onclick="openTab('contatos')" id="btn-contatos" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Contatos (Rodapé)</button>
-        <button onclick="openTab('usuarios')" id="btn-usuarios" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Usuários</button>
-        <button onclick="openTab('whatsapp')" id="btn-whatsapp" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">WhatsApp</button>
-        <button onclick="openTab('telegram')" id="btn-telegram" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Telegram</button>
-        <button onclick="openTab('config')" id="btn-config" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Configurações</button>
-        <button onclick="openTab('conta')" id="btn-conta" class="tab-btn px-6 py-3 text-gray-500 border-b-2 border-transparent transition">Minha Conta</button>
-        {% if is_admin %}<a href="/admin/seguranca" class="px-6 py-3 text-red-400 border-b-2 border-transparent hover:text-red-300 transition whitespace-nowrap"><i class="fa-solid fa-shield-halved mr-1"></i>Acessos &amp; Segurança</a>{% endif %}
+    <div class="flex flex-wrap gap-x-1 border-b border-gray-800 mb-8 font-mono text-sm">
+        <button onclick="openTab('projetos')" id="btn-projetos" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap" title="Projetos ativos">Projetos</button>
+        <button onclick="openTab('contatos')" id="btn-contatos" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap" title="Contatos do rodapé">Contatos</button>
+        <button onclick="openTab('usuarios')" id="btn-usuarios" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap">Usuários</button>
+        <button onclick="openTab('whatsapp')" id="btn-whatsapp" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap">WhatsApp</button>
+        <button onclick="openTab('telegram')" id="btn-telegram" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap">Telegram</button>
+        <button onclick="openTab('config')" id="btn-config" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap">Configurações</button>
+        <button onclick="openTab('conta')" id="btn-conta" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap">Minha Conta</button>
+        {% if is_admin %}<a href="/admin/seguranca" title="Acessos &amp; Segurança" class="px-4 py-3 text-red-400 border-b-2 border-transparent hover:text-red-300 transition whitespace-nowrap"><i class="fa-solid fa-shield-halved mr-1"></i>Segurança</a>{% endif %}
     </div>
 
     <div id="tab-projetos" class="tab-content hidden">
@@ -493,7 +493,8 @@
 {{ csrf_input(request) }}
                 <div><label class="block text-gray-400 text-xs font-mono mb-2">CHAVE DO SITE:</label><input type="text" name="recaptcha_site_key" maxlength="100" autocomplete="off" value="{{ c.recaptcha_site_key }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
                 <div><label class="block text-gray-400 text-xs font-mono mb-2">CHAVE SECRETA:</label><input type="password" name="recaptcha_secret" maxlength="100" autocomplete="new-password" placeholder="{% if c.recaptcha_secret_set %}Já definido — deixe em branco para manter{% else %}Não definido{% endif %}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition"></div>
-                <div class="md:col-span-2"><label class="flex items-center cursor-pointer text-gray-300 text-sm font-mono"><input type="checkbox" name="recaptcha_enabled" {% if c.recaptcha_enabled %}checked{% endif %} class="w-4 h-4 accent-neon mr-2">Exigir reCAPTCHA no login e no formulário de orçamento</label>
+                <div class="md:col-span-2 space-y-3"><label class="flex items-center cursor-pointer text-gray-300 text-sm font-mono"><input type="checkbox" name="recaptcha_login" {% if c.recaptcha_login %}checked{% endif %} class="w-4 h-4 accent-neon mr-2">Exigir reCAPTCHA na tela de login</label>
+                    <label class="flex items-center cursor-pointer text-gray-300 text-sm font-mono"><input type="checkbox" name="recaptcha_enabled" {% if c.recaptcha_enabled %}checked{% endif %} class="w-4 h-4 accent-neon mr-2">Exigir reCAPTCHA no formulário de orçamento</label>
                     <p class="text-gray-600 text-[11px] font-mono mt-2">Atenção: com chaves de outro domínio você pode ficar sem acesso. Recuperação: <code>docker compose exec app python manage.py disable-recaptcha</code></p></div>
                 <div class="md:col-span-2 text-right">
                     <button type="submit" class="px-6 py-2 bg-yellow-500 text-darkbg font-bold font-mono rounded hover:bg-white transition">&gt;_ SALVAR RECAPTCHA</button>

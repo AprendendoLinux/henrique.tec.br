@@ -38,7 +38,7 @@ def _redirect(url: str) -> RedirectResponse:
 def _login_page(request, ctx, status_code=200, erro_msg=None):
     return templates.TemplateResponse(
         request, "admin_login.html",
-        {**ctx, **recaptcha_context(), "erro": bool(erro_msg), "erro_msg": erro_msg},
+        {**ctx, **recaptcha_context(login=True), "erro": bool(erro_msg), "erro_msg": erro_msg},
         status_code=status_code,
     )
 
@@ -109,7 +109,7 @@ def login_post(
                                  "Limite de tentativas atingido")
         return _login_page(request, ctx, 429, "Muitas tentativas. Aguarde alguns minutos.")
 
-    erro = verify_recaptcha(recaptcha)
+    erro = verify_recaptcha(recaptcha, login=True)
     user = db.query(models.Usuario).filter(models.Usuario.username == username).first()
     senha_ok = verify_password(password, user.password_hash) if user else (verify_dummy(password) or False)
 

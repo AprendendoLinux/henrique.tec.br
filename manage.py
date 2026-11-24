@@ -29,7 +29,7 @@ def main(cmd: str) -> int:
             print("2FA do admin redefinido. Será reconfigurado no próximo login.")
         elif cmd == "disable-recaptcha":
             store.load(db)
-            store.save(db, {"recaptcha_enabled": "false"})
+            store.save(db, {"recaptcha_enabled": "false", "recaptcha_login": "false"})
             print("reCAPTCHA desativado.")
         else:
             print("Comandos: reset-admin-password | reset-admin-2fa | disable-recaptcha")

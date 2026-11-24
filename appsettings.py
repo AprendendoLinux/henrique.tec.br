@@ -20,6 +20,7 @@ DEFAULTS = {
     "trusted_proxies": DEFAULT_PROXIES,
     "client_ip_headers": DEFAULT_HEADERS,
     "recaptcha_enabled": "false",
+    "recaptcha_login": "",  # vazio = segue recaptcha_enabled (instalações anteriores)
     "recaptcha_site_key": "",
     "recaptcha_secret": "",
     "telegram_bot_token": "",
@@ -179,7 +180,12 @@ class Cfg:
     def CLIENT_IP_HEADERS(self):
         return [h.strip().lower() for h in (store.get("client_ip_headers") or DEFAULT_HEADERS).split(",") if h.strip()]
     @property
-    def ENABLE_RECAPTCHA(self): return store.flag("recaptcha_enabled")
+    def ENABLE_RECAPTCHA(self): return store.flag("recaptcha_enabled")  # formulário de orçamento
+    @property
+    def RECAPTCHA_LOGIN(self):
+        # Sem valor salvo (instalações anteriores à opção separada), o login segue o formulário.
+        valor = store.get("recaptcha_login")
+        return _truthy(valor) if valor else store.flag("recaptcha_enabled")
     @property
     def RECAPTCHA_SITE_KEY(self): return store.get("recaptcha_site_key")
     @property
