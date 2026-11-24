@@ -88,7 +88,7 @@ VARREDURA_RE = re.compile(
 )
 
 # Rotas que não entram no registro de acessos (ruído)
-IGNORAR_RE = re.compile(r"^/(static/|favicon\.ico$|conhecimento/busca$)")
+IGNORAR_RE = re.compile(r"^/(static/|favicon\.ico$|apple-touch-icon[\w-]*\.png$|conhecimento/busca$)")
 
 
 def identificar_robo(user_agent: str | None) -> str | None:

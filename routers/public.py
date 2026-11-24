@@ -40,6 +40,22 @@ def verificacao_google(codigo: str):
     return FileResponse(arquivo, media_type="text/html; charset=utf-8")
 
 
+@router.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    """Ícone na raiz: navegadores e buscadores pedem /favicon.ico diretamente."""
+    from fastapi.responses import FileResponse
+    return FileResponse("static/icones/favicon.ico", media_type="image/x-icon",
+                        headers={"Cache-Control": "public, max-age=604800"})
+
+
+@router.get("/apple-touch-icon.png", include_in_schema=False)
+@router.get("/apple-touch-icon-precomposed.png", include_in_schema=False)
+def apple_touch_icon():
+    from fastapi.responses import FileResponse
+    return FileResponse("static/icones/apple-touch-icon.png", media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=604800"})
+
+
 @router.get("/robots.txt")
 def robots(request: Request):
     return templates.TemplateResponse(request, "robots.txt", {}, media_type="text/plain")

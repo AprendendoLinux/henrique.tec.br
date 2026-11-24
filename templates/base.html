@@ -13,6 +13,11 @@
     {%- set descricao_pagina = self.descricao()|trim|striptags|truncate(160, true, '…', 0) %}
     <meta name="description" content="{{ descricao_pagina }}">
     <link rel="canonical" href="{{ url_canonica }}">
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" href="/static/icones/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/static/icones/site.webmanifest">
+    <meta name="theme-color" content="#050505">
     {% block robots %}<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">{% endblock %}
     {%- if seo_verificacao().google %}
     <meta name="google-site-verification" content="{{ seo_verificacao().google }}">{% endif %}

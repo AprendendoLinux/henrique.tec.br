@@ -153,6 +153,8 @@ async def security_headers(request: Request, call_next):
 
 
 mimetypes.add_type("image/webp", ".webp")  # imagens slim não trazem esse tipo
+mimetypes.add_type("application/manifest+json", ".webmanifest")
+mimetypes.add_type("image/svg+xml", ".svg")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(public.router)
 app.include_router(contact.router)
