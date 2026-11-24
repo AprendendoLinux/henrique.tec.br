@@ -1,0 +1,107 @@
+{#- E-mail do formulário de orçamento. Layout em tabelas e estilos inline (Gmail/Outlook ignoram <style> e CSS moderno). -#}
+{%- set neon = "#00ffcc" -%}
+{%- set mono = "'Fira Code','JetBrains Mono',Consolas,'Courier New',monospace" -%}
+{%- set sans = "Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" -%}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>{{ assunto }}</title>
+<style>
+  /* celular (Gmail, Apple Mail e Outlook mobile respeitam; os demais usam os estilos inline) */
+  @media only screen and (max-width: 480px) {
+    .m-cartao { padding: 22px 16px 18px 16px !important; }
+    .m-rotulo { width: 72px !important; padding: 10px 8px 10px 12px !important; }
+    .m-chave { width: 96px !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#050505;" bgcolor="#050505">
+<div style="display:none;max-height:0;overflow:hidden;color:#050505;">{{ nome }} · {{ servico }}{% if prazo %} · {{ prazo }}{% endif %} — {{ mensagem[:120] }}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#050505" style="background:#050505;">
+<tr><td align="center" style="padding:28px 12px;">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:640px;">
+
+  <!-- topo -->
+  <tr><td style="padding:0 4px 18px 4px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="font-family:{{ mono }};font-size:20px;font-weight:bold;color:{{ neon }};">~/henrique.tec.br<span style="color:#e5e5e5;">_</span></td>
+      <td align="right" style="font-family:{{ mono }};font-size:11px;color:#6b7280;">{{ quando }}</td>
+    </tr></table>
+  </td></tr>
+
+  <!-- cartão principal -->
+  <tr><td bgcolor="#0b0b0b" class="m-cartao" style="background:#0b0b0b;border:1px solid #1f2937;border-top:3px solid {{ neon }};border-radius:12px;padding:28px 28px 24px 28px;">
+    <div style="font-family:{{ mono }};font-size:11px;letter-spacing:1px;color:#050505;background:{{ neon }};display:inline-block;padding:3px 8px;border-radius:4px;">NOVO PEDIDO DE ORÇAMENTO</div>
+    <h1 style="margin:14px 0 4px 0;font-family:{{ mono }};font-size:24px;line-height:1.3;color:#ffffff;">{{ nome }}</h1>
+    <p style="margin:0 0 20px 0;font-family:{{ sans }};font-size:14px;color:#9ca3af;">quer conversar sobre <strong style="color:{{ neon }};">{{ servico }}</strong></p>
+
+    <!-- serviço e prazo -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;"><tr>
+      <td style="padding:0 8px 0 0;"><span style="font-family:{{ mono }};font-size:12px;color:{{ neon }};border:1px solid {{ neon }};border-radius:4px;padding:4px 10px;display:inline-block;">{{ servico }}</span></td>
+      {%- set cor_prazo = {"Urgente": "#f87171", "Até 1 mês": "#facc15"}.get(prazo, "#9ca3af") %}
+      <td><span style="font-family:{{ mono }};font-size:12px;color:{{ cor_prazo }};border:1px solid {{ cor_prazo }};border-radius:4px;padding:4px 10px;display:inline-block;">prazo: {{ prazo or "não informado" }}</span></td>
+    </tr></table>
+
+    <!-- contato -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#111111" style="background:#111111;border:1px solid #1f2937;border-radius:8px;">
+      {%- for rotulo, valor, link in [("Nome", nome, None), ("E-mail", email, "mailto:" ~ email), ("Telefone", telefone or "—", ("tel:" ~ tel_digitos) if tel_digitos else None)] %}
+      <tr>
+        <td width="90" class="m-rotulo" style="padding:12px 16px;{% if not loop.last %}border-bottom:1px solid #1f2937;{% endif %}font-family:{{ mono }};font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;vertical-align:top;">{{ rotulo }}</td>
+        <td style="padding:12px 16px;{% if not loop.last %}border-bottom:1px solid #1f2937;{% endif %}font-family:{{ sans }};font-size:15px;color:#e5e5e5;word-break:break-word;">{% if link %}<a href="{{ link }}" style="color:{{ neon }};text-decoration:none;">{{ valor }}</a>{% else %}{{ valor }}{% endif %}</td>
+      </tr>
+      {%- endfor %}
+    </table>
+
+    <!-- mensagem -->
+    <p style="margin:24px 0 8px 0;font-family:{{ mono }};font-size:12px;color:{{ neon }};">&gt;_ mensagem</p>
+    <div style="background:#111111;border-left:3px solid {{ neon }};border-radius:0 8px 8px 0;padding:16px 18px;font-family:{{ sans }};font-size:15px;line-height:1.6;color:#e5e5e5;white-space:pre-wrap;word-break:break-word;">{{ mensagem }}</div>
+
+    <!-- ações -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;"><tr>
+      <td style="padding:0 10px 10px 0;"><a href="mailto:{{ email }}?subject={{ ('Re: ' ~ assunto)|urlencode }}" style="display:inline-block;background:{{ neon }};color:#050505;font-family:{{ mono }};font-size:13px;font-weight:bold;text-decoration:none;padding:11px 18px;border-radius:6px;">&gt;_ RESPONDER</a></td>
+      {%- if whatsapp %}
+      <td style="padding:0 0 10px 0;"><a href="{{ whatsapp }}" style="display:inline-block;border:1px solid #25d366;color:#25d366;font-family:{{ mono }};font-size:13px;font-weight:bold;text-decoration:none;padding:10px 18px;border-radius:6px;">WHATSAPP</a></td>
+      {%- endif %}
+    </tr></table>
+  </td></tr>
+
+  <!-- origem (IP) -->
+  <tr><td style="padding-top:18px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0b0b0b" style="background:#0b0b0b;border:1px solid #1f2937;border-radius:12px;">
+      <tr><td style="padding:20px 24px 6px 24px;font-family:{{ mono }};font-size:14px;font-weight:bold;color:#ffffff;">Origem do envio</td></tr>
+      {%- for secao in ip_secoes %}
+      {%- if secao.titulo %}<tr><td style="padding:14px 24px 4px 24px;font-family:{{ mono }};font-size:11px;letter-spacing:1px;text-transform:uppercase;color:{{ neon }};">{{ secao.titulo }}</td></tr>{% endif %}
+      <tr><td style="padding:0 24px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        {%- for chave, valor in secao.linhas %}
+          <tr>
+            {%- if chave %}
+            <td width="130" class="m-chave" style="padding:5px 10px 5px 0;border-bottom:1px solid #151b24;font-family:{{ mono }};font-size:11px;color:#6b7280;vertical-align:top;">{{ chave }}</td>
+            <td style="padding:5px 0;border-bottom:1px solid #151b24;font-family:{{ mono }};font-size:12px;color:#d1d5db;word-break:break-word;">{% if chave == "Mapa" and valor.startswith("https://") %}<a href="{{ valor }}" style="color:{{ neon }};text-decoration:none;">abrir no Google Maps &#8599;</a>{% else %}{{ valor|linkar(neon) }}{% endif %}</td>
+            {%- else %}
+            <td colspan="2" style="padding:5px 0;border-bottom:1px solid #151b24;font-family:{{ mono }};font-size:12px;color:#d1d5db;word-break:break-word;">{{ valor|linkar(neon) }}</td>
+            {%- endif %}
+          </tr>
+        {%- endfor %}
+        </table>
+      </td></tr>
+      {%- endfor %}
+      <tr><td style="padding:14px 24px 20px 24px;font-family:{{ mono }};font-size:11px;color:#4b5563;word-break:break-word;">Cabeçalhos de proxy: {{ proxies }}</td></tr>
+    </table>
+  </td></tr>
+
+  <!-- rodapé -->
+  <tr><td align="center" style="padding:20px 8px 0 8px;font-family:{{ mono }};font-size:11px;line-height:1.6;color:#4b5563;">
+    Enviado pelo formulário de <a href="{{ site }}contato" style="color:#6b7280;">{{ site_nome }}/contato</a><br>
+    Responder a este e-mail vai direto para {{ email }}.
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

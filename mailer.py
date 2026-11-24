@@ -26,7 +26,7 @@ def smtp_configurado() -> bool:
 
 
 def montar_mensagem(assunto: str, corpo: str, reply_to: str | None = None,
-                    reply_to_nome: str | None = None) -> EmailMessage:
+                    reply_to_nome: str | None = None, html: str | None = None) -> EmailMessage:
     msg = EmailMessage()
     msg["From"] = formataddr((limpar_cabecalho(cfg.SMTP_FROM_NAME, 60), cfg.SMTP_FROM))
     msg["To"] = cfg.CONTACT_TO
@@ -34,12 +34,14 @@ def montar_mensagem(assunto: str, corpo: str, reply_to: str | None = None,
     if reply_to:
         msg["Reply-To"] = formataddr((limpar_cabecalho(reply_to_nome or "", 80), limpar_cabecalho(reply_to, 254)))
     msg.set_content(corpo)
+    if html:
+        msg.add_alternative(html, subtype="html")  # clientes sem HTML mostram o texto puro
     return msg
 
 
 def enviar_email(assunto: str, corpo: str, reply_to: str | None = None,
-                 reply_to_nome: str | None = None) -> None:
-    msg = montar_mensagem(assunto, corpo, reply_to, reply_to_nome)
+                 reply_to_nome: str | None = None, html: str | None = None) -> None:
+    msg = montar_mensagem(assunto, corpo, reply_to, reply_to_nome, html)
 
     contexto = ssl.create_default_context()
     if not cfg.SMTP_VERIFY_TLS:

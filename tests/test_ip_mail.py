@@ -73,3 +73,24 @@ def test_reply_to_nao_aceita_injecao_de_cabecalho():
     msg = mailer.montar_mensagem("a", "b", reply_to="x@y.com\r\nBcc: z@w.com", reply_to_nome="N\r\nBcc: q@q.com")
     assert "Bcc" not in msg
     assert "\n" not in str(msg["Reply-To"])
+
+
+def test_email_multipart_com_html_e_texto():
+    msg = mailer.montar_mensagem("[Orçamento] x", "corpo em texto", html="<p>corpo em html</p>")
+    assert msg.get_content_type() == "multipart/alternative"
+    tipos = [p.get_content_type() for p in msg.iter_parts()]
+    assert tipos == ["text/plain", "text/html"]
+    assert mailer.montar_mensagem("a", "só texto").get_content_type() == "text/plain"
+
+
+def test_secoes_do_ip_organizadas():
+    import email_orcamento
+    texto = ("IP público: 200.160.2.3 (IPv4)\nASN: AS64500  |  Domínio: x.net\n\nGeolocalização (aproximada):\n"
+             "  Cidade/Região: Rio / RJ\n  Mapa: https://www.google.com/maps?q=1,2\n\n"
+             "Reputação/tipo de conexão (ipapi.is):\n  rede móvel: não, VPN: SIM\n\nConsultar mais:\n  https://bgp.he.net/ip/x\n")
+    s = email_orcamento.secoes_ip(texto)
+    assert [x["titulo"] for x in s] == ["", "Geolocalização (aproximada)", "Reputação/tipo de conexão (ipapi.is)", "Consultar mais"]
+    assert s[0]["linhas"] == [("IP público", "200.160.2.3 (IPv4)"), ("ASN", "AS64500"), ("Domínio", "x.net")]
+    assert s[2]["linhas"] == [("rede móvel", "não"), ("VPN", "SIM")] and s[3]["linhas"] == [("", "https://bgp.he.net/ip/x")]
+    link = str(email_orcamento._linkar("ver https://a.example/?q=<b>"))
+    assert '<a href="https://a.example/?q=' in link and "<b>" not in link

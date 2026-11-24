@@ -6,10 +6,12 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 
 import ipinfo
+import email_orcamento
 import mailer
 import monitor
 import notify
-from deps import get_site_context, recaptcha_context, templates, verify_recaptcha
+from appsettings import cfg
+from deps import base_publica, get_site_context, recaptcha_context, templates, verify_recaptcha
 from security import EMAIL_RE, cadeia_proxies, client_ip, contact_limiter, csrf_protect
 
 logger = logging.getLogger(__name__)
@@ -109,7 +111,13 @@ def contato_post(
     entregue = False
     if mailer.smtp_configurado():
         try:
-            mailer.enviar_email(assunto, corpo, reply_to=email, reply_to_nome=nome)
+            try:
+                html = email_orcamento.montar(assunto, nome, email, telefone, servico, prazo, mensagem, detalhes,
+                                              cadeia_proxies(request), cfg.SITE_URL or base_publica(request))
+            except Exception as exc:  # noqa: BLE001 - sem o HTML, o pedido ainda chega em texto puro
+                logger.error("Falha ao montar o e-mail HTML do orçamento: %s", exc)
+                html = None
+            mailer.enviar_email(assunto, corpo, reply_to=email, reply_to_nome=nome, html=html)
             entregue = True
         except Exception as exc:
             logger.error("Falha ao enviar e-mail do orçamento: %s", exc)

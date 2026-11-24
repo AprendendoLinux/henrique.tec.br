@@ -40,7 +40,7 @@ def client():
 @pytest.fixture()
 def enviados(monkeypatch):
     caixa = []
-    monkeypatch.setattr(mailer, "enviar_email", lambda a, c, reply_to=None, reply_to_nome=None: caixa.append((a, c, reply_to)))
+    monkeypatch.setattr(mailer, "enviar_email", lambda a, c, reply_to=None, reply_to_nome=None, html=None: caixa.append((a, c, reply_to, html)))
     return caixa
 
 

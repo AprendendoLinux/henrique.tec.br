@@ -33,9 +33,24 @@ def test_envio_valido(client, enviados, monkeypatch):
     r = client.post("/contato", data={**VALIDO, "csrf_token": csrf_from(page.text)})
     assert r.status_code == 303
     assert len(enviados) == 1
-    assunto, corpo, reply_to = enviados[0]
+    assunto, corpo, reply_to, html = enviados[0]
     assert assunto.startswith("[Orçamento]") and reply_to == "maria@exemplo.com"
     assert "migrar meu servidor" in corpo
+    # versão HTML no tema do site, com tudo organizado
+    assert html.startswith("<!DOCTYPE html>") and "~/henrique.tec.br" in html and "#00ffcc" in html
+    for trecho in ("Maria Silva", 'href="mailto:maria@exemplo.com"', "Servidores Linux", "prazo: Urgente",
+                   "Preciso migrar meu servidor de e-mail.", 'href="https://wa.me/5521999990000"', "Origem do envio"):
+        assert trecho in html, trecho
+
+
+def test_email_html_escapa_o_conteudo_do_visitante(client, enviados, monkeypatch):
+    page = client.get("/contato")
+    liberar_tempo(client, monkeypatch)
+    dados = {**VALIDO, "nome": 'Eve <script>alert(1)</script>', "mensagem": 'Olá <img src=x onerror=alert(1)>\nlinha 2'}
+    assert client.post("/contato", data={**dados, "csrf_token": csrf_from(page.text)}).status_code == 303
+    html = enviados[0][3]
+    assert "<script>alert" not in html and "<img src=x" not in html
+    assert "Eve &lt;script&gt;" in html and "&lt;img src=x onerror=alert(1)&gt;" in html
 
 
 def test_envio_rapido_demais_rejeitado(client, enviados):
