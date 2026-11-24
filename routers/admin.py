@@ -11,7 +11,7 @@ import mailer
 import models
 import notify
 import wiki
-from appsettings import SECRETS, cfg, store
+from appsettings import SECRETS, cfg, rede_interna, redes_ignoradas, store
 from database import get_db
 from deps import admin_guard, require_admin, templates
 from security import (
@@ -67,6 +67,7 @@ def config_view() -> dict:
              "site_url", "google_site_verification", "bing_site_verification", "indexnow_ativo", "indexnow_key",
              "indexnow_ultimo", "cf_zone_id", "cf_ultima_sync")
     view = {n: store.get(n) for n in nomes}
+    view["proxies_ignorados"] = redes_ignoradas(store.get("trusted_proxies") or "")
     for n in ("cookie_secure", "recaptcha_enabled", "smtp_verify_tls", "indexnow_ativo"):
         view[n] = store.flag(n)
     for n in SECRETS - {"secret_key"}:
@@ -267,7 +268,9 @@ def config_rede(
         raise HTTPException(status_code=400, detail="Máximo de 50 redes.")
     try:
         for rede in redes:
-            ipaddress.ip_network(rede, strict=False)
+            if not rede_interna(ipaddress.ip_network(rede, strict=False)):
+                raise HTTPException(status_code=400, detail=f"'{rede}' é uma faixa pública: proxies de confiança "
+                                                            "devem ser redes internas (ex.: 192.168.0.0/16, fc00::/7).")
     except ValueError:
         raise HTTPException(status_code=400, detail="Rede/CIDR inválido em 'Proxies de confiança'.")
     cabecalhos = [h.strip().lower() for h in client_ip_headers.split(",") if h.strip()]

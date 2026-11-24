@@ -118,3 +118,17 @@ def test_segredos_nunca_aparecem_na_pagina(client):
         valor = store.get(chave)
         if valor:
             assert valor not in html
+
+
+def test_faixa_publica_em_proxies_de_confianca_e_ignorada_e_recusada(client, monkeypatch):
+    from appsettings import store
+    monkeypatch.setitem(store._v, "trusted_proxies", "127.0.0.0/8,172.16.0.0/12,192.168.171.0/2")
+    from security import client_ip
+    from starlette.requests import Request
+    req = Request({"type": "http", "client": ("172.18.0.5", 1), "headers": [(b"cf-connecting-ip", b"200.160.9.1")]})
+    assert client_ip(req) == "200.160.9.1"  # 192.0.0.0/2 (pública) não é mais tratada como proxy
+    login_admin(client)
+    assert "192.168.171.0/2</b>" in client.get(DASH).text  # aviso no painel
+    r = post(client, "/admin/config/rede", {"trusted_proxies": "10.0.0.0/8,192.168.171.0/2",
+                                           "client_ip_headers": "cf-connecting-ip"}, page=DASH)
+    assert r.status_code == 400

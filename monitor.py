@@ -170,28 +170,37 @@ def processar_fila() -> int:
             acessos.append(dados)
         elif tipo == "evento":
             eventos.append(dados)
-        elif tipo == "geo":
-            geos[dados["ip"]] = dados
+        elif tipo == "geo":  # combina os dados do mesmo IP (ex.: localização da Cloudflare + provedor/DNS reverso)
+            atual = geos.setdefault(dados["ip"], {})
+            atual.update({k: v for k, v in dados.items() if v is not None})
     if not (acessos or eventos or geos):
         return 0
     db = SessionLocal()
     try:
-        if acessos:
-            db.bulk_insert_mappings(models.Acesso, acessos)
-        if eventos:
-            db.bulk_insert_mappings(models.EventoSeguranca, eventos)
+        # 1) acessos e eventos numa transação própria: uma falha na geolocalização nunca descarta registros
+        if acessos or eventos:
+            try:
+                if acessos:
+                    db.bulk_insert_mappings(models.Acesso, acessos)
+                if eventos:
+                    db.bulk_insert_mappings(models.EventoSeguranca, eventos)
+                db.commit()
+            except Exception as exc:  # noqa: BLE001 - monitoramento nunca derruba o site
+                db.rollback()
+                logger.error("Monitor: falha ao gravar %s acesso(s)/%s evento(s) (%s)", len(acessos), len(eventos), exc)
+        # 2) geolocalização: cada IP isolado
         for ip, dados in geos.items():
-            atual = db.get(models.IpGeo, ip)
-            if atual is None:
-                db.add(models.IpGeo(**dados))
-            else:
-                for k, v in dados.items():
-                    if v is not None:
+            try:
+                atual = db.get(models.IpGeo, ip)
+                if atual is None:
+                    db.add(models.IpGeo(**{"atualizado": _agora(), **dados}))
+                else:
+                    for k, v in dados.items():
                         setattr(atual, k, v)
-        db.commit()
-    except Exception as exc:  # noqa: BLE001 - monitoramento nunca derruba o site
-        db.rollback()
-        logger.error("Monitor: falha ao gravar lote (%s)", exc)
+                db.commit()
+            except Exception as exc:  # noqa: BLE001
+                db.rollback()
+                logger.error("Monitor: falha ao gravar geolocalização de %s (%s)", ip, exc)
     finally:
         db.close()
     return len(acessos) + len(eventos) + len(geos)

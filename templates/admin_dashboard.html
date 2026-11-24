@@ -560,7 +560,8 @@
             <form action="/admin/config/rede" method="POST" class="grid grid-cols-1 gap-6">
 {{ csrf_input(request) }}
                 <div><label class="block text-gray-400 text-xs font-mono mb-2">PROXIES DE CONFIANÇA (CIDRs separados por vírgula) — só eles podem informar o IP real do visitante:</label>
-                    <textarea name="trusted_proxies" rows="2" maxlength="2000" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">{{ c.trusted_proxies }}</textarea></div>
+                    <textarea name="trusted_proxies" rows="2" maxlength="2000" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">{{ c.trusted_proxies }}</textarea>
+                    {% if c.proxies_ignorados %}<p class="text-red-400 text-[11px] font-mono mt-2">[!] Ignorado(s) por ser faixa pública ou inválida: <b>{{ c.proxies_ignorados|join(", ") }}</b>. Remova da lista e salve.</p>{% endif %}</div>
                 <div><label class="block text-gray-400 text-xs font-mono mb-2">CABEÇALHOS PARA O IP DO VISITANTE (em ordem de prioridade):</label>
                     <input type="text" name="client_ip_headers" maxlength="200" value="{{ c.client_ip_headers }}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
                     <p class="text-gray-600 text-[11px] font-mono mt-1">Permitidos: cf-connecting-ip, true-client-ip, x-real-ip, x-forwarded-for</p></div>
