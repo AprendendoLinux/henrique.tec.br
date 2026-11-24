@@ -117,7 +117,7 @@
         // Busca: o filtro pelo título é instantâneo; em seguida o servidor responde com os artigos que
         // contêm as palavras no conteúdo (com um trecho destacado), e a lista é atualizada.
         let conteudo = null;  // null = sem resposta do servidor para a consulta atual; senão Map(slug -> trecho)
-        let consultaAtual = '', temporizador = null, controle = null;
+        let consultaAtual = '', temporizador = null, controle = null, pendente = false;
         const slugDe = el => el.getAttribute('href').split('/').pop();
         const status = document.getElementById('kb-status');
 
@@ -126,7 +126,8 @@
             consultaAtual = q; conteudo = null;
             if (controle) controle.abort();
             clearTimeout(temporizador);
-            if (norm(q).length < 2) { status.classList.add('hidden'); return; }
+            pendente = norm(q).length >= 2;
+            if (!pendente) { status.classList.add('hidden'); return; }
             status.textContent = 'buscando também no conteúdo dos artigos…'; status.classList.remove('hidden');
             temporizador = setTimeout(() => {
                 controle = new AbortController();
@@ -134,10 +135,10 @@
                     .then(r => r.ok ? r.json() : Promise.reject(r.status))
                     .then(d => {
                         if (q !== consultaAtual) return;
-                        conteudo = new Map(d.resultados.map(x => [x.slug, x.trecho]));
+                        conteudo = new Map(d.resultados.map(x => [x.slug, x.trecho])); pendente = false;
                         status.classList.add('hidden'); pagina = 1; render();
                     })
-                    .catch(e => { if (e && e.name === 'AbortError') return; status.textContent = 'busca no conteúdo indisponível; mostrando resultados pelo título.'; });
+                    .catch(e => { if (e && e.name === 'AbortError') return; pendente = false; render(); status.textContent = 'busca no conteúdo indisponível; mostrando resultados pelo título.'; });
             }, 250);
         }
 
@@ -157,7 +158,7 @@
             itens.forEach(el => el.classList.add('hidden'));
             visiveis.forEach(el => { lista.appendChild(el); el.classList.toggle('hidden', !daPagina.has(el)); });
             document.getElementById('kb-total').textContent = visiveis.length;
-            document.getElementById('kb-vazio').classList.toggle('hidden', visiveis.length > 0);
+            document.getElementById('kb-vazio').classList.toggle('hidden', visiveis.length > 0 || pendente);
 
             botoes.forEach(b => {
                 const on = b.dataset.ordem === ordem;
