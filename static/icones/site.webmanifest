@@ -1,0 +1,16 @@
+{
+  "name": "Henrique Fagundes | Soluções em Tecnologia",
+  "short_name": "henrique.tec.br",
+  "description": "Infraestrutura, Segurança, Redes e Desenvolvimento.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "lang": "pt-BR",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    {"src": "/static/icones/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/static/icones/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "/static/icones/favicon.svg", "sizes": "any", "type": "image/svg+xml"}
+  ]
+}

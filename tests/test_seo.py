@@ -123,3 +123,18 @@ def test_head_responde_como_get(client):
         r = client.head(caminho)
         assert r.status_code == 200 and r.headers["content-type"].startswith(tipo), caminho
     assert client.head("/nao-existe").status_code == 404
+
+
+def test_icones_do_site(client):
+    html = client.get("/").text
+    for tag in ('<link rel="icon" href="/favicon.ico" sizes="48x48">', '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
+                '<link rel="manifest" href="/static/icones/site.webmanifest">', '<meta name="theme-color" content="#050505">'):
+        assert tag in html
+    ico = client.get("/favicon.ico")
+    assert ico.status_code == 200 and ico.headers["content-type"] == "image/x-icon" and ico.content[:4] == b"\x00\x00\x01\x00"
+    apple = client.get("/apple-touch-icon.png")
+    assert apple.status_code == 200 and apple.content[:8] == b"\x89PNG\r\n\x1a\n"
+    assert client.get("/static/icones/favicon.svg").headers["content-type"].startswith("image/svg+xml")
+    manifesto = client.get("/static/icones/site.webmanifest")
+    assert manifesto.headers["content-type"].startswith("application/manifest+json")
+    assert {i["sizes"] for i in manifesto.json()["icons"]} == {"192x192", "512x512", "any"}
