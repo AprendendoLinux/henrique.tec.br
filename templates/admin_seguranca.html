@@ -10,6 +10,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
     .sg-card { background: rgba(255,255,255,.02); border: 1px solid #1f2937; border-radius: .75rem; }
+    /* Lista que ocupa toda a altura do cartão (a altura vem do cartão vizinho na mesma linha) */
+    .sg-encher { position: relative; flex: 1 1 auto; min-height: 420px; }
+    .sg-encher > .sg-rolar { position: absolute; inset: 0; overflow-y: auto; }
+    .sg-rolar .sg-tab thead th { position: sticky; top: 0; z-index: 1; background: #0a0a0a; }
+    @media (max-width: 1023px) {  /* cartões empilhados: altura fixa com rolagem */
+        .sg-encher { min-height: 0; }
+        .sg-encher > .sg-rolar { position: static; max-height: 430px; }
+    }
     .sg-tab th { text-align: left; font-weight: 600; color: #9ca3af; padding: .5rem .6rem; border-bottom: 1px solid #1f2937; white-space: nowrap; }
     .sg-tab td { padding: .45rem .6rem; border-bottom: 1px solid #111827; vertical-align: top; }
     .sg-tab tr:hover td { background: rgba(0,255,204,.03); }
@@ -105,9 +113,9 @@
                 {% endfor %}
             </table>
         </div>
-        <div class="sg-card p-4 lg:col-span-2 overflow-hidden">
+        <div class="sg-card p-4 lg:col-span-2 overflow-hidden flex flex-col">
             <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-list text-neon mr-2"></i>Eventos recentes</h2>
-            <div class="overflow-x-auto max-h-[430px] overflow-y-auto pr-1">
+            <div class="sg-encher"><div class="sg-rolar overflow-x-auto pr-1">
                 <table class="sg-tab w-full text-xs">
                     <thead><tr><th>quando</th><th>tipo</th><th>IP</th><th>local</th><th>usuário / caminho</th></tr></thead>
                     <tbody>
@@ -122,7 +130,7 @@
                     {% else %}<tr><td colspan="5" class="text-gray-600">Nenhum evento no período.</td></tr>{% endfor %}
                     </tbody>
                 </table>
-            </div>
+            </div></div>
         </div>
     </div>
 
@@ -142,9 +150,9 @@
                 </table>
             </div>
         </div>
-        <div class="sg-card p-4 overflow-hidden">
+        <div class="sg-card p-4 overflow-hidden flex flex-col">
             <h2 class="text-white font-bold mb-3"><i class="fa-solid fa-network-wired text-neon mr-2"></i>IPs com mais acessos</h2>
-            <div class="max-h-[420px] overflow-y-auto overflow-x-hidden pr-1">
+            <div class="sg-encher"><div class="sg-rolar overflow-x-hidden pr-1">
                 <table class="sg-tab w-full text-xs">
                     <thead><tr><th>IP</th><th>local</th><th class="text-right">acessos</th></tr></thead>
                     <tbody>
@@ -156,7 +164,7 @@
                     {% else %}<tr><td colspan="3" class="text-gray-600">Sem acessos no período.</td></tr>{% endfor %}
                     </tbody>
                 </table>
-            </div>
+            </div></div>
         </div>
     </div>
 
