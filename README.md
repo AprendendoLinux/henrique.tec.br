@@ -37,6 +37,7 @@ Identidade visual "Terminal/Hacker" com Glassmorphism, backend FastAPI, configur
 * **Eventos de segurança:** varreduras de vulnerabilidades (`/wp-login.php`, `/.env`, `/.git`...), login e 2FA inválidos ou bloqueados, CSRF inválido, acesso negado, spam e bloqueio do formulário, login/logout.
 * **Mapa** (Leaflet + OpenStreetMap) com a origem dos acessos, gráfico por hora/dia, IPs mais suspeitos e mais ativos, robôs de busca com **verificação por DNS reverso** (detecta Googlebot falso), páginas mais vistas, 404, países e sites de origem; página de detalhe por IP.
 * Geolocalização com cache: cabeçalhos de localização da Cloudflare quando disponíveis, senão ipwho.is (uma consulta por IP). Registros mantidos por 90 dias; gravação assíncrona, sem atrasar o site.
+* **Cloudflare (opcional, somente leitura):** com um token *Zona:Ler + Análise:Ler*, os bloqueios feitos na borda (WAF gerenciado, verificação de navegador, desafios) entram como eventos `cloudflare_bloqueio` a cada 5 minutos, e o painel mostra o resumo diário da zona (requisições, ameaças, visitantes). Token criptografado nas configurações.
 
 ### 🔒 Back-end e Painel Admin (`/admin`)
 * **Autenticação:** sessão em cookie assinado (HttpOnly, SameSite, Secure automático em HTTPS), senhas com `bcrypt` e **2FA (TOTP) obrigatório para todos os usuários**, inclusive o admin. Segredos TOTP armazenados criptografados.

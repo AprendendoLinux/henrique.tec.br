@@ -148,9 +148,14 @@ def registrar_acesso(ip: str, metodo: str, caminho: str, status: int, ms: int, u
 
 
 def registrar_evento(ip: str, tipo: str, usuario: str | None = None, caminho: str | None = None,
-                     detalhe: str | None = None) -> None:
-    _enfileirar("evento", {"ts": _agora(), "ip": ip[:45], "tipo": tipo[:30], "usuario": (usuario or None) and usuario[:50],
+                     detalhe: str | None = None, ts: datetime | None = None) -> None:
+    _enfileirar("evento", {"ts": ts or _agora(), "ip": ip[:45], "tipo": tipo[:30], "usuario": (usuario or None) and usuario[:50],
                            "caminho": (caminho or None) and caminho[:300], "detalhe": (detalhe or None) and detalhe[:300]})
+
+
+def solicitar_geo(ip: str) -> None:
+    """Pede a geolocalização de um IP que não passou pelo site (ex.: bloqueado na Cloudflare)."""
+    _geo_solicitar(ip, None)
 
 
 def processar_fila() -> int:

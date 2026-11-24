@@ -15,6 +15,7 @@ router = APIRouter(prefix="/admin", dependencies=[Depends(admin_guard), Depends(
 
 PERIODOS = {"24h": 24, "7d": 24 * 7, "30d": 24 * 30, "90d": 24 * 90}
 EVENTOS = {
+    "cloudflare_bloqueio": ("Bloqueado pela Cloudflare (WAF, bots, desafios)", "ataque"),
     "varredura": ("Varredura de vulnerabilidades", "ataque"),
     "login_falha": ("Login com credenciais inválidas", "ataque"),
     "login_bloqueado": ("Login bloqueado por excesso de tentativas", "ataque"),
@@ -175,8 +176,15 @@ def pagina(request: Request, periodo: str = Query("24h"), user=Depends(admin_gua
     if periodo not in PERIODOS:
         periodo = "24h"
     dados = painel(db, periodo)
+    import cloudflare
+    cf, cf_erro = None, None
+    if cloudflare.configurado():
+        try:
+            cf = cloudflare.resumo_diario(7)
+        except Exception as exc:  # noqa: BLE001 - o painel funciona sem a Cloudflare
+            cf_erro = str(exc)[:160]
     return templates.TemplateResponse(request, "admin_seguranca.html", {
-        **dados, "eventos_info": EVENTOS, "periodos": list(PERIODOS), "current_user": user.username,
+        **dados, "cf": cf, "cf_erro": cf_erro, "eventos_info": EVENTOS, "periodos": list(PERIODOS), "current_user": user.username,
         "robo_confirmado": monitor.robo_confirmado, "categoria": monitor.CATEGORIA,
     })
 

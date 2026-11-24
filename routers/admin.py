@@ -65,7 +65,7 @@ def config_view() -> dict:
              "telegram_chat_id", "smtp_host", "smtp_port", "smtp_security", "smtp_user", "smtp_from",
              "smtp_from_name", "smtp_verify_tls", "contact_to", "wiki_url", "wiki_api_url", "wiki_book_slug", "wiki_token_id",
              "site_url", "google_site_verification", "bing_site_verification", "indexnow_ativo", "indexnow_key",
-             "indexnow_ultimo")
+             "indexnow_ultimo", "cf_zone_id", "cf_ultima_sync")
     view = {n: store.get(n) for n in nomes}
     for n in ("cookie_secure", "recaptcha_enabled", "smtp_verify_tls", "indexnow_ativo"):
         view[n] = store.flag(n)
@@ -217,6 +217,29 @@ def config_seo(
                     "bing_site_verification": _codigo_verificacao(bing_site_verification),
                     "indexnow_ativo": "true" if indexnow_ativo == "on" else "false"})
     return _flash(request, True, "Configurações de SEO salvas.")
+
+
+CF_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{30,80}$")
+
+
+@router.post("/config/cloudflare", dependencies=admin_only)
+def config_cloudflare(request: Request, cf_token: str = Form("", max_length=100), remover: str | None = Form(None),
+                      db: Session = Depends(get_db)):
+    import cloudflare
+    if remover == "1":
+        store.save(db, {"cf_token": "", "cf_zone_id": "", "cf_ultimo_evento": "", "cf_ultima_sync": ""})
+        return _flash(request, True, "Integração com a Cloudflare removida.")
+    token = cf_token.strip()
+    if token:
+        if not CF_TOKEN_RE.match(token):
+            raise HTTPException(status_code=400, detail="Token da Cloudflare inválido.")
+        store.save(db, {"cf_token": token, "cf_zone_id": ""})
+    if not cloudflare.configurado():
+        return _flash(request, False, "Informe o token da Cloudflare.")
+    try:
+        return _flash(request, True, cloudflare.testar())
+    except Exception as exc:  # noqa: BLE001
+        return _flash(request, False, f"Token salvo, mas a Cloudflare respondeu: {str(exc)[:160]}")
 
 
 @router.post("/config/indexnow-reenviar", dependencies=admin_only)

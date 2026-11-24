@@ -98,6 +98,9 @@ async def lifespan(app: FastAPI):
     if engine.dialect.name != "sqlite":
         wiki.iniciar_atualizacao_periodica()  # novos artigos entram na busca e no IndexNow sem depender de visitas
     monitor.iniciar()  # gravação de acessos/eventos e geolocalização em segundo plano
+    if engine.dialect.name != "sqlite":
+        import cloudflare
+        cloudflare.iniciar()  # bloqueios feitos pela Cloudflare (WAF/bots) entram nos eventos de segurança
     import indexnow
     indexnow.garantir_chave()
     yield

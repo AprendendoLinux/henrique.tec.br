@@ -541,6 +541,20 @@
             </form>
         </div>
 
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-8 border-l-2 border-l-orange-500">
+            <h2 class="text-xl font-bold text-white mb-2 border-l-2 border-orange-500 pl-3">Cloudflare (somente leitura)</h2>
+            <p class="text-gray-500 text-xs font-mono mb-6">Mostra em <a href="/admin/seguranca" class="text-neon underline">Acessos &amp; Segurança</a> os bloqueios feitos pela Cloudflare (WAF, bots, desafios) e o resumo diário da zona. Token com permissões <b>Zona:Ler</b> e <b>Análise:Ler</b>, restrito à zona do site.</p>
+            <form action="/admin/config/cloudflare" method="POST" class="grid grid-cols-1 gap-4">
+{{ csrf_input(request) }}
+                <div><label class="block text-gray-400 text-xs font-mono mb-2">TOKEN DE API:</label><input type="password" name="cf_token" maxlength="100" autocomplete="new-password" placeholder="{% if c.cf_token_set %}Já definido — deixe em branco para manter{% else %}Não definido{% endif %}" class="w-full bg-[#111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-neon transition">
+                    <p class="text-gray-600 text-[11px] font-mono mt-1">Zona: {{ c.cf_zone_id[:8] ~ '…' if c.cf_zone_id else 'descoberta no primeiro teste' }} · Última sincronização: {{ c.cf_ultima_sync or 'nenhuma ainda' }} (a cada 5 min)</p></div>
+                <div class="flex flex-wrap justify-end gap-3">
+                    {% if c.cf_token_set %}<button type="submit" name="remover" value="1" class="px-4 py-2 border border-red-500 text-red-400 font-mono text-xs rounded hover:bg-red-500 hover:text-white transition">Remover integração</button>{% endif %}
+                    <button type="submit" class="px-6 py-2 bg-orange-500 text-darkbg font-bold font-mono rounded hover:bg-white transition">&gt;_ SALVAR E TESTAR</button>
+                </div>
+            </form>
+        </div>
+
         <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-purple-500">
             <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-purple-500 pl-3">Rede e Segurança</h2>
             <form action="/admin/config/rede" method="POST" class="grid grid-cols-1 gap-6">
