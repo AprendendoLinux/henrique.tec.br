@@ -1,5 +1,6 @@
 """E-mail (HTML no tema do site + texto puro) do formulário de orçamento."""
 import re
+import urllib.parse
 from datetime import datetime, timedelta, timezone
 
 from markupsafe import Markup, escape
@@ -56,12 +57,25 @@ def _whatsapp(telefone: str) -> str | None:
     return f"https://wa.me/{digitos}" if len(digitos) >= 12 else None
 
 
+CITACAO_MAX = 1500  # caracteres da mensagem citada no link (URLs mailto muito longas são cortadas pelos clientes)
+
+
+def link_resposta(assunto: str, nome: str, email: str, mensagem: str, quando: str) -> str:
+    """mailto: de resposta com assunto "Re: ..." e a mensagem do cliente citada abaixo, como numa resposta comum."""
+    texto = mensagem if len(mensagem) <= CITACAO_MAX else mensagem[:CITACAO_MAX].rstrip() + "…"
+    citacao = "\n".join("> " + linha if linha else ">" for linha in texto.replace("\r\n", "\n").split("\n"))
+    corpo = f"\n\n\nEm {quando}, {nome} <{email}> escreveu:\n{citacao}\n"
+    q = lambda v: urllib.parse.quote(v, safe="")  # noqa: E731 - espaços como %20 e quebras como %0D%0A
+    return f"mailto:{q(email).replace('%40', '@')}?subject={q('Re: ' + assunto)}&body={q(corpo.replace(chr(10), chr(13) + chr(10)))}"
+
+
 def montar(assunto: str, nome: str, email: str, telefone: str, servico: str, prazo: str, mensagem: str,
            detalhes_ip: str, proxies: str, site: str) -> str:
     site = site.rstrip("/") + "/"
+    quando = datetime.now(BRT).strftime("%d/%m/%Y %H:%M")
     return templates.get_template("email/orcamento.html").render(
         assunto=assunto, nome=nome, email=email, telefone=telefone, servico=servico, prazo=prazo,
         mensagem=mensagem, proxies=proxies, ip_secoes=secoes_ip(detalhes_ip),
         tel_digitos=re.sub(r"[^\d+]", "", telefone or ""), whatsapp=_whatsapp(telefone),
-        quando=datetime.now(BRT).strftime("%d/%m/%Y %H:%M"), site=site,
+        quando=quando, site=site, resposta=link_resposta(assunto, nome, email, mensagem, quando),
         site_nome=site.split("://", 1)[-1].rstrip("/"))

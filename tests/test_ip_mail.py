@@ -94,3 +94,22 @@ def test_secoes_do_ip_organizadas():
     assert s[2]["linhas"] == [("rede móvel", "não"), ("VPN", "SIM")] and s[3]["linhas"] == [("", "https://bgp.he.net/ip/x")]
     link = str(email_orcamento._linkar("ver https://a.example/?q=<b>"))
     assert '<a href="https://a.example/?q=' in link and "<b>" not in link
+
+
+def test_responder_traz_a_mensagem_citada():
+    import urllib.parse
+    import email_orcamento
+    link = email_orcamento.link_resposta("[Orçamento] Linux - Maria", "Maria", "maria@exemplo.com",
+                                         "Olá Henrique,\n\nPreciso migrar & configurar o servidor?", "27/11/2026 22:44")
+    destino, _, query = link.partition("?")
+    assert destino == "mailto:maria@exemplo.com"
+    q = urllib.parse.parse_qs(query)
+    assert q["subject"] == ["Re: [Orçamento] Linux - Maria"]
+    corpo = q["body"][0]
+    assert "Em 27/11/2026 22:44, Maria <maria@exemplo.com> escreveu:\r\n> Olá Henrique,\r\n>\r\n> Preciso migrar & configurar o servidor?" in corpo
+    assert corpo.startswith("\r\n\r\n\r\n")  # espaço para a resposta acima da citação
+    longa = email_orcamento.link_resposta("a", "b", "c@d.com", "x" * 5000, "agora")
+    assert len(longa) < 5000 and "%E2%80%A6" in longa  # citação cortada com reticências
+    html = email_orcamento.montar("[Orçamento] Linux - Maria", "Maria", "maria@exemplo.com", "", "Servidores Linux", "",
+                                  "Mensagem <b>teste</b>", "IP: x", "-", "https://henrique.tec.br/")
+    assert 'href="mailto:maria@exemplo.com?subject=Re%3A%20' in html and "&amp;body=" in html and "<b>teste</b>" not in html
