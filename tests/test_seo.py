@@ -79,6 +79,7 @@ def test_chave_do_indexnow_publicada(client, monkeypatch):
 
 def test_indexnow_envia_tudo_na_primeira_vez_e_depois_so_diferencas(monkeypatch, wiki_on):
     enviados = []
+    monkeypatch.setenv("SITE_AMBIENTE", "producao")
     monkeypatch.setattr(indexnow, "enviar", lambda urls: (enviados.append(list(urls)), (True, "HTTP 200"))[1])
     monkeypatch.setattr(indexnow, "_salvar", lambda mapa: store._v.update(mapa))
     for k, v in {"indexnow_ativo": "true", "indexnow_estado": "", "site_url": "https://henrique.tec.br",
@@ -180,3 +181,10 @@ def test_contexto_publico_em_cache_e_atualizado_ao_salvar_no_painel(client):
         db.close()
         import deps
         deps.limpar_contexto()
+
+
+def test_indexnow_nunca_envia_fora_da_producao(monkeypatch):
+    import urllib.request
+    monkeypatch.setattr(urllib.request, "urlopen", lambda *a, **k: (_ for _ in ()).throw(AssertionError("chamou a rede")))
+    monkeypatch.setenv("SITE_AMBIENTE", "teste")
+    assert indexnow.enviar(["https://henrique.tec.br/"]) == (False, "fora da produção: nada enviado")

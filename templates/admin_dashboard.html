@@ -32,6 +32,7 @@
         <button onclick="openTab('telegram')" id="btn-telegram" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap">Telegram</button>
         <button onclick="openTab('config')" id="btn-config" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap">Configurações</button>
         <button onclick="openTab('conta')" id="btn-conta" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap">Minha Conta</button>
+        {% if is_admin %}<button onclick="openTab('mensagens')" id="btn-mensagens" title="Pedidos do formulário de orçamento" class="tab-btn px-4 py-3 text-gray-500 border-b-2 border-transparent transition whitespace-nowrap">Mensagens{% if em_quarentena %} <span class="ml-1 px-1.5 py-0.5 rounded bg-yellow-500 text-black text-[10px] font-bold" title="{{ em_quarentena }} em quarentena">{{ em_quarentena }}</span>{% endif %}</button>{% endif %}
         {% if is_admin %}<a href="/admin/seguranca" title="Acessos &amp; Segurança" class="px-4 py-3 text-red-400 border-b-2 border-transparent hover:text-red-300 transition whitespace-nowrap"><i class="fa-solid fa-shield-halved mr-1"></i>Segurança</a>{% endif %}
     </div>
 
@@ -577,6 +578,59 @@
 {% endif %}
     </div>
 
+{% if is_admin %}
+    <style>.msg-card .sg-flag { display: inline-block; vertical-align: -1px; width: 16px; height: 12px; }</style>
+    <div id="tab-mensagens" class="tab-content hidden">
+        <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-neon">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+                <h2 class="text-xl font-bold text-white border-l-2 border-neon pl-3">Pedidos de Orçamento</h2>
+                <div class="flex gap-2 font-mono text-xs">
+                    <button type="button" onclick="filtrarMensagens('todas')" id="fm-todas" class="fm-btn px-3 py-1.5 rounded border border-neon text-neon">Todas ({{ mensagens|length }})</button>
+                    <button type="button" onclick="filtrarMensagens('quarentena')" id="fm-quarentena" class="fm-btn px-3 py-1.5 rounded border border-gray-700 text-gray-400">Quarentena ({{ em_quarentena }})</button>
+                </div>
+            </div>
+            <p class="text-gray-500 text-xs font-mono mb-6">Pedidos suspeitos (pontuação ≥ 4: IP de datacenter/VPN, links, termos de spam, alfabeto estrangeiro, e-mail descartável…) não geram notificação: ficam aqui em <span class="text-yellow-400">quarentena</span>. <b>Liberar</b> envia por e-mail e Telegram na hora. Últimos 100 pedidos.</p>
+            {% if em_quarentena %}
+            <form action="/admin/mensagens/limpar-quarentena" method="POST" class="mb-6" onsubmit="return confirm('Excluir as {{ em_quarentena }} mensagens da quarentena?');">{{ csrf_input(request) }}
+                <button type="submit" class="px-3 py-1.5 text-xs font-mono rounded border border-red-500/60 text-red-400 hover:bg-red-500 hover:text-white transition"><i class="fa-solid fa-trash mr-1"></i>Excluir toda a quarentena</button>
+            </form>
+            {% endif %}
+            <div class="space-y-4">
+            {% for m in mensagens %}
+            {% set cor = {"quarentena": "border-yellow-500 text-yellow-400", "entregue": "border-green-600 text-green-400", "liberada": "border-sky-500 text-sky-400", "falha": "border-red-500 text-red-400"}.get(m.status, "border-gray-600 text-gray-400") %}
+            <div class="msg-card rounded-lg border {% if m.status == 'quarentena' %}border-yellow-500/40 bg-yellow-500/[0.03]{% else %}border-gray-800 bg-[#0b0b0b]{% endif %} p-4" data-status="{{ m.status }}">
+                <div class="flex flex-wrap items-start justify-between gap-2">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2 font-mono text-xs mb-1">
+                            <span class="px-2 py-0.5 rounded border {{ cor }}">{{ m.status }}</span>
+                            <span class="text-gray-500">{{ m.ts|brt }}</span>
+                            <span class="text-neon">{{ m.servico }}</span>{% if m.prazo %}<span class="text-gray-400">· {{ m.prazo }}</span>{% endif %}
+                        </div>
+                        <div class="text-white font-semibold [overflow-wrap:anywhere]">{{ m.nome }}</div>
+                        <div class="text-sm font-mono [overflow-wrap:anywhere]"><a href="mailto:{{ m.email }}" class="text-neon hover:underline">{{ m.email }}</a>{% if m.telefone %} <span class="text-gray-400">· {{ m.telefone }}</span>{% endif %}</div>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        {% if m.status in ("quarentena", "falha") %}
+                        <form action="/admin/mensagens/{{ m.id }}/liberar" method="POST">{{ csrf_input(request) }}<button type="submit" class="px-3 py-1.5 text-xs font-mono font-bold rounded bg-neon text-darkbg hover:bg-white transition"><i class="fa-solid fa-paper-plane mr-1"></i>Liberar</button></form>
+                        {% endif %}
+                        <form action="/admin/mensagens/{{ m.id }}/excluir" method="POST" onsubmit="return confirm('Excluir esta mensagem?');">{{ csrf_input(request) }}<button type="submit" class="px-3 py-1.5 text-xs font-mono rounded border border-red-500/60 text-red-400 hover:bg-red-500 hover:text-white transition" title="Excluir"><i class="fa-solid fa-trash"></i></button></form>
+                    </div>
+                </div>
+                <p class="mt-3 text-sm text-gray-300 whitespace-pre-wrap [overflow-wrap:anywhere] max-h-40 overflow-y-auto pr-1">{{ m.mensagem }}</p>
+                <div class="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-gray-500">
+                    <span><i class="fa-solid fa-globe mr-1"></i><a href="/admin/seguranca/ip/{{ m.ip }}" class="text-neon hover:underline">{{ m.ip }}</a>{% if m.pais %} {{ m.pais|bandeira }}{% endif %} {{ m.cidade or '' }}{% if m.org %} · {{ m.org }}{% endif %}</span>
+                    <span class="{% if m.pontuacao >= 4 %}text-yellow-400{% endif %}">pontuação {{ m.pontuacao }}{% if m.motivos %}: {{ m.motivos }}{% endif %}</span>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-gray-600 font-mono text-sm">Nenhum pedido recebido ainda.</p>
+            {% endfor %}
+            <p id="msg-vazio" class="hidden text-gray-600 font-mono text-sm">Nenhuma mensagem em quarentena. 🎉</p>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
     <div id="tab-conta" class="tab-content hidden">
         <div class="glass-card p-6 md:p-8 rounded-xl mb-10 border-l-2 border-l-neon">
             <h2 class="text-xl font-bold text-white mb-6 border-l-2 border-neon pl-3">Alterar Minha Senha ({{ current_user }})</h2>
@@ -595,7 +649,24 @@
 </div>
 
 <script>
+    function filtrarMensagens(filtro) {
+        let visiveis = 0;
+        document.querySelectorAll('.msg-card').forEach(c => {
+            const mostrar = filtro === 'todas' || c.dataset.status === filtro;
+            c.classList.toggle('hidden', !mostrar);
+            if (mostrar) visiveis++;
+        });
+        const vazio = document.getElementById('msg-vazio');
+        if (vazio) vazio.classList.toggle('hidden', visiveis > 0 || filtro === 'todas');
+        document.querySelectorAll('.fm-btn').forEach(b => {
+            const ativo = b.id === 'fm-' + filtro;
+            b.classList.toggle('border-neon', ativo); b.classList.toggle('text-neon', ativo);
+            b.classList.toggle('border-gray-700', !ativo); b.classList.toggle('text-gray-400', !ativo);
+        });
+    }
+
     function openTab(tabName) {
+        if (!document.getElementById('tab-' + tabName)) tabName = 'projetos';
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.add('hidden');
             tab.classList.remove('block');

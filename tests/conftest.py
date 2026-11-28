@@ -10,6 +10,7 @@ os.environ.update({
     "SMTP_HOST": "smtp.teste.local",
     "SMTP_FROM": "site@teste.local",
     "CONTACT_TO": "dest@teste.local",
+    "SITE_AMBIENTE": "teste",  # nunca envia nada de verdade ao IndexNow durante os testes
 })
 
 import pytest
@@ -33,7 +34,14 @@ def csrf_from(html: str) -> str:
 def client():
     security.login_limiter._hits.clear()
     security.contact_limiter._hits.clear()
+    import antispam
+    antispam.limpar()
     with TestClient(app, follow_redirects=False) as c:
+        import database
+        import models
+        with database.SessionLocal() as db:  # castigo do campo-isca de um teste não vaza para o seguinte
+            db.query(models.EventoSeguranca).filter_by(tipo="spam_formulario").delete()
+            db.commit()
         yield c
 
 

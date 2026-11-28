@@ -47,6 +47,9 @@ def dashboard(request: Request, user=Depends(admin_guard), db: Session = Depends
         "c": config_view() if is_admin else {},
         "wp_config": db.query(models.WhatsappConfig).first(),
         "tg_config": db.query(models.TelegramConfig).first(),
+        "mensagens": db.query(models.MensagemContato).order_by(models.MensagemContato.ts.desc(), models.MensagemContato.id.desc()).limit(100).all()
+        if is_admin else [],
+        "em_quarentena": db.query(models.MensagemContato).filter_by(status="quarentena").count() if is_admin else 0,
         "current_user": user.username,
         "is_admin": is_admin,
         "version": config.APP_VERSION,
@@ -545,3 +548,31 @@ def edit_usuario_post(
         usuario.password_hash = get_password_hash(password)
         db.commit()
     return _back()
+
+
+# --- Mensagens do formulário (histórico e quarentena) ---
+@router.post("/mensagens/{mid}/liberar", dependencies=admin_only)
+def liberar_mensagem(request: Request, mid: int, db: Session = Depends(get_db)):
+    from routers.contact import entregar
+    m = _get_or_404(db, models.MensagemContato, mid)
+    if m.status not in ("quarentena", "falha"):
+        return _flash(request, False, "Esta mensagem já foi entregue.")
+    if not entregar(m, str(request.base_url)):
+        return _flash(request, False, "Não foi possível entregar agora (e-mail e Telegram falharam).")
+    m.status = "liberada"
+    db.commit()
+    return _flash(request, True, f"Mensagem de {m.nome} liberada e entregue por e-mail/Telegram.")
+
+
+@router.post("/mensagens/{mid}/excluir", dependencies=admin_only)
+def excluir_mensagem(request: Request, mid: int, db: Session = Depends(get_db)):
+    db.delete(_get_or_404(db, models.MensagemContato, mid))
+    db.commit()
+    return _flash(request, True, "Mensagem excluída.")
+
+
+@router.post("/mensagens/limpar-quarentena", dependencies=admin_only)
+def limpar_quarentena(request: Request, db: Session = Depends(get_db)):
+    n = db.query(models.MensagemContato).filter_by(status="quarentena").delete()
+    db.commit()
+    return _flash(request, True, f"{n} mensagem(ns) da quarentena excluída(s).")

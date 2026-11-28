@@ -1,6 +1,7 @@
 import ipaddress
 import json
 import logging
+import re
 import socket
 import time
 import urllib.request
@@ -12,7 +13,6 @@ TIMEOUT_GLOBAL = 7
 TIMEOUT_HTTP = 5
 TIMEOUT_DNS = 3
 CACHE_TTL = 3600
-_cache: dict[str, tuple[float, str]] = {}
 _pool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="ipinfo")
 
 
@@ -172,21 +172,17 @@ def eh_publico(ip: str) -> bool:
         return False
 
 
-def detalhes_ip(ip: str) -> str:
-    try:
-        endereco = ipaddress.ip_address(ip)
-    except ValueError:
-        return f"IP: {ip} (formato inválido)"
-    familia = "IPv6" if endereco.version == 6 else "IPv4"
-    if not endereco.is_global:
-        return (f"IP da conexão: {ip} ({familia}) — NÃO é público (rede local/Docker/proxy sem cabeçalho confiável). "
-                "Consultas externas não realizadas.")
+_cache_dados: dict[str, tuple[float, dict]] = {}
 
+
+def consultar(ip: str) -> dict | None:
+    """Dados brutos das consultas (ptr, who, apis, rdap), em cache por CACHE_TTL. None se o IP não for público."""
+    if not eh_publico(ip):
+        return None
     agora = time.monotonic()
-    em_cache = _cache.get(ip)
+    em_cache = _cache_dados.get(ip)
     if em_cache and agora - em_cache[0] < CACHE_TTL:
         return em_cache[1]
-
     tarefas = {
         "ptr": _pool.submit(_reverso, ip), "who": _pool.submit(_ipwho, ip),
         "apis": _pool.submit(_ipapi_is, ip), "rdap": _pool.submit(_rdap, ip),
@@ -199,10 +195,56 @@ def detalhes_ip(ip: str) -> str:
         except Exception as exc:
             logger.warning("Consulta de IP '%s' falhou: %s", nome, type(exc).__name__)
             r[nome] = None
-
-    texto = "\n".join(_linhas(ip, familia, r["ptr"], r["who"], r["apis"], r["rdap"]))
     if any(r.values()):
-        _cache[ip] = (agora, texto)
-        if len(_cache) > 500:
-            _cache.pop(next(iter(_cache)))
-    return texto
+        _cache_dados[ip] = (agora, r)
+        if len(_cache_dados) > 500:
+            _cache_dados.pop(next(iter(_cache_dados)))
+    return r
+
+
+# A ipapi.is gratuita (sem chave) não informa mais is_datacenter/is_vpn: o tipo da rede é deduzido do nome do
+# provedor e do DNS reverso.
+_HOSPEDAGEM = re.compile(
+    r"\b(hosting|hosted|hospedagem|vds|vps|dedicated|servers?|cloud|data ?cent(er|re)|colo(cation)?|amazon|aws|google llc|"
+    r"microsoft|azure|digitalocean|ovh|hetzner|linode|akamai|vultr|choopa|contabo|leaseweb|m247|scaleway|oracle|"
+    r"alibaba|tencent|huawei cloud|ionos|hostinger|kamatera|hostwinds|cdn77|datacamp|g-?core|psychz|quadranet|"
+    r"frantech|buyvm|xorek|aeza|stark industries|pq hosting|serverius|worldstream|nforce|hivelocity|vdsina|selectel|"
+    r"timeweb|firstbyte|ihor|servinga|ipxo|packethub|tzulo|clouvider|cogent)\b", re.I)
+_PTR_HOSPEDAGEM = re.compile(r"(hosted-by|\bvps|\bvds|dedicated|cloud|server|\.compute\.|amazonaws|googleusercontent)", re.I)
+
+
+def eh_hospedagem(*nomes: str, ptr: str = "") -> bool:
+    """Provedor de hospedagem/datacenter pelo nome (organização, ISP, domínio) ou pelo DNS reverso."""
+    return any(_HOSPEDAGEM.search(n) for n in nomes if n) or bool(ptr and _PTR_HOSPEDAGEM.search(ptr))
+
+
+def indicadores(ip: str) -> dict:
+    """Resumo para a pontuação de spam e o Telegram: país, cidade, provedor e tipo de conexão."""
+    r = consultar(ip) or {}
+    who, apis = r.get("who") or {}, r.get("apis") or {}
+    con = who.get("connection") or {}
+    empresa = apis.get("company") if isinstance(apis.get("company"), dict) else {}
+    return {
+        "pais": who.get("country_code") or (r.get("rdap") or {}).get("country") or "",
+        "cidade": who.get("city") or "",
+        "org": con.get("org") or con.get("isp") or empresa.get("name") or "",
+        "datacenter": bool(apis.get("is_datacenter")) or empresa.get("type") == "hosting" or eh_hospedagem(
+            con.get("org") or "", con.get("isp") or "", con.get("domain") or "", empresa.get("name") or "",
+            apis.get("company") if isinstance(apis.get("company"), str) else "",
+            apis.get("asn") if isinstance(apis.get("asn"), str) else "", ptr=(r.get("ptr") or {}).get("ptr", "")),
+        "vpn": bool(apis.get("is_vpn")), "proxy": bool(apis.get("is_proxy")), "tor": bool(apis.get("is_tor")),
+        "abuso": bool(apis.get("is_abuser")), "consultado": bool(apis or who),
+    }
+
+
+def detalhes_ip(ip: str) -> str:
+    try:
+        endereco = ipaddress.ip_address(ip)
+    except ValueError:
+        return f"IP: {ip} (formato inválido)"
+    familia = "IPv6" if endereco.version == 6 else "IPv4"
+    if not endereco.is_global:
+        return (f"IP da conexão: {ip} ({familia}) — NÃO é público (rede local/Docker/proxy sem cabeçalho confiável). "
+                "Consultas externas não realizadas.")
+    r = consultar(ip)
+    return "\n".join(_linhas(ip, familia, r["ptr"], r["who"], r["apis"], r["rdap"]))

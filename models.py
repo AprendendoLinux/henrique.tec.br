@@ -88,3 +88,25 @@ class IpGeo(Base):
     rdns = Column(String(255), nullable=True)
     fonte = Column(String(20), nullable=True)
     atualizado = Column(DateTime, nullable=False)
+
+
+class MensagemContato(Base):
+    """Pedidos do formulário de orçamento. Os suspeitos ficam em quarentena (sem notificação) até serem revisados."""
+    __tablename__ = "mensagens_contato"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ts = Column(DateTime, nullable=False, index=True)
+    status = Column(String(12), nullable=False, index=True)  # entregue | quarentena | liberada | falha
+    nome = Column(String(100), nullable=False)
+    email = Column(String(254), nullable=False)
+    telefone = Column(String(30), nullable=True)
+    servico = Column(String(60), nullable=False)
+    prazo = Column(String(30), nullable=True)
+    mensagem = Column(Text, nullable=False)
+    ip = Column(String(45), nullable=False, index=True)
+    pais = Column(String(2), nullable=True)
+    cidade = Column(String(80), nullable=True)
+    org = Column(String(120), nullable=True)
+    pontuacao = Column(Integer, nullable=False, default=0)
+    motivos = Column(String(500), nullable=True)
+    detalhes_ip = Column(Text, nullable=True)
+    proxies = Column(String(500), nullable=True)
