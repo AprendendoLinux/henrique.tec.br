@@ -38,6 +38,7 @@ def test_envio_valido(client, enviados, monkeypatch):
     assert "migrar meu servidor" in corpo
     # versão HTML no tema do site, com tudo organizado
     assert html.startswith("<!DOCTYPE html>") and "~/henrique.tec.br" in html and "#00ffcc" in html
+    assert "static/email/logo.png" in html and client.get("/static/email/logo.png").content[:8] == b"\x89PNG\r\n\x1a\n"
     for trecho in ("Maria Silva", 'href="mailto:maria@exemplo.com"', "Servidores Linux", "prazo: Urgente",
                    "Preciso migrar meu servidor de e-mail.", 'href="https://wa.me/5521999990000"', "Origem do envio"):
         assert trecho in html, trecho

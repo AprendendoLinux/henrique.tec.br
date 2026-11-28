@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<!-- Fonte do logo do e-mail (static/email/logo.png). Mesmo estilo de .hk-logo em templates/base.html.
+     Gerar: design/gerar_logo_email.sh (renderiza num contêiner com o Puppeteer). -->
+<html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=block" rel="stylesheet">
+<style>
+  html, body { margin: 0; background: transparent; }
+  #logo { display: inline-block; padding: 14px 18px; font-family: "JetBrains Mono", monospace; font-weight: 700;
+          font-size: 22px; color: #00ffcc; letter-spacing: -0.01em; white-space: nowrap;
+          text-shadow: 0 0 18px rgba(0, 255, 204, 0.35); }
+  .tilde { opacity: .85; }
+</style></head>
+<body><span id="logo"><span class="tilde">~/</span>henrique.tec.br<span>_</span></span></body></html>
