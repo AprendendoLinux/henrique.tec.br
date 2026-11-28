@@ -24,7 +24,8 @@ EVENTOS = {
     "csrf_invalido": ("Requisição sem token CSRF válido", "ataque"),
     "acesso_negado": ("Acesso negado (exige administrador)", "alerta"),
     "spam_formulario": ("Spam no formulário (campo-isca)", "alerta"),
-    "formulario_bloqueado": ("Formulário bloqueado por excesso de envios", "alerta"),
+    "formulario_bloqueado": ("Formulário bloqueado (excesso de envios ou reincidente)", "alerta"),
+    "formulario_quarentena": ("Pedido suspeito enviado para a quarentena", "alerta"),
     "login_ok": ("Login realizado", "info"),
     "logout": ("Logout", "info"),
 }

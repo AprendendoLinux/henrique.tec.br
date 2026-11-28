@@ -56,7 +56,7 @@ def test_detalhes_ip_formata_campos(monkeypatch):
         "events": [{"eventAction": "registration", "eventDate": "2015-01-02T00:00:00Z"}],
         "entities": [{"roles": ["abuse"], "vcardArray": ["vcard", [["fn", {}, "text", "Abuse X"], ["email", {}, "text", "abuse@x.net"]]]}],
     })
-    ipinfo._cache.clear()
+    ipinfo._cache_dados.clear()
     txt = ipinfo.detalhes_ip("200.160.2.3")
     for esperado in ("IPv4", "host.exemplo.net", "Provedor X", "AS64500", "Rio de Janeiro", "-22.9, -43.2",
                      "200.160.0.0/24", "abuse@x.net", "datacenter/hospedagem: SIM", "abuseipdb.com/check/200.160.2.3"):

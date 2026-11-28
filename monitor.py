@@ -213,6 +213,8 @@ def limpar_antigos(db=None) -> None:
         limite = _agora() - timedelta(days=RETENCAO_DIAS)
         db.execute(delete(models.Acesso).where(models.Acesso.ts < limite))
         db.execute(delete(models.EventoSeguranca).where(models.EventoSeguranca.ts < limite))
+        db.execute(delete(models.MensagemContato).where(models.MensagemContato.ts < limite,
+                                                        models.MensagemContato.status == "quarentena"))
         db.commit()
     except Exception as exc:  # noqa: BLE001
         db.rollback()

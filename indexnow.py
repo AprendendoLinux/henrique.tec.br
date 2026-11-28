@@ -59,6 +59,8 @@ def enviar(urls: list[str]) -> tuple[bool, str]:
     """Envia a lista de URLs ao IndexNow (até 10.000 por chamada)."""
     if not urls:
         return True, "nada a enviar"
+    if not em_producao():  # trava final: dev e testes nunca falam com o IndexNow
+        return False, "fora da produção: nada enviado"
     base = cfg.SITE_URL
     corpo = json.dumps({"host": base.split("://", 1)[-1].split("/")[0], "key": garantir_chave(),
                         "keyLocation": f"{base}/{garantir_chave()}.txt", "urlList": urls[:10000]}).encode()
